@@ -1,3 +1,5 @@
+import '../core/utils/parsers.dart';
+
 class CategoryModel {
   final int id;
   final String name;
@@ -23,15 +25,15 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      slug: json['slug'] ?? '',
-      image: json['image'],
-      description: json['description'],
-      status: json['status'] ?? 'active',
-      productCount: json['productCount'] ?? 0,
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      id: parseInt(json['id']),
+      name: json['name']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
+      image: json['image']?.toString(),
+      description: json['description']?.toString(),
+      status: json['status']?.toString() ?? 'active',
+      productCount: parseInt(json['productCount']),
+      createdAt: json['createdAt']?.toString(),
+      updatedAt: json['updatedAt']?.toString(),
     );
   }
 }

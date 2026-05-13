@@ -1,3 +1,6 @@
+import 'dart:convert';
+import '../core/utils/parsers.dart';
+
 class ProductModel {
   final int id;
   final int categoryId;
@@ -63,53 +66,52 @@ class ProductModel {
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     List<String>? gallery;
-    if (json['galleryImages'] != null) {
-      if (json['galleryImages'] is String) {
-        try {
-          final List<dynamic> parsed = List<dynamic>.from(
-            json['galleryImages'] is String ? [] : json['galleryImages'],
-          );
-          gallery = parsed.map((e) => e.toString()).toList();
-        } catch (_) {
-          gallery = null;
+    final rawGallery = json['galleryImages'];
+    if (rawGallery != null) {
+      try {
+        if (rawGallery is String && rawGallery.isNotEmpty) {
+          final decoded = jsonDecode(rawGallery);
+          if (decoded is List) {
+            gallery = decoded.map((e) => e.toString()).toList();
+          }
+        } else if (rawGallery is List) {
+          gallery = rawGallery.map((e) => e.toString()).toList();
         }
-      } else if (json['galleryImages'] is List) {
-        gallery = (json['galleryImages'] as List)
-            .map((e) => e.toString())
-            .toList();
+      } catch (_) {
+        gallery = null;
       }
     }
 
     return ProductModel(
-      id: json['id'] ?? 0,
-      categoryId: json['categoryId'] ?? 0,
-      name: json['name'] ?? '',
-      slug: json['slug'] ?? '',
-      shortDescription: json['shortDescription'],
-      fullDescription: json['fullDescription'],
-      brand: json['brand'],
-      sku: json['sku'],
-      barcode: json['barcode'],
-      tags: json['tags'],
-      thumbnailImage: json['thumbnailImage'],
+      id: parseInt(json['id']),
+      categoryId: parseInt(json['categoryId']),
+      name: json['name']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
+      shortDescription: json['shortDescription']?.toString(),
+      fullDescription: json['fullDescription']?.toString(),
+      brand: json['brand']?.toString(),
+      sku: json['sku']?.toString(),
+      barcode: json['barcode']?.toString(),
+      tags: json['tags']?.toString(),
+      thumbnailImage: json['thumbnailImage']?.toString(),
       galleryImages: gallery,
-      mrpPrice: (json['mrpPrice'] ?? 0).toDouble(),
-      sellingPrice: (json['sellingPrice'] ?? 0).toDouble(),
-      gstPercent: (json['gstPercent'] ?? 0).toDouble(),
-      stockQuantity: json['stockQuantity'] ?? 0,
-      minStockAlert: json['minStockAlert'] ?? 5,
-      weight: json['weight'],
-      dimensions: json['dimensions'],
-      color: json['color'],
-      material: json['material'],
-      warranty: json['warranty'],
-      status: json['status'] ?? 'active',
-      isFeatured: json['isFeatured'] == 1 || json['isFeatured'] == true,
-      totalViews: json['totalViews'] ?? 0,
-      totalSales: json['totalSales'] ?? 0,
-      categoryName: json['categoryName'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      mrpPrice: parseDouble(json['mrpPrice']),
+      sellingPrice: parseDouble(json['sellingPrice']),
+      gstPercent: parseDouble(json['gstPercent']),
+      stockQuantity: parseInt(json['stockQuantity']),
+      minStockAlert: parseInt(json['minStockAlert'], defaultValue: 5),
+      weight: json['weight']?.toString(),
+      dimensions: json['dimensions']?.toString(),
+      color: json['color']?.toString(),
+      material: json['material']?.toString(),
+      warranty: json['warranty']?.toString(),
+      status: json['status']?.toString() ?? 'active',
+      isFeatured: parseBool(json['isFeatured']),
+      totalViews: parseInt(json['totalViews']),
+      totalSales: parseInt(json['totalSales']),
+      categoryName: json['categoryName']?.toString(),
+      createdAt: json['createdAt']?.toString(),
+      updatedAt: json['updatedAt']?.toString(),
     );
   }
 

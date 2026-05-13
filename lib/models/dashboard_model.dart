@@ -1,3 +1,5 @@
+import '../core/utils/parsers.dart';
+
 class DashboardStats {
   final int totalProducts;
   final int totalOrders;
@@ -21,14 +23,14 @@ class DashboardStats {
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
     return DashboardStats(
-      totalProducts: json['totalProducts'] ?? 0,
-      totalOrders: json['totalOrders'] ?? 0,
-      pendingOrders: json['pendingOrders'] ?? 0,
-      totalRevenue: (json['totalRevenue'] ?? 0).toDouble(),
-      todayOrders: json['todayOrders'] ?? 0,
-      todayRevenue: (json['todayRevenue'] ?? 0).toDouble(),
-      totalCustomers: json['totalCustomers'] ?? 0,
-      lowStockProducts: json['lowStockProducts'] ?? 0,
+      totalProducts: parseInt(json['totalProducts']),
+      totalOrders: parseInt(json['totalOrders']),
+      pendingOrders: parseInt(json['pendingOrders']),
+      totalRevenue: parseDouble(json['totalRevenue']),
+      todayOrders: parseInt(json['todayOrders']),
+      todayRevenue: parseDouble(json['todayRevenue']),
+      totalCustomers: parseInt(json['totalCustomers']),
+      lowStockProducts: parseInt(json['lowStockProducts']),
     );
   }
 }
@@ -46,9 +48,9 @@ class RevenueData {
 
   factory RevenueData.fromJson(Map<String, dynamic> json) {
     return RevenueData(
-      date: json['date'] ?? '',
-      revenue: (json['revenue'] ?? 0).toDouble(),
-      orders: json['orders'] ?? 0,
+      date: json['date']?.toString() ?? '',
+      revenue: parseDouble(json['revenue']),
+      orders: parseInt(json['orders']),
     );
   }
 }

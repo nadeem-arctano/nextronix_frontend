@@ -1,3 +1,5 @@
+import '../core/utils/parsers.dart';
+
 class OrderModel {
   final int id;
   final int userId;
@@ -41,30 +43,30 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     List<OrderItemModel>? items;
-    if (json['items'] != null) {
+    if (json['items'] != null && json['items'] is List) {
       items = (json['items'] as List)
-          .map((e) => OrderItemModel.fromJson(e))
+          .map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
           .toList();
     }
 
     return OrderModel(
-      id: json['id'] ?? 0,
-      userId: json['userId'] ?? 0,
-      orderNumber: json['orderNumber'] ?? '',
-      subtotal: (json['subtotal'] ?? 0).toDouble(),
-      gstAmount: (json['gstAmount'] ?? 0).toDouble(),
-      shippingCharge: (json['shippingCharge'] ?? 0).toDouble(),
-      discountAmount: (json['discountAmount'] ?? 0).toDouble(),
-      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      paymentMethod: json['paymentMethod'] ?? 'cod',
-      paymentStatus: json['paymentStatus'] ?? 'pending',
-      orderStatus: json['orderStatus'] ?? 'pending',
-      customerName: json['customerName'],
-      customerEmail: json['customerEmail'],
-      customerMobile: json['customerMobile'],
-      placedAt: json['placedAt'],
-      deliveredAt: json['deliveredAt'],
-      createdAt: json['createdAt'],
+      id: parseInt(json['id']),
+      userId: parseInt(json['userId']),
+      orderNumber: json['orderNumber']?.toString() ?? '',
+      subtotal: parseDouble(json['subtotal']),
+      gstAmount: parseDouble(json['gstAmount']),
+      shippingCharge: parseDouble(json['shippingCharge']),
+      discountAmount: parseDouble(json['discountAmount']),
+      totalAmount: parseDouble(json['totalAmount']),
+      paymentMethod: json['paymentMethod']?.toString() ?? 'cod',
+      paymentStatus: json['paymentStatus']?.toString() ?? 'pending',
+      orderStatus: json['orderStatus']?.toString() ?? 'pending',
+      customerName: json['customerName']?.toString(),
+      customerEmail: json['customerEmail']?.toString(),
+      customerMobile: json['customerMobile']?.toString(),
+      placedAt: json['placedAt']?.toString(),
+      deliveredAt: json['deliveredAt']?.toString(),
+      createdAt: json['createdAt']?.toString(),
       items: items,
     );
   }
@@ -93,14 +95,14 @@ class OrderItemModel {
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
-      id: json['id'] ?? 0,
-      productId: json['productId'] ?? 0,
-      productName: json['productName'] ?? '',
-      quantity: json['quantity'] ?? 1,
-      price: (json['price'] ?? 0).toDouble(),
-      gstPercent: (json['gstPercent'] ?? 0).toDouble(),
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      thumbnailImage: json['thumbnailImage'],
+      id: parseInt(json['id']),
+      productId: parseInt(json['productId']),
+      productName: json['productName']?.toString() ?? '',
+      quantity: parseInt(json['quantity'], defaultValue: 1),
+      price: parseDouble(json['price']),
+      gstPercent: parseDouble(json['gstPercent']),
+      totalPrice: parseDouble(json['totalPrice']),
+      thumbnailImage: json['thumbnailImage']?.toString(),
     );
   }
 }

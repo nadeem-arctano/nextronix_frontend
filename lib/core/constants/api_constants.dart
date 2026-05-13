@@ -1,6 +1,6 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:5000/api';
-  static const String uploadsUrl = 'http://localhost:5000/uploads';
+  static const String baseUrl = 'http://localhost:8080/api';
+  static const String uploadsUrl = 'http://localhost:8080/uploads';
 
   // Auth
   static const String login = '/auth/login';
