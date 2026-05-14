@@ -20,6 +20,7 @@ class StatusBadge extends StatelessWidget {
       case 'cancelled':
       case 'failed':
       case 'deleted':
+      case 'blocked':
         return AppTheme.dangerColor;
       case 'pending':
       case 'draft':
@@ -41,18 +42,18 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _color.withOpacity(0.3)),
+        color: _color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         status.replaceAll('_', ' ').toUpperCase(),
         style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
           color: _color,
+          letterSpacing: 0.3,
         ),
       ),
     );

@@ -24,6 +24,7 @@ class StatCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -35,7 +36,7 @@ class StatCard extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -44,9 +45,10 @@ class StatCard extends StatelessWidget {
                       Text(
                         value,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary,
+                          letterSpacing: -0.5,
                         ),
                       ),
                       if (subtitle != null) ...[
@@ -54,7 +56,7 @@ class StatCard extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: color,
                             fontWeight: FontWeight.w500,
                           ),
@@ -64,12 +66,12 @@ class StatCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: color, size: 22),
                 ),
               ],
             ),

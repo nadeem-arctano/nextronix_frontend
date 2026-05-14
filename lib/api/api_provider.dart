@@ -136,6 +136,9 @@ abstract class ApiProvider {
   @GET("dashboard/category-stats")
   Future<CategoryStatsResponse> getDashboardCategoryStats();
 
+  @GET("dashboard/recent-users")
+  Future<UserListResponse> getDashboardRecentUsers(@Query('limit') int limit);
+
   // ─── Coupons ────────────────────────────────────────────────────────────────
   @GET("coupons")
   Future<CouponListResponse> getCoupons();
@@ -157,6 +160,16 @@ abstract class ApiProvider {
 
   @PATCH("coupons/{id}/status")
   Future<CommonResponse> updateCouponStatus(
+    @Path('id') int id,
+    @Body() StatusRequest statusRequest,
+  );
+
+  // ─── Users ──────────────────────────────────────────────────────────────────
+  @GET("users")
+  Future<UserListResponse> getUsers(@Queries() Map<String, dynamic> queries);
+
+  @PATCH("users/{id}/status")
+  Future<CommonResponse> updateUserStatus(
     @Path('id') int id,
     @Body() StatusRequest statusRequest,
   );

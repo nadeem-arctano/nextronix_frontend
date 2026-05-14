@@ -6,6 +6,7 @@ import '../../screens/products/edit_product_screen.dart';
 import '../../screens/categories/categories_screen.dart';
 import '../../screens/orders/orders_screen.dart';
 import '../../screens/orders/order_detail_screen.dart';
+import '../../screens/users/users_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 class AppRouter {
@@ -53,6 +54,11 @@ class AppRouter {
             builder: (context, state) => OrderDetailScreen(
               orderId: int.parse(state.pathParameters['id']!),
             ),
+          ),
+          GoRoute(
+            path: '/users',
+            name: 'users',
+            builder: (context, state) => const UsersScreen(),
           ),
         ],
       ),

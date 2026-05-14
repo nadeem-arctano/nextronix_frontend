@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../provider/dashboard_provider.dart';
+import '../../widgets/page_header.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
@@ -52,18 +53,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Dashboard',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Welcome back! Here\'s what\'s happening with your store.',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                const PageHeader(
+                  title: 'Dashboard',
+                  subtitle:
+                      'Welcome back! Here\'s what\'s happening with your store.',
                 ),
                 const SizedBox(height: 24),
 
@@ -290,7 +283,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.dangerColor.withOpacity(0.1),
+                              color: AppTheme.dangerColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

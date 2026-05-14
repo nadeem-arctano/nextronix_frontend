@@ -256,4 +256,37 @@ class NextronixRepository {
   Future<ProductListResponse> getDashboardLowStock() async {
     return await _apiProvider.getDashboardLowStock();
   }
+
+  Future<UserListResponse> getDashboardRecentUsers({int limit = 10}) async {
+    return await _apiProvider.getDashboardRecentUsers(limit);
+  }
+
+  // ─── Users ────────────────────────────────────────────────────────────────
+  Future<UserListResponse> getUsers({
+    int page = 1,
+    int limit = 10,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? role,
+    String? status,
+  }) async {
+    final queries = <String, dynamic>{'page': page, 'limit': limit};
+    if (search != null && search.isNotEmpty) queries['search'] = search;
+    if (startDate != null) queries['startDate'] = startDate;
+    if (endDate != null) queries['endDate'] = endDate;
+    if (role != null) queries['role'] = role;
+    if (status != null) queries['status'] = status;
+    return await _apiProvider.getUsers(queries);
+  }
+
+  Future<CommonResponse> updateUserStatus({
+    required int id,
+    required String status,
+  }) async {
+    return await _apiProvider.updateUserStatus(
+      id,
+      StatusRequest(status: status),
+    );
+  }
 }

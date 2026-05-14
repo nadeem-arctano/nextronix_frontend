@@ -50,23 +50,39 @@ class _AdminLayoutState extends State<AdminLayout> {
   }) {
     return AppBar(
       automaticallyImplyLeading: isMobile,
-      title: isMobile ? const Text('Nextronix Admin') : null,
+      title: isMobile ? const Text('Nextronix') : null,
       actions: [
         if (!isMobile)
           IconButton(
-            icon: Icon(_isSidebarCollapsed ? Icons.menu_open : Icons.menu),
+            icon: Icon(
+              _isSidebarCollapsed ? Icons.menu_open : Icons.menu,
+              size: 20,
+            ),
             onPressed: () =>
                 setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
           ),
         IconButton(
-          icon: const Icon(Icons.notifications_outlined),
+          icon: const Icon(Icons.notifications_outlined, size: 20),
           onPressed: () {},
         ),
         const SizedBox(width: 8),
-        const CircleAvatar(
-          radius: 16,
-          backgroundColor: AppTheme.primaryColor,
-          child: Text('A', style: TextStyle(color: Colors.white, fontSize: 14)),
+        Container(
+          width: 32,
+          height: 32,
+          decoration: const BoxDecoration(
+            color: AppTheme.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: Text(
+              'A',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
         const SizedBox(width: 16),
       ],
@@ -80,7 +96,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   Widget _buildSidebar(BuildContext context, {required bool collapsed}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: collapsed ? 70 : 260,
+      width: collapsed ? 64 : 240,
       decoration: const BoxDecoration(color: AppTheme.sidebarColor),
       child: _buildSidebarContent(context, collapsed: collapsed),
     );
@@ -91,25 +107,28 @@ class _AdminLayoutState extends State<AdminLayout> {
 
     return Column(
       children: [
+        // Logo
         Container(
-          height: 64,
+          height: 56,
           padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 20),
           alignment: collapsed ? Alignment.center : Alignment.centerLeft,
           child: collapsed
-              ? const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 28)
+              ? const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 24)
               : const Text(
                   'Nextronix',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
                   ),
                 ),
         ),
-        const Divider(color: Colors.white12, height: 1),
+        const Divider(color: Colors.white10, height: 1),
+        const SizedBox(height: 8),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             children: [
               _buildNavItem(
                 context,
@@ -143,6 +162,14 @@ class _AdminLayoutState extends State<AdminLayout> {
                 currentPath,
                 collapsed,
               ),
+              _buildNavItem(
+                context,
+                Icons.people_outline,
+                'Users',
+                '/users',
+                currentPath,
+                collapsed,
+              ),
             ],
           ),
         ),
@@ -161,14 +188,13 @@ class _AdminLayoutState extends State<AdminLayout> {
     final isActive = currentPath.startsWith(path);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.only(bottom: 2),
       child: Material(
-        color: isActive
-            ? AppTheme.primaryColor.withOpacity(0.15)
-            : Colors.transparent,
+        color: isActive ? AppTheme.sidebarActiveColor : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
+          hoverColor: AppTheme.sidebarActiveColor,
           onTap: () {
             context.go(path);
             if (MediaQuery.of(context).size.width < 768) {
@@ -177,8 +203,8 @@ class _AdminLayoutState extends State<AdminLayout> {
           },
           child: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: collapsed ? 12 : 16,
-              vertical: 12,
+              horizontal: collapsed ? 0 : 12,
+              vertical: 10,
             ),
             child: Row(
               mainAxisAlignment: collapsed
@@ -187,21 +213,30 @@ class _AdminLayoutState extends State<AdminLayout> {
               children: [
                 Icon(
                   icon,
-                  color: isActive ? AppTheme.primaryColor : Colors.white70,
-                  size: 22,
+                  color: isActive ? Colors.white : Colors.white60,
+                  size: 20,
                 ),
                 if (!collapsed) ...[
                   const SizedBox(width: 12),
                   Text(
                     label,
                     style: TextStyle(
-                      color: isActive ? AppTheme.primaryColor : Colors.white70,
-                      fontWeight: isActive
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      fontSize: 14,
+                      color: isActive ? Colors.white : Colors.white60,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                      fontSize: 13,
                     ),
                   ),
+                  if (isActive) ...[
+                    const Spacer(),
+                    Container(
+                      width: 3,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),

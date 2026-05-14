@@ -11,12 +11,22 @@ class LoadingWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: AppTheme.primaryColor),
+          const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryColor,
+              strokeWidth: 3,
+            ),
+          ),
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(
               message!,
-              style: const TextStyle(color: AppTheme.textSecondary),
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ],
@@ -39,16 +49,19 @@ class ErrorWidget2 extends StatelessWidget {
         children: [
           const Icon(
             Icons.error_outline,
-            size: 48,
+            size: 40,
             color: AppTheme.dangerColor,
           ),
-          const SizedBox(height: 16),
-          Text(message, style: const TextStyle(color: AppTheme.textSecondary)),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          ),
           if (onRetry != null) ...[
             const SizedBox(height: 16),
-            ElevatedButton.icon(
+            OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, size: 16),
               label: const Text('Retry'),
             ),
           ],
@@ -74,11 +87,11 @@ class EmptyWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textSecondary.withOpacity(0.5)),
-          const SizedBox(height: 16),
+          Icon(icon, size: 48, color: AppTheme.textMuted),
+          const SizedBox(height: 12),
           Text(
             message,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
           ),
         ],
       ),
