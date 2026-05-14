@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
-import '../../providers/order_provider.dart';
+import '../../provider/order_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
 
@@ -88,7 +88,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   cells: [
                                     DataCell(
                                       Text(
-                                        order.orderNumber,
+                                        order.orderNumber ?? '',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 13,
@@ -120,17 +120,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     ),
                                     DataCell(
                                       Text(
-                                        '₹${order.totalAmount.toStringAsFixed(0)}',
+                                        '₹${(order.totalAmount ?? 0).toStringAsFixed(0)}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),
                                     DataCell(
-                                      StatusBadge(status: order.paymentStatus),
+                                      StatusBadge(
+                                        status:
+                                            order.paymentStatus ?? 'pending',
+                                      ),
                                     ),
                                     DataCell(
-                                      StatusBadge(status: order.orderStatus),
+                                      StatusBadge(
+                                        status: order.orderStatus ?? 'pending',
+                                      ),
                                     ),
                                     DataCell(
                                       Text(
@@ -165,8 +170,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                             ),
                                             onSelected: (status) =>
                                                 provider.updateOrderStatus(
-                                                  order.id,
-                                                  status,
+                                                  id: order.id!,
+                                                  status: status,
                                                 ),
                                             itemBuilder: (ctx) => [
                                               const PopupMenuItem(

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../providers/order_provider.dart';
+import '../../provider/order_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
 
@@ -20,7 +20,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().loadOrderById(widget.orderId);
+      context.read<OrderProvider>().loadOrderById(id: widget.orderId);
     });
   }
 
@@ -50,14 +50,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Order ${order.orderNumber}',
+                    'Order ${order.orderNumber ?? ''}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  StatusBadge(status: order.orderStatus),
+                  StatusBadge(status: order.orderStatus ?? 'pending'),
                 ],
               ),
               const SizedBox(height: 24),
@@ -132,13 +132,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.productName,
+                                  item.productName ?? '',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 Text(
-                                  'Qty: ${item.quantity} × ₹${item.price.toStringAsFixed(0)}',
+                                  'Qty: ${item.quantity ?? 0} × ₹${(item.price ?? 0).toStringAsFixed(0)}',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: AppTheme.textSecondary,
@@ -148,7 +148,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             ),
                           ),
                           Text(
-                            '₹${item.totalPrice.toStringAsFixed(0)}',
+                            '₹${(item.totalPrice ?? 0).toStringAsFixed(0)}',
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -180,26 +180,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 16),
                 _buildSummaryRow(
                   'Subtotal',
-                  '₹${order.subtotal.toStringAsFixed(2)}',
+                  '₹${(order.subtotal ?? 0).toStringAsFixed(2)}',
                 ),
                 _buildSummaryRow(
                   'GST',
-                  '₹${order.gstAmount.toStringAsFixed(2)}',
+                  '₹${(order.gstAmount ?? 0).toStringAsFixed(2)}',
                 ),
                 _buildSummaryRow(
                   'Shipping',
-                  '₹${order.shippingCharge.toStringAsFixed(2)}',
+                  '₹${(order.shippingCharge ?? 0).toStringAsFixed(2)}',
                 ),
-                if (order.discountAmount > 0)
+                if ((order.discountAmount ?? 0) > 0)
                   _buildSummaryRow(
                     'Discount',
-                    '-₹${order.discountAmount.toStringAsFixed(2)}',
+                    '-₹${(order.discountAmount ?? 0).toStringAsFixed(2)}',
                     isDiscount: true,
                   ),
                 const Divider(),
                 _buildSummaryRow(
                   'Total',
-                  '₹${order.totalAmount.toStringAsFixed(2)}',
+                  '₹${(order.totalAmount ?? 0).toStringAsFixed(2)}',
                   isBold: true,
                 ),
               ],
@@ -270,7 +270,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   children: [
                     const Text('Method'),
                     Text(
-                      order.paymentMethod.toUpperCase(),
+                      (order.paymentMethod ?? 'cod').toUpperCase(),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -280,7 +280,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Status'),
-                    StatusBadge(status: order.paymentStatus),
+                    StatusBadge(status: order.paymentStatus ?? 'pending'),
                   ],
                 ),
               ],
@@ -330,7 +330,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ],
                   onChanged: (v) {
-                    if (v != null) provider.updateOrderStatus(order.id, v);
+                    if (v != null)
+                      provider.updateOrderStatus(id: order.id!, status: v);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -349,7 +350,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ],
                   onChanged: (v) {
-                    if (v != null) provider.updatePaymentStatus(order.id, v);
+                    if (v != null)
+                      provider.updatePaymentStatus(
+                        id: order.id!,
+                        paymentStatus: v,
+                      );
                   },
                 ),
               ],

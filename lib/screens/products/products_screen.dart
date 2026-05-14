@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
-import '../../providers/product_provider.dart';
-import '../../providers/category_provider.dart';
+import '../../provider/product_provider.dart';
+import '../../provider/category_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
 
@@ -176,7 +176,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  product.name,
+                                                  product.name ?? '',
                                                   maxLines: 1,
                                                   overflow:
                                                       TextOverflow.ellipsis,
@@ -209,15 +209,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            '₹${product.sellingPrice.toStringAsFixed(0)}',
+                                            '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          if (product.mrpPrice >
-                                              product.sellingPrice)
+                                          if ((product.mrpPrice ?? 0) >
+                                              (product.sellingPrice ?? 0))
                                             Text(
-                                              '₹${product.mrpPrice.toStringAsFixed(0)}',
+                                              '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
                                               style: const TextStyle(
                                                 fontSize: 11,
                                                 decoration:
@@ -230,7 +230,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     ),
                                     DataCell(
                                       Text(
-                                        '${product.stockQuantity}',
+                                        '${product.stockQuantity ?? 0}',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
                                           color: product.isLowStock
@@ -240,7 +240,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       ),
                                     ),
                                     DataCell(
-                                      StatusBadge(status: product.status),
+                                      StatusBadge(
+                                        status: product.status ?? 'active',
+                                      ),
                                     ),
                                     DataCell(
                                       Row(
@@ -258,16 +260,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                           ),
                                           IconButton(
                                             icon: Icon(
-                                              product.isFeatured
+                                              (product.isFeatured ?? false)
                                                   ? Icons.star
                                                   : Icons.star_border,
                                               size: 18,
-                                              color: product.isFeatured
+                                              color:
+                                                  (product.isFeatured ?? false)
                                                   ? AppTheme.warningColor
                                                   : null,
                                             ),
-                                            onPressed: () => provider
-                                                .toggleFeatured(product.id),
+                                            onPressed: () =>
+                                                provider.toggleFeatured(
+                                                  id: product.id!,
+                                                ),
                                             tooltip: 'Toggle Featured',
                                           ),
                                           IconButton(
@@ -279,7 +284,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                             onPressed: () => _confirmDelete(
                                               context,
                                               provider,
-                                              product.id,
+                                              product.id!,
                                             ),
                                             tooltip: 'Delete',
                                           ),
@@ -392,7 +397,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               backgroundColor: AppTheme.dangerColor,
             ),
             onPressed: () {
-              provider.deleteProduct(id);
+              provider.deleteProduct(id: id);
               Navigator.pop(ctx);
             },
             child: const Text('Delete'),

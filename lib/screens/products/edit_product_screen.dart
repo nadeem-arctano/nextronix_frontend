@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
-import '../../providers/product_provider.dart';
-import '../../providers/category_provider.dart';
+import '../../provider/product_provider.dart';
+import '../../provider/category_provider.dart';
 import '../../widgets/loading_widget.dart';
 
 class EditProductScreen extends StatefulWidget {
@@ -47,7 +47,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadProductById(widget.productId);
+      context.read<ProductProvider>().loadProductById(id: widget.productId);
       context.read<CategoryProvider>().loadCategories();
     });
   }
@@ -56,26 +56,26 @@ class _EditProductScreenState extends State<EditProductScreen> {
     final product = context.read<ProductProvider>().selectedProduct;
     if (product == null || _isLoaded) return;
 
-    _nameController.text = product.name;
+    _nameController.text = product.name ?? '';
     _shortDescController.text = product.shortDescription ?? '';
     _fullDescController.text = product.fullDescription ?? '';
     _brandController.text = product.brand ?? '';
     _skuController.text = product.sku ?? '';
     _barcodeController.text = product.barcode ?? '';
     _tagsController.text = product.tags ?? '';
-    _mrpController.text = product.mrpPrice.toStringAsFixed(0);
-    _sellingController.text = product.sellingPrice.toStringAsFixed(0);
-    _gstController.text = product.gstPercent.toStringAsFixed(0);
-    _stockController.text = product.stockQuantity.toString();
-    _minStockController.text = product.minStockAlert.toString();
+    _mrpController.text = (product.mrpPrice ?? 0).toStringAsFixed(0);
+    _sellingController.text = (product.sellingPrice ?? 0).toStringAsFixed(0);
+    _gstController.text = (product.gstPercent ?? 0).toStringAsFixed(0);
+    _stockController.text = (product.stockQuantity ?? 0).toString();
+    _minStockController.text = (product.minStockAlert ?? 5).toString();
     _weightController.text = product.weight ?? '';
     _dimensionsController.text = product.dimensions ?? '';
     _colorController.text = product.color ?? '';
     _materialController.text = product.material ?? '';
     _warrantyController.text = product.warranty ?? '';
     _selectedCategory = product.categoryId;
-    _status = product.status;
-    _isFeatured = product.isFeatured;
+    _status = product.status ?? 'active';
+    _isFeatured = product.isFeatured ?? false;
     _isLoaded = true;
   }
 
@@ -119,14 +119,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
       );
     }
 
-    final success = await context.read<ProductProvider>().updateProduct(
-      widget.productId,
-      formData,
+    final result = await context.read<ProductProvider>().updateProduct(
+      id: widget.productId,
+      formData: formData,
     );
 
     setState(() => _isSubmitting = false);
 
-    if (success && mounted) {
+    if (result == null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Product updated successfully'),
@@ -255,7 +255,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     value: _selectedCategory,
                     decoration: const InputDecoration(labelText: 'Category *'),
                     items: categories.map<DropdownMenuItem<int>>((c) {
-                      return DropdownMenuItem(value: c.id, child: Text(c.name));
+                      return DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.name ?? ''),
+                      );
                     }).toList(),
                     onChanged: (v) => setState(() => _selectedCategory = v),
                   ),

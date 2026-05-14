@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
-import '../../providers/dashboard_provider.dart';
+import '../../provider/dashboard_provider.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
@@ -186,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              order.orderNumber,
+                              order.orderNumber ?? '',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
@@ -203,14 +203,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       Text(
-                        '₹${order.totalAmount.toStringAsFixed(0)}',
+                        '₹${(order.totalAmount ?? 0).toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      StatusBadge(status: order.orderStatus),
+                      StatusBadge(status: order.orderStatus ?? 'pending'),
                     ],
                   ),
                 ),
@@ -266,7 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  product.name,
+                                  product.name ?? '',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 13,
@@ -294,7 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              '${product.stockQuantity} left',
+                              '${product.stockQuantity ?? 0} left',
                               style: const TextStyle(
                                 color: AppTheme.dangerColor,
                                 fontSize: 11,

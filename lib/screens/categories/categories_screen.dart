@@ -4,8 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
-import '../../providers/category_provider.dart';
-import '../../models/category_model.dart';
+import '../../provider/category_provider.dart';
+import '../../model/response/category_list_response.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
 
@@ -106,7 +106,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        category.name,
+                                        category.name ?? '',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -124,8 +124,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     ],
                                   ),
                                 ),
-                                DataCell(Text('${category.productCount}')),
-                                DataCell(StatusBadge(status: category.status)),
+                                DataCell(Text('${category.productCount ?? 0}')),
+                                DataCell(
+                                  StatusBadge(
+                                    status: category.status ?? 'active',
+                                  ),
+                                ),
                                 DataCell(
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -174,7 +178,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _showCategoryDialog(
     BuildContext context,
     CategoryProvider provider, {
-    CategoryModel? category,
+    CategoryResult? category,
   }) {
     final nameController = TextEditingController(text: category?.name ?? '');
     final descController = TextEditingController(
@@ -245,35 +249,33 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               onPressed: () async {
                 if (nameController.text.isEmpty) return;
 
-                final formData = FormData.fromMap({
-                  'name': nameController.text,
-                  'description': descController.text,
-                  'status': status,
-                });
-
+                MultipartFile? imageMultipart;
                 if (imageFile != null && imageFile!.bytes != null) {
-                  formData.files.add(
-                    MapEntry(
-                      'image',
-                      MultipartFile.fromBytes(
-                        imageFile!.bytes!,
-                        filename: imageFile!.name,
-                      ),
-                    ),
+                  imageMultipart = MultipartFile.fromBytes(
+                    imageFile!.bytes!,
+                    filename: imageFile!.name,
                   );
                 }
 
-                bool success;
+                dynamic result;
                 if (category == null) {
-                  success = await provider.createCategory(formData);
+                  result = await provider.createCategory(
+                    name: nameController.text,
+                    description: descController.text,
+                    status: status,
+                    image: imageMultipart,
+                  );
                 } else {
-                  success = await provider.updateCategory(
-                    category.id,
-                    formData,
+                  result = await provider.updateCategory(
+                    id: category.id!,
+                    name: nameController.text,
+                    description: descController.text,
+                    status: status,
+                    image: imageMultipart,
                   );
                 }
 
-                if (success && ctx.mounted) Navigator.pop(ctx);
+                if (result == null && ctx.mounted) Navigator.pop(ctx);
               },
               child: Text(category == null ? 'Create' : 'Update'),
             ),
@@ -286,7 +288,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _confirmDelete(
     BuildContext context,
     CategoryProvider provider,
-    CategoryModel category,
+    CategoryResult category,
   ) {
     showDialog(
       context: context,
@@ -303,7 +305,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               backgroundColor: AppTheme.dangerColor,
             ),
             onPressed: () {
-              provider.deleteCategory(category.id);
+              provider.deleteCategory(id: category.id!);
               Navigator.pop(ctx);
             },
             child: const Text('Delete'),

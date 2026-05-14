@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
-import '../../providers/product_provider.dart';
-import '../../providers/category_provider.dart';
+import '../../provider/product_provider.dart';
+import '../../provider/category_provider.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -137,13 +137,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
       }
     }
 
-    final success = await context.read<ProductProvider>().createProduct(
-      formData,
+    final result = await context.read<ProductProvider>().createProduct(
+      formData: formData,
     );
 
     setState(() => _isSubmitting = false);
 
-    if (success && mounted) {
+    if (result == null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Product created successfully'),
@@ -257,7 +257,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     value: _selectedCategory,
                     decoration: const InputDecoration(labelText: 'Category *'),
                     items: categories.map<DropdownMenuItem<int>>((c) {
-                      return DropdownMenuItem(value: c.id, child: Text(c.name));
+                      return DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.name ?? ''),
+                      );
                     }).toList(),
                     onChanged: (v) => setState(() => _selectedCategory = v),
                   ),
