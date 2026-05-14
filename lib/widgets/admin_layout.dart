@@ -50,7 +50,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   }) {
     return AppBar(
       automaticallyImplyLeading: isMobile,
-      title: isMobile ? const Text('NextTronics Admin') : null,
+      title: isMobile ? const Text('Nextronix Admin') : null,
       actions: [
         if (!isMobile)
           IconButton(
@@ -98,7 +98,7 @@ class _AdminLayoutState extends State<AdminLayout> {
           child: collapsed
               ? const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 28)
               : const Text(
-                  'NextTronics',
+                  'Nextronix',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,

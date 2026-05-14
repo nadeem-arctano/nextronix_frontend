@@ -21,7 +21,7 @@ class NextronixAdmin extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp.router(
-        title: 'NextTronics Admin',
+        title: 'Nextronix Admin',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         routerConfig: AppRouter.router,
