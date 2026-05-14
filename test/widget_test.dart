@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nexttronics_front_end/main.dart';
+import 'package:nextronix_frontend/main.dart';
 
 void main() {
   testWidgets('App renders', (WidgetTester tester) async {
-    await tester.pumpWidget(const NextTronicsAdmin());
+    await tester.pumpWidget(const NextronixAdmin());
     expect(find.text('NextTronics'), findsOneWidget);
   });
 }

@@ -1,4 +1,4 @@
-package com.example.nexttronics_front_end
+package com.example.nextronix_frontend
 
 import io.flutter.embedding.android.FlutterActivity
 

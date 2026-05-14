@@ -1,4 +1,4 @@
-# nexttronics_front_end
+# nextronix_frontend
 
 A new Flutter project.
 

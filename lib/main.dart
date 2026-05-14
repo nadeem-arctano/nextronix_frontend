@@ -8,11 +8,11 @@ import 'providers/category_provider.dart';
 import 'providers/order_provider.dart';
 
 void main() {
-  runApp(const NextTronicsAdmin());
+  runApp(const NextronixAdmin());
 }
 
-class NextTronicsAdmin extends StatelessWidget {
-  const NextTronicsAdmin({super.key});
+class NextronixAdmin extends StatelessWidget {
+  const NextronixAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {
