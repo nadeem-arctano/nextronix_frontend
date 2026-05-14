@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
+import '../static_values/static_values.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -21,9 +22,49 @@ class _AdminLayoutState extends State<AdminLayout> {
 
     if (isMobile) {
       return Scaffold(
-        appBar: _buildAppBar(context, isMobile: true),
         drawer: _buildDrawer(context),
-        body: widget.child,
+        body: Row(
+          children: [
+            // Mobile: no sidebar, use drawer
+            Expanded(
+              child: Column(
+                children: [
+                  // Small mobile header with menu button
+                  Container(
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.sidebarColor,
+                    ),
+                    child: Row(
+                      children: [
+                        Builder(
+                          builder: (ctx) => IconButton(
+                            icon: const Icon(
+                              Icons.menu,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed: () => Scaffold.of(ctx).openDrawer(),
+                          ),
+                        ),
+                        const Text(
+                          'Nextronix',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: widget.child),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -31,72 +72,23 @@ class _AdminLayoutState extends State<AdminLayout> {
       body: Row(
         children: [
           _buildSidebar(context, collapsed: isTablet || _isSidebarCollapsed),
-          Expanded(
-            child: Column(
-              children: [
-                _buildAppBar(context, isMobile: false),
-                Expanded(child: widget.child),
-              ],
-            ),
-          ),
+          Expanded(child: widget.child),
         ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(
-    BuildContext context, {
-    required bool isMobile,
-  }) {
-    return AppBar(
-      automaticallyImplyLeading: isMobile,
-      title: isMobile ? const Text('Nextronix') : null,
-      actions: [
-        if (!isMobile)
-          IconButton(
-            icon: Icon(
-              _isSidebarCollapsed ? Icons.menu_open : Icons.menu,
-              size: 20,
-            ),
-            onPressed: () =>
-                setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
-          ),
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined, size: 20),
-          onPressed: () {},
-        ),
-        const SizedBox(width: 8),
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            color: AppTheme.primaryColor,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text(
-              'A',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-      ],
-    );
-  }
-
   Widget _buildDrawer(BuildContext context) {
-    return Drawer(child: _buildSidebarContent(context, collapsed: false));
+    return Drawer(
+      backgroundColor: AppTheme.sidebarColor,
+      child: _buildSidebarContent(context, collapsed: false),
+    );
   }
 
   Widget _buildSidebar(BuildContext context, {required bool collapsed}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: collapsed ? 64 : 240,
+      width: collapsed ? 64 : 220,
       decoration: const BoxDecoration(color: AppTheme.sidebarColor),
       child: _buildSidebarContent(context, collapsed: collapsed),
     );
@@ -107,25 +99,45 @@ class _AdminLayoutState extends State<AdminLayout> {
 
     return Column(
       children: [
-        // Logo
+        // Logo + collapse toggle
         Container(
           height: 56,
-          padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 20),
-          alignment: collapsed ? Alignment.center : Alignment.centerLeft,
-          child: collapsed
-              ? const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 24)
-              : const Text(
+          padding: EdgeInsets.symmetric(horizontal: collapsed ? 0 : 16),
+          child: Row(
+            mainAxisAlignment: collapsed
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.spaceBetween,
+            children: [
+              if (!collapsed)
+                const Text(
                   'Nextronix',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.3,
                   ),
                 ),
+              if (collapsed)
+                const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 22),
+              if (!collapsed)
+                GestureDetector(
+                  onTap: () => setState(
+                    () => _isSidebarCollapsed = !_isSidebarCollapsed,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    color: Colors.white38,
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
         ),
-        const Divider(color: Colors.white10, height: 1),
+
         const SizedBox(height: 8),
+
+        // Nav items
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -173,8 +185,113 @@ class _AdminLayoutState extends State<AdminLayout> {
             ],
           ),
         ),
+
+        // Profile + Logout at bottom
+        const Divider(color: Colors.white10, height: 1),
+        _buildProfileSection(collapsed),
       ],
     );
+  }
+
+  Widget _buildProfileSection(bool collapsed) {
+    if (collapsed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            const CircleAvatar(
+              radius: 14,
+              backgroundColor: AppTheme.primaryColor,
+              child: Text(
+                'A',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _handleLogout,
+              child: const Icon(Icons.logout, color: Colors.white38, size: 18),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.primaryColor,
+                child: Text(
+                  'A',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Admin',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      'admin@nextronix.com',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _handleLogout,
+              icon: const Icon(Icons.logout, size: 14),
+              label: const Text('Logout'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white60,
+                side: const BorderSide(color: Colors.white12),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                textStyle: const TextStyle(fontSize: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleLogout() {
+    globalAccessToken = null;
+    // Navigate to login or handle logout
   }
 
   Widget _buildNavItem(
@@ -213,30 +330,32 @@ class _AdminLayoutState extends State<AdminLayout> {
               children: [
                 Icon(
                   icon,
-                  color: isActive ? Colors.white : Colors.white60,
-                  size: 20,
+                  color: isActive ? Colors.white : Colors.white54,
+                  size: 19,
                 ),
                 if (!collapsed) ...[
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isActive ? Colors.white : Colors.white60,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                      fontSize: 13,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: isActive ? Colors.white : Colors.white54,
+                        fontWeight: isActive
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                  if (isActive) ...[
-                    const Spacer(),
+                  if (isActive)
                     Container(
                       width: 3,
-                      height: 16,
+                      height: 14,
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  ],
                 ],
               ],
             ),
