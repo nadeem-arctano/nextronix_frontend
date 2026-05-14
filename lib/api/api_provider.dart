@@ -110,7 +110,7 @@ abstract class ApiProvider {
   );
 
   @GET("orders/stats")
-  Future<CommonResponse> getOrderStats();
+  Future<OrderStatsResponse> getOrderStats();
 
   // ─── Dashboard ──────────────────────────────────────────────────────────────
   @GET("dashboard/stats")
@@ -131,12 +131,33 @@ abstract class ApiProvider {
   Future<ProductListResponse> getDashboardLowStock();
 
   @GET("dashboard/order-chart")
-  Future<CommonResponse> getDashboardOrderChart();
+  Future<OrderChartResponse> getDashboardOrderChart();
 
   @GET("dashboard/category-stats")
-  Future<CommonResponse> getDashboardCategoryStats();
+  Future<CategoryStatsResponse> getDashboardCategoryStats();
 
   // ─── Coupons ────────────────────────────────────────────────────────────────
   @GET("coupons")
-  Future<CommonResponse> getCoupons();
+  Future<CouponListResponse> getCoupons();
+
+  @GET("coupons/{id}")
+  Future<CouponDetailResponse> getCouponById(@Path('id') int id);
+
+  @POST("coupons")
+  Future<CommonResponse> createCoupon(@Body() CouponRequest couponRequest);
+
+  @PUT("coupons/{id}")
+  Future<CommonResponse> updateCoupon(
+    @Path('id') int id,
+    @Body() CouponRequest couponRequest,
+  );
+
+  @DELETE("coupons/{id}")
+  Future<CommonResponse> deleteCoupon(@Path('id') int id);
+
+  @PATCH("coupons/{id}/status")
+  Future<CommonResponse> updateCouponStatus(
+    @Path('id') int id,
+    @Body() StatusRequest statusRequest,
+  );
 }

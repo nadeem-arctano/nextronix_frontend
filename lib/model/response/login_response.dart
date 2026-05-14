@@ -1,3 +1,5 @@
+import '../../core/utils/parsers.dart';
+
 class LoginResponse {
   final int? statusCode;
   final String? message;
@@ -20,26 +22,58 @@ class LoginResponse {
 
 class LoginResult {
   final String? token;
-  final String? userId;
-  final String? name;
-  final String? email;
-  final String? role;
+  final UserResult? user;
 
-  LoginResult({this.token, this.userId, this.name, this.email, this.role});
+  LoginResult({this.token, this.user});
 
   factory LoginResult.fromJson(Map<String, dynamic> json) => LoginResult(
     token: json["token"],
-    userId: json["userId"]?.toString(),
-    name: json["name"],
-    email: json["email"],
-    role: json["role"],
+    user: json["user"] == null ? null : UserResult.fromJson(json["user"]),
+  );
+
+  Map<String, dynamic> toJson() => {"token": token, "user": user?.toJson()};
+}
+
+class UserResult {
+  final int? id;
+  final String? name;
+  final String? email;
+  final String? mobile;
+  final String? role;
+  final String? status;
+  final String? createdAt;
+  final String? updatedAt;
+
+  UserResult({
+    this.id,
+    this.name,
+    this.email,
+    this.mobile,
+    this.role,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory UserResult.fromJson(Map<String, dynamic> json) => UserResult(
+    id: parseInt(json['id']),
+    name: json['name']?.toString(),
+    email: json['email']?.toString(),
+    mobile: json['mobile']?.toString(),
+    role: json['role']?.toString(),
+    status: json['status']?.toString(),
+    createdAt: json['createdAt']?.toString(),
+    updatedAt: json['updatedAt']?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
-    "token": token,
-    "userId": userId,
+    "id": id,
     "name": name,
     "email": email,
+    "mobile": mobile,
     "role": role,
+    "status": status,
+    "createdAt": createdAt,
+    "updatedAt": updatedAt,
   };
 }

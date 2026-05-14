@@ -815,12 +815,12 @@ class _ApiProvider implements ApiProvider {
   }
 
   @override
-  Future<CommonResponse> getOrderStats() async {
+  Future<OrderStatsResponse> getOrderStats() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<CommonResponse>(Options(
+    final _options = _setStreamType<OrderStatsResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -837,9 +837,9 @@ class _ApiProvider implements ApiProvider {
           baseUrl,
         )));
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late CommonResponse _value;
+    late OrderStatsResponse _value;
     try {
-      _value = CommonResponse.fromJson(_result.data!);
+      _value = OrderStatsResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -1013,12 +1013,12 @@ class _ApiProvider implements ApiProvider {
   }
 
   @override
-  Future<CommonResponse> getDashboardOrderChart() async {
+  Future<OrderChartResponse> getDashboardOrderChart() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<CommonResponse>(Options(
+    final _options = _setStreamType<OrderChartResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -1035,9 +1035,9 @@ class _ApiProvider implements ApiProvider {
           baseUrl,
         )));
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late CommonResponse _value;
+    late OrderChartResponse _value;
     try {
-      _value = CommonResponse.fromJson(_result.data!);
+      _value = OrderChartResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -1046,12 +1046,12 @@ class _ApiProvider implements ApiProvider {
   }
 
   @override
-  Future<CommonResponse> getDashboardCategoryStats() async {
+  Future<CategoryStatsResponse> getDashboardCategoryStats() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<CommonResponse>(Options(
+    final _options = _setStreamType<CategoryStatsResponse>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -1059,6 +1059,106 @@ class _ApiProvider implements ApiProvider {
         .compose(
           _dio.options,
           'dashboard/category-stats',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CategoryStatsResponse _value;
+    try {
+      _value = CategoryStatsResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CouponListResponse> getCoupons() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CouponListResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          'coupons',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CouponListResponse _value;
+    try {
+      _value = CouponListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CouponDetailResponse> getCouponById(int id) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CouponDetailResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          'coupons/${id}',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CouponDetailResponse _value;
+    try {
+      _value = CouponDetailResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CommonResponse> createCoupon(CouponRequest couponRequest) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(couponRequest.toJson());
+    final _options = _setStreamType<CommonResponse>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          'coupons',
           queryParameters: queryParameters,
           data: _data,
         )
@@ -1079,19 +1179,93 @@ class _ApiProvider implements ApiProvider {
   }
 
   @override
-  Future<CommonResponse> getCoupons() async {
+  Future<CommonResponse> updateCoupon(
+    int id,
+    CouponRequest couponRequest,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
+    final _data = <String, dynamic>{};
+    _data.addAll(couponRequest.toJson());
     final _options = _setStreamType<CommonResponse>(Options(
-      method: 'GET',
+      method: 'PUT',
       headers: _headers,
       extra: _extra,
     )
         .compose(
           _dio.options,
-          'coupons',
+          'coupons/${id}',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CommonResponse _value;
+    try {
+      _value = CommonResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CommonResponse> deleteCoupon(int id) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CommonResponse>(Options(
+      method: 'DELETE',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          'coupons/${id}',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CommonResponse _value;
+    try {
+      _value = CommonResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CommonResponse> updateCouponStatus(
+    int id,
+    StatusRequest statusRequest,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(statusRequest.toJson());
+    final _options = _setStreamType<CommonResponse>(Options(
+      method: 'PATCH',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          'coupons/${id}/status',
           queryParameters: queryParameters,
           data: _data,
         )
