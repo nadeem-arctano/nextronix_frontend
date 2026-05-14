@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../api/api_provider.dart';
 import '../api/base_url.dart';
+import '../core/utils/debugging.dart';
 import '../model/request/request.dart';
 import '../model/response/response.dart';
 import '../static_values/static_values.dart';
@@ -39,7 +40,15 @@ class NextronixRepository {
     );
 
     _dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (obj) => Debugging.printing(
+          text: obj.toString(),
+          tag: 'API',
+          color: DebugColor.yellow,
+        ),
+      ),
     );
 
     _apiProvider = ApiProvider(_dio, baseUrl: BaseUrl.baseurl);
