@@ -11,7 +11,7 @@ class AppTheme {
   static const Color infoColor = Color(0xFF06B6D4);
 
   // Layout colors
-  static const Color bgColor = Color(0xFFF1F5F9);
+  static const Color bgColor = Colors.white;
   static const Color cardColor = Colors.white;
   static const Color sidebarColor = Color(0xFF111827);
   static const Color sidebarActiveColor = Color(0xFF1F2937);
