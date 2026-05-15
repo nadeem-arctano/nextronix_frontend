@@ -2,44 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Nextronix theme configuration using shadcn_ui
-/// Supports light and dark mode with consistent color tokens
+/// Nextronix Design System
+/// Modern, clean admin dashboard theme with Poppins font
 class AppTheme {
   AppTheme._();
 
-  // ─── Semantic Colors (used in custom widgets) ─────────────────────────
+  // ─── Brand Colors ─────────────────────────────────────────────────────
+  static const Color brand = Color(0xFF6366F1); // Indigo
+  static const Color brandLight = Color(0xFF818CF8);
+  static const Color brandDark = Color(0xFF4F46E5);
+
+  // ─── Semantic Colors ──────────────────────────────────────────────────
   static const Color successColor = Color(0xFF10B981);
   static const Color warningColor = Color(0xFFF59E0B);
   static const Color dangerColor = Color(0xFFEF4444);
   static const Color infoColor = Color(0xFF06B6D4);
 
-  // ─── Legacy color references (for screens not yet fully migrated) ─────
+  // ─── Legacy compat ────────────────────────────────────────────────────
   static const Color borderColor = Color(0xFFE5E7EB);
   static const Color bgColor = Color(0xFFF9FAFB);
   static const Color textPrimary = Color(0xFF111827);
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color textMuted = Color(0xFF9CA3AF);
-  static const Color primaryColor = Color(0xFF2563EB);
+  static const Color primaryColor = Color(0xFF6366F1);
 
-  // ─── Sidebar Colors ───────────────────────────────────────────────────
-  static const Color sidebarColor = Color(0xFF111827);
-  static const Color sidebarActiveColor = Color(0xFF1F2937);
+  // ─── Sidebar ──────────────────────────────────────────────────────────
+  static const Color sidebarBg = Color(0xFF0F172A);
+  static const Color sidebarColor = Color(0xFF0F172A);
+  static const Color sidebarActiveColor = Color(0xFF1E293B);
+  static const Color sidebarHover = Color(0xFF1E293B);
 
   // ─── Light Theme ──────────────────────────────────────────────────────
   static ShadThemeData lightTheme = ShadThemeData(
     brightness: Brightness.light,
-    colorScheme: const ShadSlateColorScheme.light(),
-    textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.inter),
+    colorScheme: const ShadZincColorScheme.light(),
+    textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
   );
 
   // ─── Dark Theme ───────────────────────────────────────────────────────
   static ShadThemeData darkTheme = ShadThemeData(
     brightness: Brightness.dark,
-    colorScheme: const ShadSlateColorScheme.dark(),
-    textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.inter),
+    colorScheme: const ShadZincColorScheme.dark(),
+    textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
   );
 
-  // ─── Helper: get status color ─────────────────────────────────────────
+  // ─── Helpers ──────────────────────────────────────────────────────────
   static Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'active':
@@ -60,7 +67,7 @@ class AppTheme {
         return infoColor;
       case 'shipped':
       case 'out_for_delivery':
-        return const Color(0xFF2563EB);
+        return brand;
       case 'returned':
       case 'refunded':
         return Colors.orange;
@@ -69,11 +76,10 @@ class AppTheme {
     }
   }
 
-  // ─── Helper: get role color ───────────────────────────────────────────
   static Color getRoleColor(String role) {
     switch (role.toLowerCase()) {
       case 'admin':
-        return const Color(0xFF2563EB);
+        return brand;
       case 'manager':
         return const Color(0xFF7C3AED);
       case 'customer':
