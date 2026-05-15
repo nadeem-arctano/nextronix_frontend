@@ -109,6 +109,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 child: ShadInput(
                   controller: _searchController,
                   placeholder: const Text('Search products...'),
+                  style: const TextStyle(fontSize: 12),
                   onSubmitted: (value) => provider.setSearch(value),
                   onChanged: (value) => setState(() {}),
                 ),
@@ -273,6 +274,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 width: 100,
                 child: ShadInput(
                   placeholder: const Text('Min Price'),
+                  style: const TextStyle(fontSize: 12),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);
@@ -285,6 +287,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 width: 100,
                 child: ShadInput(
                   placeholder: const Text('Max Price'),
+                  style: const TextStyle(fontSize: 12),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);
@@ -407,7 +410,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
           // SKU
           Expanded(
             flex: 2,
-            child: Text(product.sku ?? '-', style: theme.textTheme.muted),
+            child: Text(
+              product.sku ?? '-',
+              style: theme.textTheme.muted.copyWith(fontSize: 12),
+            ),
           ),
 
           // Category
@@ -415,14 +421,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
             flex: 2,
             child: Text(
               product.categoryName ?? '-',
-              style: theme.textTheme.muted,
+              style: theme.textTheme.muted.copyWith(fontSize: 12),
             ),
           ),
 
           // HSN
           Expanded(
             flex: 2,
-            child: Text(product.hsnCode ?? '-', style: theme.textTheme.muted),
+            child: Text(
+              product.hsnCode ?? '-',
+              style: theme.textTheme.muted.copyWith(fontSize: 12),
+            ),
           ),
 
           // Price
@@ -435,13 +444,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   children: [
                     Text(
                       '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                      style: theme.textTheme.small,
+                      style: theme.textTheme.small.copyWith(fontSize: 12),
                     ),
                     if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
                       Text(
                         '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
                         style: theme.textTheme.muted.copyWith(
-                          fontSize: 11,
+                          fontSize: 10,
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
@@ -468,7 +477,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Text(
                   '${product.stockQuantity ?? 0}',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: product.isLowStock
                         ? AppTheme.dangerColor
