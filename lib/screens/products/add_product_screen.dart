@@ -161,7 +161,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           backgroundColor: AppTheme.successColor,
         ),
       );
-      context.go('/products');
+      context.go('/admin/products');
     }
   }
 
@@ -180,7 +180,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.go('/products'),
+                  onPressed: () => context.go('/admin/products'),
                 ),
                 const SizedBox(width: 8),
                 const Text(
@@ -218,7 +218,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: () => context.go('/products'),
+                  onPressed: () => context.go('/admin/products'),
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 12),

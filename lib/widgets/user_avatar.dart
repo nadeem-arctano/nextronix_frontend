@@ -1,7 +1,7 @@
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Reusable user avatar with initials using ShadAvatar
+/// Reusable user avatar with initials
 class UserAvatar extends StatelessWidget {
   final String name;
   final double radius;
@@ -22,24 +22,20 @@ class UserAvatar extends StatelessWidget {
     final initials = _getInitials(name);
     final size = radius * 2;
 
-    return ShadAvatar(
-      '',
-      size: Size(size, size),
-      placeholder: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: backgroundColor ?? theme.colorScheme.muted,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          initials,
-          style: TextStyle(
-            color: textColor ?? theme.colorScheme.foreground,
-            fontWeight: FontWeight.w600,
-            fontSize: radius * 0.65,
-          ),
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? theme.colorScheme.muted,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: textColor ?? theme.colorScheme.foreground,
+          fontWeight: FontWeight.w600,
+          fontSize: radius * 0.65,
         ),
       ),
     );

@@ -51,7 +51,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 actions: [
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
-                    onPressed: () => context.go('/products/add'),
+                    onPressed: () => context.go('/admin/products/add'),
                     child: const Text('Add Product'),
                   ),
                 ],
@@ -337,7 +337,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildProductRow(ProductResult product, ProductProvider provider) {
     final theme = ShadTheme.of(context);
     return InkWell(
-      onTap: () => context.go('/products/edit/${product.id}'),
+      onTap: () => context.go('/admin/products/edit/${product.id}'),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -461,7 +461,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 onSelected: (value) {
                   switch (value) {
                     case 'edit':
-                      context.go('/products/edit/${product.id}');
+                      context.go('/admin/products/edit/${product.id}');
                     case 'featured':
                       provider.toggleFeatured(id: product.id!);
                     case 'delete':

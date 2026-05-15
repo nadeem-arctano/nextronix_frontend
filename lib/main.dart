@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'core/router/app_router.dart';
@@ -9,6 +10,7 @@ import 'provider/provider.dart';
 import 'provider/user_provider.dart';
 
 void main() {
+  usePathUrlStrategy();
   runApp(const NextronixAdmin());
 }
 

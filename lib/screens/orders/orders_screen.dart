@@ -135,7 +135,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget _buildOrderRow(OrderResult order, OrderProvider provider) {
     final theme = ShadTheme.of(context);
     return InkWell(
-      onTap: () => context.go('/orders/${order.id}'),
+      onTap: () => context.go('/admin/orders/${order.id}'),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -216,7 +216,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 padding: EdgeInsets.zero,
                 onSelected: (value) {
                   if (value == 'view') {
-                    context.go('/orders/${order.id}');
+                    context.go('/admin/orders/${order.id}');
                   } else {
                     provider.updateOrderStatus(id: order.id!, status: value);
                   }

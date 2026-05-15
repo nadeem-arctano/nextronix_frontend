@@ -47,7 +47,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 children: [
                   ShadIconButton.ghost(
                     icon: const Icon(LucideIcons.arrowLeft),
-                    onPressed: () => context.go('/orders'),
+                    onPressed: () => context.go('/admin/orders'),
                   ),
                   const SizedBox(width: 8),
                   Text(
