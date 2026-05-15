@@ -157,7 +157,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ShadOption(value: 'name_asc', child: Text('Name A-Z')),
                     ShadOption(value: 'name_desc', child: Text('Name Z-A')),
                   ],
-                  selectedOptionBuilder: (context, value) => Text(value),
+                  selectedOptionBuilder: (context, value) {
+                    const sortLabels = {
+                      'latest': 'Latest',
+                      'oldest': 'Oldest',
+                      'price_low': 'Price ↑',
+                      'price_high': 'Price ↓',
+                      'most_viewed': 'Most Viewed',
+                      'most_sold': 'Top Sold',
+                      'name_asc': 'Name A-Z',
+                      'name_desc': 'Name Z-A',
+                    };
+                    return Text(sortLabels[value] ?? value);
+                  },
                   onChanged: (value) => provider.setSort(value),
                 ),
               ),
@@ -204,8 +216,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       ),
                     ),
                   ],
-                  selectedOptionBuilder: (context, value) =>
-                      Text(value.isEmpty ? 'All Categories' : value),
+                  selectedOptionBuilder: (context, value) {
+                    if (value.isEmpty) return const Text('All Categories');
+                    final cats = context.read<CategoryProvider>().categories;
+                    final cat = cats
+                        .where((c) => c.id?.toString() == value)
+                        .firstOrNull;
+                    return Text(cat?.name ?? 'All Categories');
+                  },
                   onChanged: (value) => provider.setCategory(
                     value == null || value.isEmpty ? null : value,
                   ),
@@ -225,8 +243,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ShadOption(value: 'low', child: Text('Low Stock')),
                     ShadOption(value: 'out', child: Text('Out of Stock')),
                   ],
-                  selectedOptionBuilder: (context, value) =>
-                      Text(value.isEmpty ? 'All Stock' : value),
+                  selectedOptionBuilder: (context, value) {
+                    const stockLabels = {
+                      '': 'All Stock',
+                      'in': 'In Stock',
+                      'low': 'Low Stock',
+                      'out': 'Out of Stock',
+                    };
+                    return Text(stockLabels[value] ?? 'All Stock');
+                  },
                   onChanged: (value) => provider.setStock(
                     value == null || value.isEmpty ? null : value,
                   ),
