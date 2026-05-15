@@ -69,7 +69,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Product', flex: 4),
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
-                          AppTableColumn(label: 'HSN', flex: 1),
+                          AppTableColumn(label: 'HSN', flex: 2),
                           AppTableColumn(label: 'Price', flex: 2),
                           AppTableColumn(label: 'Stock', flex: 2),
                           AppTableColumn(label: 'Status', flex: 2),
@@ -324,12 +324,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Widget _buildProductRow(ProductResult product, ProductProvider provider) {
     final theme = ShadTheme.of(context);
-    return InkWell(
-      onTap: () => context.go('/admin/products/edit/${product.id}'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
             // Product (image + name + brand)
             Expanded(
               flex: 4,
@@ -397,7 +395,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
             // HSN
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Text(product.hsnCode ?? '-', style: theme.textTheme.muted),
             ),
 
@@ -472,6 +470,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
               child: StatusBadge(status: product.status ?? 'active'),
             ),
 
+            // View button
+            GestureDetector(
+              onTap: () => context.go('/admin/products/edit/${product.id}'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  LucideIcons.mousePointerClick,
+                  size: 16,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+              ),
+            ),
+
             // Actions
             SizedBox(
               width: 40,
@@ -544,7 +555,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
