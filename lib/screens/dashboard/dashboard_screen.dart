@@ -551,7 +551,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                             alpha: 0.5,
                           ),
                           strokeWidth: 0.8,
-                          dashArray: [5, 5],
                         ),
                       ),
                       borderData: FlBorderData(show: false),
