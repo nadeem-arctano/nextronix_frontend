@@ -92,9 +92,9 @@ class NextronixRepository {
   }) async {
     final formData = FormData.fromMap({
       'name': name,
-      'description': ?description,
-      'status': ?status,
-      'image': ?image,
+      'description': description,
+      'status': status,
+      'image': image,
     });
     return await _apiProvider.createCategory(formData);
   }
@@ -108,9 +108,9 @@ class NextronixRepository {
   }) async {
     final formData = FormData.fromMap({
       'name': name,
-      'description': ?description,
-      'status': ?status,
-      'image': ?image,
+      'description': description,
+      'status': status,
+      'image': image,
     });
     return await _apiProvider.updateCategory(id, formData);
   }
@@ -185,6 +185,27 @@ class NextronixRepository {
 
   Future<CommonResponse> toggleProductFeatured({required int id}) async {
     return await _apiProvider.toggleProductFeatured(id);
+  }
+
+  Future<CommonResponse> updateProductPrice({
+    required int id,
+    required double mrpPrice,
+    required double sellingPrice,
+  }) async {
+    return await _apiProvider.updateProductPrice(
+      id,
+      PriceUpdateRequest(mrpPrice: mrpPrice, sellingPrice: sellingPrice),
+    );
+  }
+
+  Future<CommonResponse> updateProductStock({
+    required int id,
+    required int stockQuantity,
+  }) async {
+    return await _apiProvider.updateProductStock(
+      id,
+      StockUpdateRequest(stockQuantity: stockQuantity),
+    );
   }
 
   Future<ProductListResponse> getLowStockProducts() async {

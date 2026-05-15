@@ -197,6 +197,54 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  Future<AlertErrorResponse?> updatePrice({
+    required int id,
+    required double mrpPrice,
+    required double sellingPrice,
+  }) async {
+    try {
+      CommonResponse response = await NextronixRepository().updateProductPrice(
+        id: id,
+        mrpPrice: mrpPrice,
+        sellingPrice: sellingPrice,
+      );
+      if (response.statusCode == 200) {
+        await loadProducts(page: _currentPage);
+        return null;
+      } else {
+        return AlertErrorResponse(
+          alertHeading: "Error!",
+          alertMessage: response.message ?? "Failed to update price",
+        );
+      }
+    } catch (e) {
+      return AlertErrorResponse.getErrorResponse(e);
+    }
+  }
+
+  Future<AlertErrorResponse?> updateStock({
+    required int id,
+    required int stockQuantity,
+  }) async {
+    try {
+      CommonResponse response = await NextronixRepository().updateProductStock(
+        id: id,
+        stockQuantity: stockQuantity,
+      );
+      if (response.statusCode == 200) {
+        await loadProducts(page: _currentPage);
+        return null;
+      } else {
+        return AlertErrorResponse(
+          alertHeading: "Error!",
+          alertMessage: response.message ?? "Failed to update stock",
+        );
+      }
+    } catch (e) {
+      return AlertErrorResponse.getErrorResponse(e);
+    }
+  }
+
   void setSearch(String? query) {
     _searchQuery = query;
     loadProducts();

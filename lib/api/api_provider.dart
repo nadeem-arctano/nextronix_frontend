@@ -72,6 +72,18 @@ abstract class ApiProvider {
   @PATCH("products/{id}/featured")
   Future<CommonResponse> toggleProductFeatured(@Path('id') int id);
 
+  @PATCH("products/{id}/price")
+  Future<CommonResponse> updateProductPrice(
+    @Path('id') int id,
+    @Body() PriceUpdateRequest body,
+  );
+
+  @PATCH("products/{id}/stock")
+  Future<CommonResponse> updateProductStock(
+    @Path('id') int id,
+    @Body() StockUpdateRequest body,
+  );
+
   @GET("products/search")
   Future<ProductListResponse> searchProducts(
     @Queries() Map<String, dynamic> queries,

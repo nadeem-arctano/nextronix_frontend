@@ -69,8 +69,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Product', flex: 4),
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
+                          AppTableColumn(label: 'HSN', flex: 1),
                           AppTableColumn(label: 'Price', flex: 2),
-                          AppTableColumn(label: 'Stock', flex: 1),
+                          AppTableColumn(label: 'Stock', flex: 2),
                           AppTableColumn(label: 'Status', flex: 2),
                         ],
                         items: provider.products,
@@ -394,41 +395,74 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ),
             ),
 
-            // Price
+            // HSN
+            Expanded(
+              flex: 1,
+              child: Text(product.hsnCode ?? '-', style: theme.textTheme.muted),
+            ),
+
             // Price
             Expanded(
               flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                    style: theme.textTheme.small,
-                  ),
-                  if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
-                    Text(
-                      '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                      style: theme.textTheme.muted.copyWith(
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                        style: theme.textTheme.small,
                       ),
+                      if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
+                        Text(
+                          '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
+                          style: theme.textTheme.muted.copyWith(
+                            fontSize: 11,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () =>
+                        _showPriceEditDialog(context, product, provider),
+                    child: Icon(
+                      LucideIcons.pencil,
+                      size: 12,
+                      color: theme.colorScheme.mutedForeground,
                     ),
+                  ),
                 ],
               ),
             ),
 
             // Stock
             Expanded(
-              flex: 1,
-              child: Text(
-                '${product.stockQuantity ?? 0}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: product.isLowStock
-                      ? AppTheme.dangerColor
-                      : theme.colorScheme.foreground,
-                ),
+              flex: 2,
+              child: Row(
+                children: [
+                  Text(
+                    '${product.stockQuantity ?? 0}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: product.isLowStock
+                          ? AppTheme.dangerColor
+                          : theme.colorScheme.foreground,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () =>
+                        _showStockEditDialog(context, product, provider),
+                    child: Icon(
+                      LucideIcons.pencil,
+                      size: 12,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -508,6 +542,118 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStockEditDialog(
+    BuildContext context,
+    ProductResult product,
+    ProductProvider provider,
+  ) {
+    final stockController = TextEditingController(
+      text: (product.stockQuantity ?? 0).toString(),
+    );
+
+    showShadDialog(
+      context: context,
+      builder: (ctx) => ShadDialog(
+        title: const Text('Edit Stock'),
+        description: Text(product.name ?? ''),
+        actions: [
+          ShadButton.outline(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          ShadButton(
+            child: const Text('Save'),
+            onPressed: () async {
+              final qty = int.tryParse(stockController.text);
+              if (qty == null) return;
+              Navigator.of(ctx).pop();
+              await provider.updateStock(id: product.id!, stockQuantity: qty);
+            },
+          ),
+        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            const Text('Stock Quantity'),
+            const SizedBox(height: 6),
+            ShadInput(
+              controller: stockController,
+              placeholder: const Text('Enter stock quantity'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPriceEditDialog(
+    BuildContext context,
+    ProductResult product,
+    ProductProvider provider,
+  ) {
+    final mrpController = TextEditingController(
+      text: (product.mrpPrice ?? 0).toStringAsFixed(0),
+    );
+    final sellingController = TextEditingController(
+      text: (product.sellingPrice ?? 0).toStringAsFixed(0),
+    );
+
+    showShadDialog(
+      context: context,
+      builder: (ctx) => ShadDialog(
+        title: const Text('Edit Price'),
+        description: Text(product.name ?? ''),
+        actions: [
+          ShadButton.outline(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          ShadButton(
+            child: const Text('Save'),
+            onPressed: () async {
+              final mrp = double.tryParse(mrpController.text);
+              final selling = double.tryParse(sellingController.text);
+              if (mrp == null || selling == null) return;
+              Navigator.of(ctx).pop();
+              await provider.updatePrice(
+                id: product.id!,
+                mrpPrice: mrp,
+                sellingPrice: selling,
+              );
+            },
+          ),
+        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            const Text('MRP (₹)'),
+            const SizedBox(height: 6),
+            ShadInput(
+              controller: mrpController,
+              placeholder: const Text('Enter MRP'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 12),
+            const Text('Selling Price (₹)'),
+            const SizedBox(height: 6),
+            ShadInput(
+              controller: sellingController,
+              placeholder: const Text('Enter selling price'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

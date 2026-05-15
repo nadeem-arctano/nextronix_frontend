@@ -5,3 +5,5 @@ export 'payment_status_request.dart';
 export 'bulk_ids_request.dart';
 export 'bulk_status_request.dart';
 export 'coupon_request.dart';
+export 'price_update_request.dart';
+export 'stock_update_request.dart';
