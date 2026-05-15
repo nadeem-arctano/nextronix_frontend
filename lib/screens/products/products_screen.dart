@@ -503,7 +503,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
             child: StatusBadge(status: product.status ?? 'active'),
           ),
 
-          // View button
+          // Featured indicator + View button
+          if (product.isFeatured == true)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(
+                LucideIcons.star,
+                size: 14,
+                color: AppTheme.warningColor,
+              ),
+            ),
+
           GestureDetector(
             onTap: () => context.go('/admin/products/edit/${product.id}'),
             child: Padding(
