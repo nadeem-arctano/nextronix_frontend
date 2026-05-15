@@ -39,18 +39,12 @@ class NextronixRepository {
       ),
     );
 
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        
-        // logPrint: (obj) => Debugging.printing(
-        //   text: obj.toString(),
-        //   tag: 'API',
-        //   color: DebugColor.yellow,
-        // ),
-      ),
-    );
+    // _dio.interceptors.add(
+    //   LogInterceptor(
+    //     requestBody: true,
+    //     responseBody: true,
+    //   ),
+    // );
 
     _apiProvider = ApiProvider(_dio, baseUrl: BaseUrl.baseurl);
   }
