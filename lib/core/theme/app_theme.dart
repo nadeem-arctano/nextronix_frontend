@@ -43,7 +43,7 @@ class AppTheme {
         secondaryFocusedBorder: ShadBorder.none,
         secondaryBorder: ShadBorder.none,
         focusedBorder: ShadBorder.all(
-          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+          color: Colors.black,
           width: 1,
           radius: BorderRadius.circular(8),
         ),
@@ -54,7 +54,7 @@ class AppTheme {
         secondaryFocusedBorder: ShadBorder.none,
         secondaryBorder: ShadBorder.none,
         focusedBorder: ShadBorder.all(
-          color: const ShadZincColorScheme.light().border,
+          color: Color(0xffe4e4e7),
           width: 1,
           radius: BorderRadius.circular(8),
         ),
@@ -84,7 +84,7 @@ class AppTheme {
         secondaryFocusedBorder: ShadBorder.none,
         secondaryBorder: ShadBorder.none,
         focusedBorder: ShadBorder.all(
-          color: const ShadZincColorScheme.dark().border,
+          color: const Color(0xFF818CF8).withValues(alpha: 0.4),
           width: 1,
           radius: BorderRadius.circular(8),
         ),
