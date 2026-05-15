@@ -74,7 +74,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Stock', flex: 2),
                           AppTableColumn(label: 'Status', flex: 2),
                         ],
-                        trailingWidth: 72,
+                        trailingWidth: 90,
                         items: provider.products,
                         currentPage: provider.currentPage,
                         totalPages: provider.totalPages,
@@ -504,15 +504,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
 
           // Featured indicator + View button
-          if (product.isFeatured == true)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Icon(
-                LucideIcons.star,
-                size: 14,
-                color: AppTheme.warningColor,
-              ),
-            ),
+          SizedBox(
+            width: 18,
+            child: product.isFeatured == true
+                ? Icon(LucideIcons.star, size: 14, color: AppTheme.warningColor)
+                : null,
+          ),
 
           GestureDetector(
             onTap: () => context.go('/admin/products/edit/${product.id}'),
