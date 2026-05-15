@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../provider/dashboard_provider.dart';
 import '../../widgets/page_header.dart';
@@ -79,13 +80,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         StatCard(
                           title: 'Total Products',
                           value: '${stats?.totalProducts ?? 0}',
-                          icon: Icons.inventory_2_outlined,
-                          color: AppTheme.primaryColor,
+                          icon: LucideIcons.package,
+                          color: const Color(0xFF2563EB),
                         ),
                         StatCard(
                           title: 'Total Orders',
                           value: '${stats?.totalOrders ?? 0}',
-                          icon: Icons.shopping_bag_outlined,
+                          icon: LucideIcons.shoppingBag,
                           color: AppTheme.successColor,
                         ),
                         StatCard(
@@ -93,15 +94,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           value: currencyFormat.format(
                             stats?.totalRevenue ?? 0,
                           ),
-                          icon: Icons.account_balance_wallet_outlined,
-                          color: AppTheme.secondaryColor,
+                          icon: LucideIcons.wallet,
+                          color: const Color(0xFF7C3AED),
                           subtitle:
                               'Today: ${currencyFormat.format(stats?.todayRevenue ?? 0)}',
                         ),
                         StatCard(
                           title: 'Pending Orders',
                           value: '${stats?.pendingOrders ?? 0}',
-                          icon: Icons.pending_actions_outlined,
+                          icon: LucideIcons.clock,
                           color: AppTheme.warningColor,
                         ),
                       ],
@@ -147,162 +148,121 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildRecentOrders(DashboardProvider provider) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Recent Orders',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            if (provider.recentOrders.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'No orders yet',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                ),
-              )
-            else
-              ...provider.recentOrders.map(
-                (order) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.orderNumber ?? '',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              order.customerName ?? 'N/A',
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+    final theme = ShadTheme.of(context);
+    return ShadCard(
+      padding: const EdgeInsets.all(20),
+      title: Text('Recent Orders', style: theme.textTheme.h4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          if (provider.recentOrders.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Text('No orders yet', style: theme.textTheme.muted),
+              ),
+            )
+          else
+            ...provider.recentOrders.map(
+              (order) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.orderNumber ?? '',
+                            style: theme.textTheme.small,
+                          ),
+                          Text(
+                            order.customerName ?? 'N/A',
+                            style: theme.textTheme.muted,
+                          ),
+                        ],
                       ),
-                      Text(
-                        '₹${(order.totalAmount ?? 0).toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      StatusBadge(status: order.orderStatus ?? 'pending'),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      '₹${(order.totalAmount ?? 0).toStringAsFixed(0)}',
+                      style: theme.textTheme.small,
+                    ),
+                    const SizedBox(width: 12),
+                    StatusBadge(status: order.orderStatus ?? 'pending'),
+                  ],
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildLowStockProducts(DashboardProvider provider) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.warning_amber_outlined,
-                  color: AppTheme.warningColor,
-                  size: 20,
+    final theme = ShadTheme.of(context);
+    return ShadCard(
+      padding: const EdgeInsets.all(20),
+      title: Row(
+        children: [
+          Icon(
+            LucideIcons.triangleAlert,
+            color: AppTheme.warningColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text('Low Stock Alert', style: theme.textTheme.h4),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          if (provider.lowStockProducts.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Text(
+                  'All products well stocked',
+                  style: theme.textTheme.muted,
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Low Stock Alert',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (provider.lowStockProducts.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'All products well stocked',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                ),
-              )
-            else
-              ...provider.lowStockProducts
-                  .take(5)
-                  .map(
-                    (product) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name ?? '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  product.sku ?? '',
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.dangerColor.withValues(
-                                alpha: 0.1,
+              ),
+            )
+          else
+            ...provider.lowStockProducts
+                .take(5)
+                .map(
+                  (product) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.name ?? '',
+                                style: theme.textTheme.small,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '${product.stockQuantity ?? 0} left',
-                              style: const TextStyle(
-                                color: AppTheme.dangerColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                              Text(
+                                product.sku ?? '',
+                                style: theme.textTheme.muted.copyWith(
+                                  fontSize: 11,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        ShadBadge.destructive(
+                          child: Text('${product.stockQuantity ?? 0} left'),
+                        ),
+                      ],
                     ),
                   ),
-          ],
-        ),
+                ),
+        ],
       ),
     );
   }

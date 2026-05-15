@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class LoadingWidget extends StatelessWidget {
   final String? message;
@@ -7,27 +7,15 @@ class LoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryColor,
-              strokeWidth: 3,
-            ),
-          ),
+          const SizedBox(width: 200, child: ShadProgress()),
           if (message != null) ...[
             const SizedBox(height: 16),
-            Text(
-              message!,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 13,
-              ),
-            ),
+            Text(message!, style: theme.textTheme.muted),
           ],
         ],
       ),
@@ -43,26 +31,24 @@ class ErrorWidget2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
+          Icon(
+            LucideIcons.circleAlert,
             size: 40,
-            color: AppTheme.dangerColor,
+            color: theme.colorScheme.destructive,
           ),
           const SizedBox(height: 12),
-          Text(
-            message,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-          ),
+          Text(message, style: theme.textTheme.muted),
           if (onRetry != null) ...[
             const SizedBox(height: 16),
-            OutlinedButton.icon(
+            ShadButton.outline(
+              leading: const Icon(LucideIcons.refreshCw, size: 14),
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Retry'),
+              child: const Text('Retry'),
             ),
           ],
         ],
@@ -78,21 +64,19 @@ class EmptyWidget extends StatelessWidget {
   const EmptyWidget({
     super.key,
     this.message = 'No data found',
-    this.icon = Icons.inbox_outlined,
+    this.icon = LucideIcons.inbox,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 48, color: AppTheme.textMuted),
+          Icon(icon, size: 48, color: theme.colorScheme.mutedForeground),
           const SizedBox(height: 12),
-          Text(
-            message,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-          ),
+          Text(message, style: theme.textTheme.muted),
         ],
       ),
     );

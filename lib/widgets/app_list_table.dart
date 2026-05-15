@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'data_table_pagination.dart';
 
 /// Column definition for AppListTable
@@ -10,8 +10,7 @@ class AppTableColumn {
   const AppTableColumn({required this.label, this.flex = 1});
 }
 
-/// Reusable list-style table widget (no box/card, white bg, divider rows)
-/// Used across Orders, Users, Products screens for consistent UI.
+/// Reusable list-style table widget using shadcn_ui styling
 class AppListTable<T> extends StatelessWidget {
   final List<AppTableColumn> columns;
   final List<T> items;
@@ -38,68 +37,73 @@ class AppListTable<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Column(
-            children: [
-              // Header row
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppTheme.borderColor),
+    final theme = ShadTheme.of(context);
+    return ShadCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                // Header row
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    ...columns.map(
-                      (col) => Expanded(
-                        flex: col.flex,
-                        child: Text(
-                          col.label.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                            letterSpacing: 0.5,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                    border: Border(
+                      bottom: BorderSide(color: theme.colorScheme.border),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      ...columns.map(
+                        (col) => Expanded(
+                          flex: col.flex,
+                          child: Text(
+                            col.label.toUpperCase(),
+                            style: theme.textTheme.muted.copyWith(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: trailingWidth),
-                  ],
+                      SizedBox(width: trailingWidth),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Rows
-              Expanded(
-                child: ListView.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) =>
-                      const Divider(height: 1, color: AppTheme.dividerColor),
-                  itemBuilder: (context, index) {
-                    return rowBuilder(items[index], index);
-                  },
+                // Rows
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) =>
+                        Divider(height: 1, color: theme.colorScheme.border),
+                    itemBuilder: (context, index) {
+                      return rowBuilder(items[index], index);
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        // Pagination
-        DataTablePagination(
-          currentPage: currentPage,
-          totalPages: totalPages,
-          totalItems: totalItems,
-          showingCount: items.length,
-          itemLabel: itemLabel,
-          onPageChanged: onPageChanged,
-        ),
-      ],
+          // Pagination
+          Divider(height: 1, color: theme.colorScheme.border),
+          DataTablePagination(
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: totalItems,
+            showingCount: items.length,
+            itemLabel: itemLabel,
+            onPageChanged: onPageChanged,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,7 @@
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
 
-/// Reusable user avatar with initials
+/// Reusable user avatar with initials using ShadAvatar
 class UserAvatar extends StatelessWidget {
   final String name;
   final double radius;
@@ -18,17 +18,28 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     final initials = _getInitials(name);
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor:
-          backgroundColor ?? AppTheme.sidebarColor.withValues(alpha: 0.08),
-      child: Text(
-        initials,
-        style: TextStyle(
-          color: textColor ?? AppTheme.textPrimary,
-          fontWeight: FontWeight.w600,
-          fontSize: radius * 0.7,
+    final size = radius * 2;
+
+    return ShadAvatar(
+      '',
+      size: Size(size, size),
+      placeholder: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? theme.colorScheme.muted,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initials,
+          style: TextStyle(
+            color: textColor ?? theme.colorScheme.foreground,
+            fontWeight: FontWeight.w600,
+            fontSize: radius * 0.65,
+          ),
         ),
       ),
     );

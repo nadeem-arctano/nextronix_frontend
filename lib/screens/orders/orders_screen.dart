@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
 import '../../provider/order_provider.dart';
@@ -71,39 +72,50 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildFilterRow(OrderProvider provider) {
+    final theme = ShadTheme.of(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildChip('All', null, provider),
+          _buildChip('All', null, provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Pending', 'pending', provider),
+          _buildChip('Pending', 'pending', provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Confirmed', 'confirmed', provider),
+          _buildChip('Confirmed', 'confirmed', provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Shipped', 'shipped', provider),
+          _buildChip('Shipped', 'shipped', provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Delivered', 'delivered', provider),
+          _buildChip('Delivered', 'delivered', provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Cancelled', 'cancelled', provider),
+          _buildChip('Cancelled', 'cancelled', provider, theme),
           const SizedBox(width: 8),
-          _buildChip('Returned', 'returned', provider),
+          _buildChip('Returned', 'returned', provider, theme),
         ],
       ),
     );
   }
 
-  Widget _buildChip(String label, String? status, OrderProvider provider) {
+  Widget _buildChip(
+    String label,
+    String? status,
+    OrderProvider provider,
+    ShadThemeData theme,
+  ) {
     final isSelected = provider.statusFilter == status;
     return GestureDetector(
       onTap: () => provider.setStatusFilter(status),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.sidebarColor : Colors.white,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppTheme.sidebarColor : AppTheme.borderColor,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.border,
           ),
         ),
         child: Text(
@@ -111,7 +123,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
+            color: isSelected
+                ? theme.colorScheme.primaryForeground
+                : theme.colorScheme.mutedForeground,
           ),
         ),
       ),
@@ -119,26 +133,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildOrderRow(OrderResult order, OrderProvider provider) {
+    final theme = ShadTheme.of(context);
     return InkWell(
       onTap: () => context.go('/orders/${order.id}'),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            // Order number
             Expanded(
               flex: 2,
               child: Text(
                 '#${order.orderNumber ?? ''}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                style: theme.textTheme.small,
               ),
             ),
-
-            // Customer
             Expanded(
               flex: 3,
               child: Row(
@@ -151,21 +159,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       children: [
                         Text(
                           order.customerName ?? 'N/A',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                          ),
+                          style: theme.textTheme.small,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (order.customerEmail != null)
                           Text(
                             order.customerEmail!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.textMuted,
-                            ),
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -175,34 +176,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ],
               ),
             ),
-
-            // Status
             Expanded(
               flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatusText(order.paymentStatus ?? 'pending'),
+                  _buildStatusDot(order.paymentStatus ?? 'pending'),
                   const SizedBox(height: 2),
-                  _buildStatusText(order.orderStatus ?? 'pending'),
+                  _buildStatusDot(order.orderStatus ?? 'pending'),
                 ],
               ),
             ),
-
-            // Total
             Expanded(
               flex: 2,
               child: Text(
                 '₹${_formatAmount(order.totalAmount ?? 0)}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                style: theme.textTheme.small,
               ),
             ),
-
-            // Date
             Expanded(
               flex: 2,
               child: Text(
@@ -211,21 +202,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         'MMM dd',
                       ).format(DateTime.parse(order.createdAt!))
                     : '-',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondary,
-                ),
+                style: theme.textTheme.muted,
               ),
             ),
-
-            // Actions
             SizedBox(
               width: 40,
               child: PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.more_horiz,
+                icon: Icon(
+                  LucideIcons.ellipsis,
                   size: 18,
-                  color: AppTheme.textSecondary,
+                  color: theme.colorScheme.mutedForeground,
                 ),
                 padding: EdgeInsets.zero,
                 onSelected: (value) {
@@ -240,7 +226,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     value: 'view',
                     child: Row(
                       children: [
-                        Icon(Icons.visibility_outlined, size: 16),
+                        Icon(LucideIcons.eye, size: 16),
                         SizedBox(width: 8),
                         Text('View Details'),
                       ],
@@ -266,42 +252,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  Widget _buildStatusText(String status) {
-    Color color;
-    IconData? icon;
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'delivered':
-        color = AppTheme.successColor;
-        icon = Icons.check;
-      case 'pending':
-        color = AppTheme.warningColor;
-        icon = null;
-      case 'confirmed':
-        color = AppTheme.infoColor;
-        icon = Icons.check;
-      case 'shipped':
-        color = AppTheme.primaryColor;
-        icon = Icons.check;
-      case 'cancelled':
-      case 'failed':
-        color = AppTheme.dangerColor;
-        icon = Icons.close;
-      case 'refunded':
-        color = Colors.orange;
-        icon = Icons.replay;
-      default:
-        color = AppTheme.textSecondary;
-        icon = null;
-    }
-
+  Widget _buildStatusDot(String status) {
+    final color = AppTheme.getStatusColor(status);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-        ],
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
         Text(
           status.replaceAll('_', ' ').substring(0, 1).toUpperCase() +
               status.replaceAll('_', ' ').substring(1),

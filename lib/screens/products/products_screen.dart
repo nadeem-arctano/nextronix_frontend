@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../model/response/response.dart';
@@ -48,10 +49,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
               PageHeader(
                 title: 'Products',
                 actions: [
-                  ElevatedButton.icon(
+                  ShadButton(
+                    leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => context.go('/products/add'),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Product'),
+                    child: const Text('Add Product'),
                   ),
                 ],
               ),
@@ -91,6 +92,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Widget _buildFilters(ProductProvider provider) {
+    final theme = ShadTheme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,24 +104,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
               // Search
               SizedBox(
                 width: 260,
-                height: 36,
-                child: TextField(
+                child: ShadInput(
                   controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search products...',
-                    prefixIcon: const Icon(Icons.search, size: 18),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 16),
-                            onPressed: () {
-                              _searchController.clear();
-                              provider.setSearch(null);
-                            },
-                          )
-                        : null,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  ),
-                  style: const TextStyle(fontSize: 13),
+                  placeholder: const Text('Search products...'),
                   onSubmitted: (value) => provider.setSearch(value),
                   onChanged: (value) => setState(() {}),
                 ),
@@ -164,38 +151,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
               const SizedBox(width: 12),
 
               // Sort
-              _buildDropdown<String>(
-                value: provider.sortBy,
-                hint: 'Sort',
-                items: const [
-                  DropdownMenuItem(value: 'latest', child: Text('Latest')),
-                  DropdownMenuItem(value: 'oldest', child: Text('Oldest')),
-                  DropdownMenuItem(value: 'price_low', child: Text('Price ↑')),
-                  DropdownMenuItem(value: 'price_high', child: Text('Price ↓')),
-                  DropdownMenuItem(
-                    value: 'most_viewed',
-                    child: Text('Most Viewed'),
-                  ),
-                  DropdownMenuItem(value: 'most_sold', child: Text('Top Sold')),
-                  DropdownMenuItem(value: 'name_asc', child: Text('Name A-Z')),
-                  DropdownMenuItem(value: 'name_desc', child: Text('Name Z-A')),
-                ],
-                onChanged: (value) => provider.setSort(value),
+              SizedBox(
+                width: 140,
+                child: ShadSelect<String>(
+                  placeholder: const Text('Sort'),
+                  initialValue: provider.sortBy,
+                  options: const [
+                    ShadOption(value: 'latest', child: Text('Latest')),
+                    ShadOption(value: 'oldest', child: Text('Oldest')),
+                    ShadOption(value: 'price_low', child: Text('Price ↑')),
+                    ShadOption(value: 'price_high', child: Text('Price ↓')),
+                    ShadOption(
+                      value: 'most_viewed',
+                      child: Text('Most Viewed'),
+                    ),
+                    ShadOption(value: 'most_sold', child: Text('Top Sold')),
+                    ShadOption(value: 'name_asc', child: Text('Name A-Z')),
+                    ShadOption(value: 'name_desc', child: Text('Name Z-A')),
+                  ],
+                  selectedOptionBuilder: (context, value) => Text(value),
+                  onChanged: (value) => provider.setSort(value),
+                ),
               ),
 
               if (_hasActiveFilters(provider)) ...[
                 const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () {
+                ShadButton.ghost(
+                  size: ShadButtonSize.sm,
+                  onPressed: () {
                     _searchController.clear();
                     provider.clearFilters();
                   },
-                  child: const Text(
+                  child: Text(
                     'Clear All',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -211,36 +202,46 @@ class _ProductsScreenState extends State<ProductsScreen> {
           child: Row(
             children: [
               // Category dropdown
-              _buildDropdown<String>(
-                value: provider.categoryFilter,
-                hint: 'Category',
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('All Categories'),
-                  ),
-                  ...context.watch<CategoryProvider>().categories.map(
-                    (c) => DropdownMenuItem<String>(
-                      value: c.id?.toString(),
-                      child: Text(c.name ?? ''),
+              SizedBox(
+                width: 160,
+                child: ShadSelect<String?>(
+                  placeholder: const Text('Category'),
+                  initialValue: provider.categoryFilter,
+                  options: [
+                    const ShadOption(
+                      value: null,
+                      child: Text('All Categories'),
                     ),
-                  ),
-                ],
-                onChanged: (value) => provider.setCategory(value),
+                    ...context.watch<CategoryProvider>().categories.map(
+                      (c) => ShadOption(
+                        value: c.id?.toString(),
+                        child: Text(c.name ?? ''),
+                      ),
+                    ),
+                  ],
+                  selectedOptionBuilder: (context, value) =>
+                      Text(value ?? 'All'),
+                  onChanged: (value) => provider.setCategory(value),
+                ),
               ),
               const SizedBox(width: 8),
 
               // Stock filter
-              _buildDropdown<String>(
-                value: provider.stockFilter,
-                hint: 'Stock',
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('All Stock')),
-                  DropdownMenuItem(value: 'in', child: Text('In Stock')),
-                  DropdownMenuItem(value: 'low', child: Text('Low Stock')),
-                  DropdownMenuItem(value: 'out', child: Text('Out of Stock')),
-                ],
-                onChanged: (value) => provider.setStock(value),
+              SizedBox(
+                width: 130,
+                child: ShadSelect<String?>(
+                  placeholder: const Text('Stock'),
+                  initialValue: provider.stockFilter,
+                  options: const [
+                    ShadOption(value: null, child: Text('All Stock')),
+                    ShadOption(value: 'in', child: Text('In Stock')),
+                    ShadOption(value: 'low', child: Text('Low Stock')),
+                    ShadOption(value: 'out', child: Text('Out of Stock')),
+                  ],
+                  selectedOptionBuilder: (context, value) =>
+                      Text(value ?? 'All'),
+                  onChanged: (value) => provider.setStock(value),
+                ),
               ),
               const SizedBox(width: 8),
 
@@ -256,16 +257,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               // Min Price
               SizedBox(
                 width: 100,
-                height: 34,
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Min ₹',
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 0,
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 12),
+                child: ShadInput(
+                  placeholder: const Text('Min ₹'),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);
@@ -276,16 +269,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               const SizedBox(width: 6),
               SizedBox(
                 width: 100,
-                height: 34,
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Max ₹',
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 0,
-                    ),
-                  ),
-                  style: const TextStyle(fontSize: 12),
+                child: ShadInput(
+                  placeholder: const Text('Max ₹'),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);
@@ -311,51 +296,28 @@ class _ProductsScreenState extends State<ProductsScreen> {
         provider.maxPrice != null;
   }
 
-  Widget _buildDropdown<T>({
-    required T? value,
-    required String hint,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-      height: 34,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          hint: Text(
-            hint,
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-          ),
-          isDense: true,
-          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
-          items: items,
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
   Widget _buildChip<T>(
     String label,
     T? value,
     T? currentValue,
     ValueChanged<T?> onTap,
   ) {
+    final theme = ShadTheme.of(context);
     final isSelected = currentValue == value;
     return GestureDetector(
       onTap: () => onTap(isSelected ? null : value),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.sidebarColor : Colors.white,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppTheme.sidebarColor : AppTheme.borderColor,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.border,
           ),
         ),
         child: Text(
@@ -363,7 +325,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
+            color: isSelected
+                ? theme.colorScheme.primaryForeground
+                : theme.colorScheme.mutedForeground,
           ),
         ),
       ),
@@ -371,6 +335,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Widget _buildProductRow(ProductResult product, ProductProvider provider) {
+    final theme = ShadTheme.of(context);
     return InkWell(
       onTap: () => context.go('/products/edit/${product.id}'),
       child: Padding(
@@ -387,18 +352,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     child: Container(
                       width: 36,
                       height: 36,
-                      color: AppTheme.dividerColor,
+                      color: theme.colorScheme.muted,
                       child: product.thumbnailImage != null
                           ? Image.network(
                               ApiConstants.getImageUrl(product.thumbnailImage),
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  const Icon(Icons.image, size: 16),
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(LucideIcons.image, size: 16),
                             )
-                          : const Icon(
-                              Icons.image,
+                          : Icon(
+                              LucideIcons.image,
                               size: 16,
-                              color: AppTheme.textMuted,
+                              color: theme.colorScheme.mutedForeground,
                             ),
                     ),
                   ),
@@ -411,19 +376,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           product.name ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                          ),
+                          style: theme.textTheme.small,
                         ),
                         if (product.brand != null)
                           Text(
                             product.brand!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.textMuted,
-                            ),
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
                           ),
                       ],
                     ),
@@ -435,13 +393,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             // SKU
             Expanded(
               flex: 2,
-              child: Text(
-                product.sku ?? '-',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
+              child: Text(product.sku ?? '-', style: theme.textTheme.muted),
             ),
 
             // Category
@@ -449,10 +401,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               flex: 2,
               child: Text(
                 product.categoryName ?? '-',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondary,
-                ),
+                style: theme.textTheme.muted,
               ),
             ),
 
@@ -464,19 +413,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 children: [
                   Text(
                     '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
-                    ),
+                    style: theme.textTheme.small,
                   ),
                   if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
                     Text(
                       '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                      style: const TextStyle(
+                      style: theme.textTheme.muted.copyWith(
                         fontSize: 11,
                         decoration: TextDecoration.lineThrough,
-                        color: AppTheme.textMuted,
                       ),
                     ),
                 ],
@@ -493,7 +437,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   fontWeight: FontWeight.w600,
                   color: product.isLowStock
                       ? AppTheme.dangerColor
-                      : AppTheme.textPrimary,
+                      : theme.colorScheme.foreground,
                 ),
               ),
             ),
@@ -508,10 +452,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
             SizedBox(
               width: 40,
               child: PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.more_horiz,
+                icon: Icon(
+                  LucideIcons.ellipsis,
                   size: 18,
-                  color: AppTheme.textSecondary,
+                  color: theme.colorScheme.mutedForeground,
                 ),
                 padding: EdgeInsets.zero,
                 onSelected: (value) {
@@ -529,7 +473,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit_outlined, size: 16),
+                        Icon(LucideIcons.pencil, size: 16),
                         SizedBox(width: 8),
                         Text('Edit'),
                       ],
@@ -540,9 +484,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          (product.isFeatured ?? false)
-                              ? Icons.star
-                              : Icons.star_border,
+                          LucideIcons.star,
                           size: 16,
                           color: AppTheme.warningColor,
                         ),
@@ -556,16 +498,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ),
                   ),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
                         Icon(
-                          Icons.delete_outline,
+                          LucideIcons.trash2,
                           size: 16,
                           color: AppTheme.dangerColor,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'Delete',
                           style: TextStyle(color: AppTheme.dangerColor),
@@ -583,25 +525,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void _confirmDelete(BuildContext context, ProductProvider provider, int id) {
-    showDialog(
+    showShadDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => ShadDialog.alert(
         title: const Text('Delete Product'),
-        content: const Text('Are you sure you want to delete this product?'),
+        description: const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Are you sure you want to delete this product?'),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
+          ShadButton.outline(
             child: const Text('Cancel'),
+            onPressed: () => Navigator.of(ctx).pop(),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.dangerColor,
-            ),
+          ShadButton.destructive(
+            child: const Text('Delete'),
             onPressed: () {
               provider.deleteProduct(id: id);
-              Navigator.pop(ctx);
+              Navigator.of(ctx).pop();
             },
-            child: const Text('Delete'),
           ),
         ],
       ),

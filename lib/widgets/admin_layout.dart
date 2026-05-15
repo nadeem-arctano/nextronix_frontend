@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/theme_provider.dart';
 import '../static_values/static_values.dart';
 
 class AdminLayout extends StatefulWidget {
@@ -23,46 +26,10 @@ class _AdminLayoutState extends State<AdminLayout> {
     if (isMobile) {
       return Scaffold(
         drawer: _buildDrawer(context),
-        body: Row(
+        body: Column(
           children: [
-            // Mobile: no sidebar, use drawer
-            Expanded(
-              child: Column(
-                children: [
-                  // Small mobile header with menu button
-                  Container(
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.sidebarColor,
-                    ),
-                    child: Row(
-                      children: [
-                        Builder(
-                          builder: (ctx) => IconButton(
-                            icon: const Icon(
-                              Icons.menu,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            onPressed: () => Scaffold.of(ctx).openDrawer(),
-                          ),
-                        ),
-                        const Text(
-                          'Nextronix',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(child: widget.child),
-                ],
-              ),
-            ),
+            _buildMobileHeader(context),
+            Expanded(child: widget.child),
           ],
         ),
       );
@@ -73,6 +40,35 @@ class _AdminLayoutState extends State<AdminLayout> {
         children: [
           _buildSidebar(context, collapsed: isTablet || _isSidebarCollapsed),
           Expanded(child: widget.child),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileHeader(BuildContext context) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: const BoxDecoration(color: AppTheme.sidebarColor),
+      child: Row(
+        children: [
+          Builder(
+            builder: (ctx) => ShadIconButton.ghost(
+              icon: const Icon(LucideIcons.menu, color: Colors.white, size: 20),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'Nextronix',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          _buildThemeToggle(compact: true),
         ],
       ),
     );
@@ -119,14 +115,14 @@ class _AdminLayoutState extends State<AdminLayout> {
                   ),
                 ),
               if (collapsed)
-                const Icon(Icons.bolt, color: AppTheme.primaryColor, size: 22),
+                const Icon(LucideIcons.zap, color: Color(0xFF2563EB), size: 22),
               if (!collapsed)
                 GestureDetector(
                   onTap: () => setState(
                     () => _isSidebarCollapsed = !_isSidebarCollapsed,
                   ),
                   child: const Icon(
-                    Icons.chevron_left,
+                    LucideIcons.panelLeftClose,
                     color: Colors.white38,
                     size: 18,
                   ),
@@ -144,7 +140,7 @@ class _AdminLayoutState extends State<AdminLayout> {
             children: [
               _buildNavItem(
                 context,
-                Icons.dashboard_outlined,
+                LucideIcons.layoutDashboard,
                 'Dashboard',
                 '/dashboard',
                 currentPath,
@@ -152,7 +148,7 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
               _buildNavItem(
                 context,
-                Icons.inventory_2_outlined,
+                LucideIcons.package,
                 'Products',
                 '/products',
                 currentPath,
@@ -160,7 +156,7 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
               _buildNavItem(
                 context,
-                Icons.category_outlined,
+                LucideIcons.layers,
                 'Categories',
                 '/categories',
                 currentPath,
@@ -168,7 +164,7 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
               _buildNavItem(
                 context,
-                Icons.shopping_bag_outlined,
+                LucideIcons.shoppingBag,
                 'Orders',
                 '/orders',
                 currentPath,
@@ -176,7 +172,7 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
               _buildNavItem(
                 context,
-                Icons.people_outline,
+                LucideIcons.users,
                 'Users',
                 '/users',
                 currentPath,
@@ -186,10 +182,61 @@ class _AdminLayoutState extends State<AdminLayout> {
           ),
         ),
 
+        // Theme toggle
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: collapsed ? 8 : 12,
+            vertical: 8,
+          ),
+          child: _buildThemeToggle(compact: collapsed),
+        ),
+
         // Profile + Logout at bottom
         const Divider(color: Colors.white10, height: 1),
         _buildProfileSection(collapsed),
       ],
+    );
+  }
+
+  Widget _buildThemeToggle({bool compact = false}) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDark;
+
+    if (compact) {
+      return GestureDetector(
+        onTap: () => themeProvider.toggleTheme(),
+        child: Icon(
+          isDark ? LucideIcons.sun : LucideIcons.moon,
+          color: Colors.white54,
+          size: 18,
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => themeProvider.toggleTheme(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.sidebarActiveColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isDark ? LucideIcons.sun : LucideIcons.moon,
+              color: Colors.white54,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isDark ? 'Light Mode' : 'Dark Mode',
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -201,7 +248,7 @@ class _AdminLayoutState extends State<AdminLayout> {
           children: [
             const CircleAvatar(
               radius: 14,
-              backgroundColor: AppTheme.primaryColor,
+              backgroundColor: Color(0xFF2563EB),
               child: Text(
                 'A',
                 style: TextStyle(
@@ -214,7 +261,11 @@ class _AdminLayoutState extends State<AdminLayout> {
             const SizedBox(height: 8),
             GestureDetector(
               onTap: _handleLogout,
-              child: const Icon(Icons.logout, color: Colors.white38, size: 18),
+              child: const Icon(
+                LucideIcons.logOut,
+                color: Colors.white38,
+                size: 18,
+              ),
             ),
           ],
         ),
@@ -229,7 +280,7 @@ class _AdminLayoutState extends State<AdminLayout> {
             children: [
               const CircleAvatar(
                 radius: 16,
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: Color(0xFF2563EB),
                 child: Text(
                   'A',
                   style: TextStyle(
@@ -269,19 +320,12 @@ class _AdminLayoutState extends State<AdminLayout> {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: ShadButton.outline(
+              leading: const Icon(LucideIcons.logOut, size: 14),
               onPressed: _handleLogout,
-              icon: const Icon(Icons.logout, size: 14),
-              label: const Text('Logout'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white60,
-                side: const BorderSide(color: Colors.white12),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                textStyle: const TextStyle(fontSize: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
+              foregroundColor: Colors.white60,
+              size: ShadButtonSize.sm,
+              child: const Text('Logout'),
             ),
           ),
         ],
@@ -291,7 +335,6 @@ class _AdminLayoutState extends State<AdminLayout> {
 
   void _handleLogout() {
     globalAccessToken = null;
-    // Navigate to login or handle logout
   }
 
   Widget _buildNavItem(
@@ -352,7 +395,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                       width: 3,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
+                        color: const Color(0xFF2563EB),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

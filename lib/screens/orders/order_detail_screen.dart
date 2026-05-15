@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../provider/order_provider.dart';
 import '../../widgets/status_badge.dart';
@@ -26,6 +26,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return Consumer<OrderProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.selectedOrder == null) {
@@ -44,17 +45,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
+                  ShadIconButton.ghost(
+                    icon: const Icon(LucideIcons.arrowLeft),
                     onPressed: () => context.go('/orders'),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Order ${order.orderNumber ?? ''}',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: theme.textTheme.h2,
                   ),
                   const SizedBox(width: 16),
                   StatusBadge(status: order.orderStatus ?? 'pending'),
@@ -68,20 +66,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildOrderDetails(order)),
+                        Expanded(
+                          flex: 3,
+                          child: _buildOrderDetails(order, theme),
+                        ),
                         const SizedBox(width: 24),
                         Expanded(
                           flex: 2,
-                          child: _buildOrderSidebar(order, provider),
+                          child: _buildOrderSidebar(order, provider, theme),
                         ),
                       ],
                     );
                   }
                   return Column(
                     children: [
-                      _buildOrderDetails(order),
+                      _buildOrderDetails(order, theme),
                       const SizedBox(height: 24),
-                      _buildOrderSidebar(order, provider),
+                      _buildOrderSidebar(order, provider, theme),
                     ],
                   );
                 },
@@ -93,272 +94,227 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _buildOrderDetails(order) {
+  Widget _buildOrderDetails(dynamic order, ShadThemeData theme) {
     return Column(
       children: [
         // Order Items
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Order Items',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
-                if (order.items != null && order.items!.isNotEmpty)
-                  ...order.items!.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppTheme.bgColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.image,
-                              color: AppTheme.textSecondary,
-                            ),
+        ShadCard(
+          padding: const EdgeInsets.all(20),
+          title: Text('Order Items', style: theme.textTheme.h4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              if (order.items != null && order.items!.isNotEmpty)
+                ...order.items!.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.muted,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.productName ?? '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  'Qty: ${item.quantity ?? 0} × ₹${(item.price ?? 0).toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          child: Icon(
+                            LucideIcons.image,
+                            color: theme.colorScheme.mutedForeground,
                           ),
-                          Text(
-                            '₹${(item.totalPrice ?? 0).toStringAsFixed(0)}',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.productName ?? '',
+                                style: theme.textTheme.small,
+                              ),
+                              Text(
+                                'Qty: ${item.quantity ?? 0} × ₹${(item.price ?? 0).toStringAsFixed(0)}',
+                                style: theme.textTheme.muted,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Text(
+                          '₹${(item.totalPrice ?? 0).toStringAsFixed(0)}',
+                          style: theme.textTheme.small,
+                        ),
+                      ],
                     ),
-                  )
-                else
-                  const Text(
-                    'No items',
-                    style: TextStyle(color: AppTheme.textSecondary),
                   ),
-              ],
-            ),
+                )
+              else
+                Text('No items', style: theme.textTheme.muted),
+            ],
           ),
         ),
         const SizedBox(height: 16),
 
         // Order Summary
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Order Summary',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
+        ShadCard(
+          padding: const EdgeInsets.all(20),
+          title: Text('Order Summary', style: theme.textTheme.h4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              _buildSummaryRow(
+                'Subtotal',
+                '₹${(order.subtotal ?? 0).toStringAsFixed(2)}',
+                theme,
+              ),
+              _buildSummaryRow(
+                'GST',
+                '₹${(order.gstAmount ?? 0).toStringAsFixed(2)}',
+                theme,
+              ),
+              _buildSummaryRow(
+                'Shipping',
+                '₹${(order.shippingCharge ?? 0).toStringAsFixed(2)}',
+                theme,
+              ),
+              if ((order.discountAmount ?? 0) > 0)
                 _buildSummaryRow(
-                  'Subtotal',
-                  '₹${(order.subtotal ?? 0).toStringAsFixed(2)}',
+                  'Discount',
+                  '-₹${(order.discountAmount ?? 0).toStringAsFixed(2)}',
+                  theme,
+                  isDiscount: true,
                 ),
-                _buildSummaryRow(
-                  'GST',
-                  '₹${(order.gstAmount ?? 0).toStringAsFixed(2)}',
-                ),
-                _buildSummaryRow(
-                  'Shipping',
-                  '₹${(order.shippingCharge ?? 0).toStringAsFixed(2)}',
-                ),
-                if ((order.discountAmount ?? 0) > 0)
-                  _buildSummaryRow(
-                    'Discount',
-                    '-₹${(order.discountAmount ?? 0).toStringAsFixed(2)}',
-                    isDiscount: true,
-                  ),
-                const Divider(),
-                _buildSummaryRow(
-                  'Total',
-                  '₹${(order.totalAmount ?? 0).toStringAsFixed(2)}',
-                  isBold: true,
-                ),
-              ],
-            ),
+              Divider(color: theme.colorScheme.border),
+              _buildSummaryRow(
+                'Total',
+                '₹${(order.totalAmount ?? 0).toStringAsFixed(2)}',
+                theme,
+                isBold: true,
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOrderSidebar(order, OrderProvider provider) {
+  Widget _buildOrderSidebar(
+    dynamic order,
+    OrderProvider provider,
+    ShadThemeData theme,
+  ) {
     return Column(
       children: [
         // Customer Info
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Customer',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  order.customerName ?? 'N/A',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
+        ShadCard(
+          padding: const EdgeInsets.all(20),
+          title: Text('Customer', style: theme.textTheme.h4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              Text(order.customerName ?? 'N/A', style: theme.textTheme.small),
+              const SizedBox(height: 4),
+              Text(order.customerEmail ?? '', style: theme.textTheme.muted),
+              if (order.customerMobile != null) ...[
                 const SizedBox(height: 4),
-                Text(
-                  order.customerEmail ?? '',
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                if (order.customerMobile != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    order.customerMobile!,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
+                Text(order.customerMobile!, style: theme.textTheme.muted),
               ],
-            ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
 
         // Payment Info
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Payment',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Method'),
-                    Text(
-                      (order.paymentMethod ?? 'cod').toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Status'),
-                    StatusBadge(status: order.paymentStatus ?? 'pending'),
-                  ],
-                ),
-              ],
-            ),
+        ShadCard(
+          padding: const EdgeInsets.all(20),
+          title: Text('Payment', style: theme.textTheme.h4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Method', style: theme.textTheme.muted),
+                  Text(
+                    (order.paymentMethod ?? 'cod').toUpperCase(),
+                    style: theme.textTheme.small,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Status', style: theme.textTheme.muted),
+                  StatusBadge(status: order.paymentStatus ?? 'pending'),
+                ],
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
 
         // Update Status
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Update Status',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: order.orderStatus,
-                  decoration: const InputDecoration(labelText: 'Order Status'),
-                  items: const [
-                    DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                    DropdownMenuItem(
-                      value: 'confirmed',
-                      child: Text('Confirmed'),
-                    ),
-                    DropdownMenuItem(value: 'packed', child: Text('Packed')),
-                    DropdownMenuItem(value: 'shipped', child: Text('Shipped')),
-                    DropdownMenuItem(
-                      value: 'out_for_delivery',
-                      child: Text('Out for Delivery'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'delivered',
-                      child: Text('Delivered'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'cancelled',
-                      child: Text('Cancelled'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'returned',
-                      child: Text('Returned'),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null)
-                      provider.updateOrderStatus(id: order.id!, status: v);
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: order.paymentStatus,
-                  decoration: const InputDecoration(
-                    labelText: 'Payment Status',
+        ShadCard(
+          padding: const EdgeInsets.all(20),
+          title: Text('Update Status', style: theme.textTheme.h4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              const Text('Order Status'),
+              const SizedBox(height: 6),
+              ShadSelect<String>(
+                initialValue: order.orderStatus ?? 'pending',
+                options: const [
+                  ShadOption(value: 'pending', child: Text('Pending')),
+                  ShadOption(value: 'confirmed', child: Text('Confirmed')),
+                  ShadOption(value: 'packed', child: Text('Packed')),
+                  ShadOption(value: 'shipped', child: Text('Shipped')),
+                  ShadOption(
+                    value: 'out_for_delivery',
+                    child: Text('Out for Delivery'),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                    DropdownMenuItem(value: 'paid', child: Text('Paid')),
-                    DropdownMenuItem(value: 'failed', child: Text('Failed')),
-                    DropdownMenuItem(
-                      value: 'refunded',
-                      child: Text('Refunded'),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null)
-                      provider.updatePaymentStatus(
-                        id: order.id!,
-                        paymentStatus: v,
-                      );
-                  },
+                  ShadOption(value: 'delivered', child: Text('Delivered')),
+                  ShadOption(value: 'cancelled', child: Text('Cancelled')),
+                  ShadOption(value: 'returned', child: Text('Returned')),
+                ],
+                selectedOptionBuilder: (context, value) => Text(
+                  value.replaceAll('_', ' ').substring(0, 1).toUpperCase() +
+                      value.replaceAll('_', ' ').substring(1),
                 ),
-              ],
-            ),
+                onChanged: (v) {
+                  if (v != null) {
+                    provider.updateOrderStatus(id: order.id!, status: v);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              const Text('Payment Status'),
+              const SizedBox(height: 6),
+              ShadSelect<String>(
+                initialValue: order.paymentStatus ?? 'pending',
+                options: const [
+                  ShadOption(value: 'pending', child: Text('Pending')),
+                  ShadOption(value: 'paid', child: Text('Paid')),
+                  ShadOption(value: 'failed', child: Text('Failed')),
+                  ShadOption(value: 'refunded', child: Text('Refunded')),
+                ],
+                selectedOptionBuilder: (context, value) => Text(
+                  value.substring(0, 1).toUpperCase() + value.substring(1),
+                ),
+                onChanged: (v) {
+                  if (v != null) {
+                    provider.updatePaymentStatus(
+                      id: order.id!,
+                      paymentStatus: v,
+                    );
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ],
@@ -367,7 +323,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildSummaryRow(
     String label,
-    String value, {
+    String value,
+    ShadThemeData theme, {
     bool isBold = false,
     bool isDiscount = false,
   }) {
@@ -378,18 +335,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
-            ),
+            style: isBold ? theme.textTheme.large : theme.textTheme.p,
           ),
           Text(
             value,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              fontSize: isBold ? 16 : 14,
-              color: isDiscount ? AppTheme.successColor : null,
-            ),
+            style: isBold
+                ? theme.textTheme.large
+                : theme.textTheme.small.copyWith(
+                    color: isDiscount ? AppTheme.successColor : null,
+                  ),
           ),
         ],
       ),

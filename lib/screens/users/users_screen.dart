@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
 import '../../provider/user_provider.dart';
@@ -84,6 +85,7 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Widget _buildFilters(UserProvider provider) {
+    final theme = ShadTheme.of(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -91,25 +93,9 @@ class _UsersScreenState extends State<UsersScreen> {
           // Search
           SizedBox(
             width: 240,
-            height: 36,
-            child: TextField(
+            child: ShadInput(
               controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search name, email...',
-                prefixIcon: const Icon(Icons.search, size: 18),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 16),
-                        onPressed: () {
-                          _searchController.clear();
-                          provider.setSearch('');
-                          provider.loadUsers();
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-              ),
-              style: const TextStyle(fontSize: 13),
+              placeholder: const Text('Search name, email...'),
               onSubmitted: (value) {
                 provider.setSearch(value);
                 provider.loadUsers();
@@ -125,6 +111,7 @@ class _UsersScreenState extends State<UsersScreen> {
             null,
             provider.roleFilter,
             (v) => provider.setRoleFilter(v),
+            theme,
           ),
           const SizedBox(width: 6),
           _buildChip(
@@ -132,6 +119,7 @@ class _UsersScreenState extends State<UsersScreen> {
             'admin',
             provider.roleFilter,
             (v) => provider.setRoleFilter(v),
+            theme,
           ),
           const SizedBox(width: 6),
           _buildChip(
@@ -139,51 +127,29 @@ class _UsersScreenState extends State<UsersScreen> {
             'customer',
             provider.roleFilter,
             (v) => provider.setRoleFilter(v),
+            theme,
           ),
           const SizedBox(width: 12),
 
           // Date range
-          GestureDetector(
-            onTap: () => _selectDateRange(provider),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppTheme.borderColor),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: AppTheme.textSecondary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    provider.startDate != null
-                        ? '${DateFormat('dd/MM').format(provider.startDate!)} - ${DateFormat('dd/MM').format(provider.endDate ?? DateTime.now())}'
-                        : 'Date',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  if (provider.startDate != null) ...[
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => provider.setDateRange(null, null),
-                      child: const Icon(
-                        Icons.close,
-                        size: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+          ShadButton.outline(
+            size: ShadButtonSize.sm,
+            leading: const Icon(LucideIcons.calendar, size: 14),
+            onPressed: () => _selectDateRange(provider),
+            child: Text(
+              provider.startDate != null
+                  ? '${DateFormat('dd/MM').format(provider.startDate!)} - ${DateFormat('dd/MM').format(provider.endDate ?? DateTime.now())}'
+                  : 'Date',
+              style: const TextStyle(fontSize: 12),
             ),
           ),
+          if (provider.startDate != null) ...[
+            const SizedBox(width: 4),
+            ShadIconButton.ghost(
+              icon: const Icon(LucideIcons.x, size: 14),
+              onPressed: () => provider.setDateRange(null, null),
+            ),
+          ],
         ],
       ),
     );
@@ -194,17 +160,23 @@ class _UsersScreenState extends State<UsersScreen> {
     String? value,
     String? currentValue,
     ValueChanged<String?> onTap,
+    ShadThemeData theme,
   ) {
     final isSelected = currentValue == value;
     return GestureDetector(
       onTap: () => onTap(value),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.sidebarColor : Colors.white,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppTheme.sidebarColor : AppTheme.borderColor,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.border,
           ),
         ),
         child: Text(
@@ -212,7 +184,9 @@ class _UsersScreenState extends State<UsersScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
+            color: isSelected
+                ? theme.colorScheme.primaryForeground
+                : theme.colorScheme.mutedForeground,
           ),
         ),
       ),
@@ -237,11 +211,11 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Widget _buildUserRow(UserListResult user, UserProvider provider) {
+    final theme = ShadTheme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          // User (avatar + name)
           Expanded(
             flex: 3,
             child: Row(
@@ -251,11 +225,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 Expanded(
                   child: Text(
                     user.name ?? 'N/A',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimary,
-                    ),
+                    style: theme.textTheme.small,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -263,61 +233,40 @@ class _UsersScreenState extends State<UsersScreen> {
               ],
             ),
           ),
-
-          // Email
           Expanded(
             flex: 3,
             child: Text(
               user.email ?? '-',
-              style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+              style: theme.textTheme.p.copyWith(fontSize: 13),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-
-          // Mobile
           Expanded(
             flex: 2,
-            child: Text(
-              user.mobile ?? '-',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.textSecondary,
-              ),
-            ),
+            child: Text(user.mobile ?? '-', style: theme.textTheme.muted),
           ),
-
-          // Role
           Expanded(flex: 2, child: RoleBadge(role: user.role ?? 'customer')),
-
-          // Status
           Expanded(
             flex: 2,
             child: StatusBadge(status: user.status ?? 'active'),
           ),
-
-          // Joined
           Expanded(
             flex: 2,
             child: Text(
               user.createdAt != null
                   ? DateFormat('MMM dd').format(DateTime.parse(user.createdAt!))
                   : '-',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.textSecondary,
-              ),
+              style: theme.textTheme.muted,
             ),
           ),
-
-          // Actions
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.more_horiz,
+              icon: Icon(
+                LucideIcons.ellipsis,
                 size: 18,
-                color: AppTheme.textSecondary,
+                color: theme.colorScheme.mutedForeground,
               ),
               padding: EdgeInsets.zero,
               onSelected: (value) {
@@ -337,7 +286,7 @@ class _UsersScreenState extends State<UsersScreen> {
                     child: Text('Set Inactive'),
                   ),
                 if (user.status != 'blocked')
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'blocked',
                     child: Text(
                       'Block User',

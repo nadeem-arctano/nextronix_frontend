@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
 import '../../model/response/response.dart';
@@ -39,10 +40,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               PageHeader(
                 title: 'Categories',
                 actions: [
-                  ElevatedButton.icon(
+                  ShadButton(
+                    leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showCategoryDialog(context, provider),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Category'),
+                    child: const Text('Add Category'),
                   ),
                 ],
               ),
@@ -76,11 +77,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Widget _buildCategoryRow(CategoryResult category, CategoryProvider provider) {
+    final theme = ShadTheme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          // Category (image + name + description)
           Expanded(
             flex: 4,
             child: Row(
@@ -90,18 +91,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: Container(
                     width: 36,
                     height: 36,
-                    color: AppTheme.dividerColor,
+                    color: theme.colorScheme.muted,
                     child: category.image != null
                         ? Image.network(
                             ApiConstants.getImageUrl(category.image),
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const Icon(Icons.category, size: 16),
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(LucideIcons.layers, size: 16),
                           )
-                        : const Icon(
-                            Icons.category,
+                        : Icon(
+                            LucideIcons.layers,
                             size: 16,
-                            color: AppTheme.textMuted,
+                            color: theme.colorScheme.mutedForeground,
                           ),
                   ),
                 ),
@@ -112,11 +113,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     children: [
                       Text(
                         category.name ?? '',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.textPrimary,
-                        ),
+                        style: theme.textTheme.small,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -124,10 +121,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           category.description!.isNotEmpty)
                         Text(
                           category.description!,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textMuted,
-                          ),
+                          style: theme.textTheme.muted.copyWith(fontSize: 11),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -137,34 +131,24 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ],
             ),
           ),
-
-          // Products count
           Expanded(
             flex: 2,
             child: Text(
               '${category.productCount ?? 0}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textPrimary,
-              ),
+              style: theme.textTheme.small,
             ),
           ),
-
-          // Status
           Expanded(
             flex: 2,
             child: StatusBadge(status: category.status ?? 'active'),
           ),
-
-          // Actions
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.more_horiz,
+              icon: Icon(
+                LucideIcons.ellipsis,
                 size: 18,
-                color: AppTheme.textSecondary,
+                color: theme.colorScheme.mutedForeground,
               ),
               padding: EdgeInsets.zero,
               onSelected: (value) {
@@ -175,28 +159,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     _confirmDelete(context, provider, category);
                 }
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
+              itemBuilder: (_) => [
+                const PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.edit_outlined, size: 16),
+                      Icon(LucideIcons.pencil, size: 16),
                       SizedBox(width: 8),
                       Text('Edit'),
                     ],
                   ),
                 ),
-                PopupMenuDivider(),
+                const PopupMenuDivider(),
                 PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
                       Icon(
-                        Icons.delete_outline,
+                        LucideIcons.trash2,
                         size: 16,
                         color: AppTheme.dangerColor,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Delete',
                         style: TextStyle(color: AppTheme.dangerColor),
@@ -224,65 +208,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     String status = category?.status ?? 'active';
     PlatformFile? imageFile;
 
-    showDialog(
+    showShadDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
+        builder: (ctx, setDialogState) => ShadDialog(
           title: Text(category == null ? 'Add Category' : 'Edit Category'),
-          content: SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Category Name *',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: const [
-                    DropdownMenuItem(value: 'active', child: Text('Active')),
-                    DropdownMenuItem(
-                      value: 'inactive',
-                      child: Text('Inactive'),
-                    ),
-                  ],
-                  onChanged: (v) => setDialogState(() => status = v!),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final result = await FilePicker.platform.pickFiles(
-                      type: FileType.image,
-                    );
-                    if (result != null) {
-                      setDialogState(() => imageFile = result.files.first);
-                    }
-                  },
-                  icon: const Icon(Icons.image_outlined, size: 16),
-                  label: Text(
-                    imageFile != null ? imageFile!.name : 'Select Image',
-                  ),
-                ),
-              ],
-            ),
+          description: Text(
+            category == null
+                ? 'Create a new product category'
+                : 'Update category details',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
+            ShadButton.outline(
               child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(ctx),
             ),
-            ElevatedButton(
+            ShadButton(
+              child: Text(category == null ? 'Create' : 'Update'),
               onPressed: () async {
                 if (nameController.text.isEmpty) return;
 
@@ -314,9 +256,61 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
                 if (result == null && ctx.mounted) Navigator.pop(ctx);
               },
-              child: Text(category == null ? 'Create' : 'Update'),
             ),
           ],
+          child: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                const Text('Category Name *'),
+                const SizedBox(height: 6),
+                ShadInput(
+                  controller: nameController,
+                  placeholder: const Text('Enter category name'),
+                ),
+                const SizedBox(height: 16),
+                const Text('Description'),
+                const SizedBox(height: 6),
+                ShadInput(
+                  controller: descController,
+                  placeholder: const Text('Enter description'),
+                ),
+                const SizedBox(height: 16),
+                const Text('Status'),
+                const SizedBox(height: 6),
+                ShadSelect<String>(
+                  initialValue: status,
+                  options: const [
+                    ShadOption(value: 'active', child: Text('Active')),
+                    ShadOption(value: 'inactive', child: Text('Inactive')),
+                  ],
+                  selectedOptionBuilder: (context, value) => Text(value),
+                  onChanged: (v) {
+                    if (v != null) setDialogState(() => status = v);
+                  },
+                ),
+                const SizedBox(height: 16),
+                ShadButton.outline(
+                  leading: const Icon(LucideIcons.image, size: 16),
+                  onPressed: () async {
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.image,
+                    );
+                    if (result != null) {
+                      setDialogState(() => imageFile = result.files.first);
+                    }
+                  },
+                  child: Text(
+                    imageFile != null ? imageFile!.name : 'Select Image',
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -327,25 +321,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     CategoryProvider provider,
     CategoryResult category,
   ) {
-    showDialog(
+    showShadDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => ShadDialog.alert(
         title: const Text('Delete Category'),
-        content: Text('Are you sure you want to delete "${category.name}"?'),
+        description: Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text('Are you sure you want to delete "${category.name}"?'),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
+          ShadButton.outline(
             child: const Text('Cancel'),
+            onPressed: () => Navigator.of(ctx).pop(),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.dangerColor,
-            ),
+          ShadButton.destructive(
+            child: const Text('Delete'),
             onPressed: () {
               provider.deleteCategory(id: category.id!);
-              Navigator.pop(ctx);
+              Navigator.of(ctx).pop();
             },
-            child: const Text('Delete'),
           ),
         ],
       ),

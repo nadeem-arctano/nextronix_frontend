@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// Common pagination widget for data tables
 class DataTablePagination extends StatelessWidget {
@@ -22,6 +22,7 @@ class DataTablePagination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -29,61 +30,32 @@ class DataTablePagination extends StatelessWidget {
         children: [
           Text(
             'Showing $showingCount of $totalItems $itemLabel',
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            style: theme.textTheme.muted.copyWith(fontSize: 12),
           ),
           Row(
             children: [
-              _buildPageButton(
-                icon: Icons.chevron_left,
-                enabled: currentPage > 1,
-                onTap: () => onPageChanged(currentPage - 1),
+              ShadIconButton.outline(
+                icon: const Icon(LucideIcons.chevronLeft, size: 16),
+                onPressed: currentPage > 1
+                    ? () => onPageChanged(currentPage - 1)
+                    : null,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   'Page $currentPage of $totalPages',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                  ),
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
                 ),
               ),
-              _buildPageButton(
-                icon: Icons.chevron_right,
-                enabled: currentPage < totalPages,
-                onTap: () => onPageChanged(currentPage + 1),
+              ShadIconButton.outline(
+                icon: const Icon(LucideIcons.chevronRight, size: 16),
+                onPressed: currentPage < totalPages
+                    ? () => onPageChanged(currentPage + 1)
+                    : null,
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPageButton({
-    required IconData icon,
-    required bool enabled,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: enabled ? Colors.white : AppTheme.dividerColor,
-      borderRadius: BorderRadius.circular(6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6),
-        onTap: enabled ? onTap : null,
-        child: Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppTheme.borderColor),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: enabled ? AppTheme.textPrimary : AppTheme.textMuted,
-          ),
-        ),
       ),
     );
   }

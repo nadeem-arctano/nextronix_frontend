@@ -1,37 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
 
-/// Reusable role badge widget
+/// Reusable role badge widget using ShadBadge
 class RoleBadge extends StatelessWidget {
   final String role;
 
   const RoleBadge({super.key, required this.role});
 
-  Color get _color {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return AppTheme.primaryColor;
-      case 'manager':
-        return AppTheme.secondaryColor;
-      case 'customer':
-        return AppTheme.successColor;
-      default:
-        return AppTheme.textSecondary;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
+    final color = AppTheme.getRoleColor(role);
+    return ShadBadge.outline(
+      backgroundColor: color.withValues(alpha: 0.1),
+      foregroundColor: color,
       child: Text(
         role.toUpperCase(),
         style: TextStyle(
-          color: _color,
+          color: color,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
