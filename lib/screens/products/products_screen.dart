@@ -272,7 +272,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               SizedBox(
                 width: 100,
                 child: ShadInput(
-                  placeholder: const Text('Min ₹'),
+                  placeholder: const Text('Min Price'),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);
@@ -284,7 +284,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               SizedBox(
                 width: 100,
                 child: ShadInput(
-                  placeholder: const Text('Max ₹'),
+                  placeholder: const Text('Max Price'),
                   keyboardType: TextInputType.number,
                   onSubmitted: (value) {
                     final v = double.tryParse(value);

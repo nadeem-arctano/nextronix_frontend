@@ -37,6 +37,25 @@ class AppTheme {
     brightness: Brightness.light,
     colorScheme: const ShadZincColorScheme.light(),
     textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
+    disableSecondaryBorder: true,
+    inputTheme: ShadInputTheme(
+      decoration: ShadDecoration(
+        secondaryFocusedBorder: ShadBorder.none,
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    selectTheme: const ShadSelectTheme(
+      decoration: ShadDecoration(
+        secondaryFocusedBorder: ShadBorder.none,
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.none,
+      ),
+    ),
   );
 
   // ─── Dark Theme ───────────────────────────────────────────────────────
@@ -44,6 +63,25 @@ class AppTheme {
     brightness: Brightness.dark,
     colorScheme: const ShadZincColorScheme.dark(),
     textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
+    disableSecondaryBorder: true,
+    inputTheme: ShadInputTheme(
+      decoration: ShadDecoration(
+        secondaryFocusedBorder: ShadBorder.none,
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: const Color(0xFF818CF8).withValues(alpha: 0.5),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    selectTheme: const ShadSelectTheme(
+      decoration: ShadDecoration(
+        secondaryFocusedBorder: ShadBorder.none,
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.none,
+      ),
+    ),
   );
 
   // ─── Helpers ──────────────────────────────────────────────────────────
