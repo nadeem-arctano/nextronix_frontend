@@ -43,11 +43,12 @@ class NextronixRepository {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (obj) => Debugging.printing(
-          text: obj.toString(),
-          tag: 'API',
-          color: DebugColor.yellow,
-        ),
+        
+        // logPrint: (obj) => Debugging.printing(
+        //   text: obj.toString(),
+        //   tag: 'API',
+        //   color: DebugColor.yellow,
+        // ),
       ),
     );
 
@@ -97,9 +98,9 @@ class NextronixRepository {
   }) async {
     final formData = FormData.fromMap({
       'name': name,
-      if (description != null) 'description': description,
-      if (status != null) 'status': status,
-      if (image != null) 'image': image,
+      'description': ?description,
+      'status': ?status,
+      'image': ?image,
     });
     return await _apiProvider.createCategory(formData);
   }
@@ -113,9 +114,9 @@ class NextronixRepository {
   }) async {
     final formData = FormData.fromMap({
       'name': name,
-      if (description != null) 'description': description,
-      if (status != null) 'status': status,
-      if (image != null) 'image': image,
+      'description': ?description,
+      'status': ?status,
+      'image': ?image,
     });
     return await _apiProvider.updateCategory(id, formData);
   }

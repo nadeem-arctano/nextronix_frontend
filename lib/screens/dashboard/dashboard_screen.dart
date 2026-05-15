@@ -302,15 +302,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   )
                 : LineChart(
                     LineChartData(
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        horizontalInterval: 1,
-                        getDrawingHorizontalLine: (value) => FlLine(
-                          color: theme.colorScheme.border,
-                          strokeWidth: 0.5,
-                        ),
-                      ),
+                      gridData: const FlGridData(show: false),
                       titlesData: const FlTitlesData(show: false),
                       borderData: FlBorderData(show: false),
                       lineBarsData: [
