@@ -74,6 +74,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Stock', flex: 2),
                           AppTableColumn(label: 'Status', flex: 2),
                         ],
+                        trailingWidth: 72,
                         items: provider.products,
                         currentPage: provider.currentPage,
                         totalPages: provider.totalPages,
@@ -328,233 +329,229 @@ class _ProductsScreenState extends State<ProductsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-            // Product (image + name + brand)
-            Expanded(
-              flex: 4,
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      color: theme.colorScheme.muted,
-                      child: product.thumbnailImage != null
-                          ? Image.network(
-                              ApiConstants.getImageUrl(product.thumbnailImage),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(LucideIcons.image, size: 16),
-                            )
-                          : Icon(
-                              LucideIcons.image,
-                              size: 16,
-                              color: theme.colorScheme.mutedForeground,
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name ?? '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.small,
-                        ),
-                        if (product.shortDescription != null)
-                          Text(
-                            product.shortDescription!,
-                            style: theme.textTheme.muted.copyWith(fontSize: 11),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+          // Product (image + name + brand)
+          Expanded(
+            flex: 4,
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    color: theme.colorScheme.muted,
+                    child: product.thumbnailImage != null
+                        ? Image.network(
+                            ApiConstants.getImageUrl(product.thumbnailImage),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(LucideIcons.image, size: 16),
+                          )
+                        : Icon(
+                            LucideIcons.image,
+                            size: 16,
+                            color: theme.colorScheme.mutedForeground,
                           ),
-                      ],
-                    ),
                   ),
-                ],
-              ),
-            ),
-
-            // SKU
-            Expanded(
-              flex: 2,
-              child: Text(product.sku ?? '-', style: theme.textTheme.muted),
-            ),
-
-            // Category
-            Expanded(
-              flex: 2,
-              child: Text(
-                product.categoryName ?? '-',
-                style: theme.textTheme.muted,
-              ),
-            ),
-
-            // HSN
-            Expanded(
-              flex: 2,
-              child: Text(product.hsnCode ?? '-', style: theme.textTheme.muted),
-            ),
-
-            // Price
-            Expanded(
-              flex: 2,
-              child: Row(
-                children: [
-                  Column(
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                        product.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.small,
                       ),
-                      if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
+                      if (product.shortDescription != null)
                         Text(
-                          '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                          style: theme.textTheme.muted.copyWith(
-                            fontSize: 11,
-                            decoration: TextDecoration.lineThrough,
-                          ),
+                          product.shortDescription!,
+                          style: theme.textTheme.muted.copyWith(fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                     ],
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () =>
-                        _showPriceEditDialog(context, product, provider),
-                    child: Icon(
-                      LucideIcons.pencil,
-                      size: 12,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Stock
-            Expanded(
-              flex: 2,
-              child: Row(
-                children: [
-                  Text(
-                    '${product.stockQuantity ?? 0}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: product.isLowStock
-                          ? AppTheme.dangerColor
-                          : theme.colorScheme.foreground,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () =>
-                        _showStockEditDialog(context, product, provider),
-                    child: Icon(
-                      LucideIcons.pencil,
-                      size: 12,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Status
-            Expanded(
-              flex: 2,
-              child: StatusBadge(status: product.status ?? 'active'),
-            ),
-
-            // View button
-            GestureDetector(
-              onTap: () => context.go('/admin/products/edit/${product.id}'),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(
-                  LucideIcons.mousePointerClick,
-                  size: 16,
-                  color: theme.colorScheme.mutedForeground,
                 ),
-              ),
+              ],
             ),
+          ),
 
-            // Actions
-            SizedBox(
-              width: 40,
-              child: PopupMenuButton<String>(
-                icon: Icon(
-                  LucideIcons.ellipsis,
-                  size: 18,
-                  color: theme.colorScheme.mutedForeground,
+          // SKU
+          Expanded(
+            flex: 2,
+            child: Text(product.sku ?? '-', style: theme.textTheme.muted),
+          ),
+
+          // Category
+          Expanded(
+            flex: 2,
+            child: Text(
+              product.categoryName ?? '-',
+              style: theme.textTheme.muted,
+            ),
+          ),
+
+          // HSN
+          Expanded(
+            flex: 2,
+            child: Text(product.hsnCode ?? '-', style: theme.textTheme.muted),
+          ),
+
+          // Price
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                      style: theme.textTheme.small,
+                    ),
+                    if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
+                      Text(
+                        '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
+                        style: theme.textTheme.muted.copyWith(
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                  ],
                 ),
-                padding: EdgeInsets.zero,
-                onSelected: (value) {
-                  switch (value) {
-                    case 'edit':
-                      context.go('/admin/products/edit/${product.id}');
-                    case 'featured':
-                      provider.toggleFeatured(id: product.id!);
-                    case 'delete':
-                      _confirmDelete(context, provider, product.id!);
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(LucideIcons.pencil, size: 16),
-                        SizedBox(width: 8),
-                        Text('Edit'),
-                      ],
-                    ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => _showPriceEditDialog(context, product, provider),
+                  child: Icon(
+                    LucideIcons.pencil,
+                    size: 12,
+                    color: theme.colorScheme.mutedForeground,
                   ),
-                  PopupMenuItem(
-                    value: 'featured',
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.star,
-                          size: 16,
-                          color: AppTheme.warningColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          (product.isFeatured ?? false)
-                              ? 'Unfeature'
-                              : 'Feature',
-                        ),
-                      ],
-                    ),
+                ),
+              ],
+            ),
+          ),
+
+          // Stock
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Text(
+                  '${product.stockQuantity ?? 0}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: product.isLowStock
+                        ? AppTheme.dangerColor
+                        : theme.colorScheme.foreground,
                   ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.trash2,
-                          size: 16,
-                          color: AppTheme.dangerColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Delete',
-                          style: TextStyle(color: AppTheme.dangerColor),
-                        ),
-                      ],
-                    ),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => _showStockEditDialog(context, product, provider),
+                  child: Icon(
+                    LucideIcons.pencil,
+                    size: 12,
+                    color: theme.colorScheme.mutedForeground,
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+
+          // Status
+          Expanded(
+            flex: 2,
+            child: StatusBadge(status: product.status ?? 'active'),
+          ),
+
+          // View button
+          GestureDetector(
+            onTap: () => context.go('/admin/products/edit/${product.id}'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(
+                LucideIcons.mousePointerClick,
+                size: 16,
+                color: theme.colorScheme.mutedForeground,
               ),
             ),
-          ],
-        ),
+          ),
+
+          // Actions
+          SizedBox(
+            width: 40,
+            child: PopupMenuButton<String>(
+              icon: Icon(
+                LucideIcons.ellipsis,
+                size: 18,
+                color: theme.colorScheme.mutedForeground,
+              ),
+              padding: EdgeInsets.zero,
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    context.go('/admin/products/edit/${product.id}');
+                  case 'featured':
+                    provider.toggleFeatured(id: product.id!);
+                  case 'delete':
+                    _confirmDelete(context, provider, product.id!);
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.pencil, size: 16),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'featured',
+                  child: Row(
+                    children: [
+                      Icon(
+                        LucideIcons.star,
+                        size: 16,
+                        color: AppTheme.warningColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        (product.isFeatured ?? false) ? 'Unfeature' : 'Feature',
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(
+                        LucideIcons.trash2,
+                        size: 16,
+                        color: AppTheme.dangerColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Delete',
+                        style: TextStyle(color: AppTheme.dangerColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
