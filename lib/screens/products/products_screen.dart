@@ -69,8 +69,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Product', flex: 4),
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
-                          AppTableColumn(label: 'MRP', flex: 2),
-                          AppTableColumn(label: 'Selling Price', flex: 2),
+                          AppTableColumn(label: 'Price', flex: 2),
                           AppTableColumn(label: 'Stock', flex: 1),
                           AppTableColumn(label: 'Status', flex: 2),
                         ],
@@ -396,21 +395,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
 
             // Price
-            // MRP
+            // Price
             Expanded(
               flex: 2,
-              child: Text(
-                '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                style: theme.textTheme.muted,
-              ),
-            ),
-
-            // Selling Price
-            Expanded(
-              flex: 2,
-              child: Text(
-                '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                style: theme.textTheme.small,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                    style: theme.textTheme.small,
+                  ),
+                  if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
+                    Text(
+                      '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 11,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                ],
               ),
             ),
 
