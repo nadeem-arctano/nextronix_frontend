@@ -49,11 +49,15 @@ class AppTheme {
         ),
       ),
     ),
-    selectTheme: const ShadSelectTheme(
+    selectTheme: ShadSelectTheme(
       decoration: ShadDecoration(
         secondaryFocusedBorder: ShadBorder.none,
         secondaryBorder: ShadBorder.none,
-        focusedBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: const ShadZincColorScheme.light().border,
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
       ),
     ),
   );
@@ -75,11 +79,15 @@ class AppTheme {
         ),
       ),
     ),
-    selectTheme: const ShadSelectTheme(
+    selectTheme: ShadSelectTheme(
       decoration: ShadDecoration(
         secondaryFocusedBorder: ShadBorder.none,
         secondaryBorder: ShadBorder.none,
-        focusedBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: const ShadZincColorScheme.dark().border,
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
       ),
     ),
   );
