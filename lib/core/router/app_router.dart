@@ -27,6 +27,21 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/admin/dashboard',
     routes: [
+      // Standalone pages (no sidebar)
+      GoRoute(
+        path: '/admin/products/add',
+        name: 'add-product',
+        pageBuilder: (context, state) =>
+            _fadePage(const AddProductScreen(), state),
+      ),
+      GoRoute(
+        path: '/admin/products/edit/:id',
+        name: 'edit-product',
+        pageBuilder: (context, state) => _fadePage(
+          EditProductScreen(productId: int.parse(state.pathParameters['id']!)),
+          state,
+        ),
+      ),
       ShellRoute(
         builder: (context, state, child) => AdminLayout(child: child),
         routes: [
@@ -41,22 +56,6 @@ class AppRouter {
             name: 'products',
             pageBuilder: (context, state) =>
                 _fadePage(const ProductsScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/products/add',
-            name: 'add-product',
-            pageBuilder: (context, state) =>
-                _fadePage(const AddProductScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/products/edit/:id',
-            name: 'edit-product',
-            pageBuilder: (context, state) => _fadePage(
-              EditProductScreen(
-                productId: int.parse(state.pathParameters['id']!),
-              ),
-              state,
-            ),
           ),
           GoRoute(
             path: '/admin/categories',

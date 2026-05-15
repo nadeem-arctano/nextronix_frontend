@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -50,8 +52,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 title: 'Products',
                 actions: [
                   ShadButton(
-                    leading: const Icon(LucideIcons.plus, size: 16),
-                    onPressed: () => context.go('/admin/products/add'),
+                    leading: const Icon(LucideIcons.plus, size: 14),
+                    size: ShadButtonSize.sm,
+                    onPressed: () {
+                      final url = Uri.base
+                          .resolve('/admin/products/add')
+                          .toString();
+                      web.window.open(url, '_blank');
+                    },
                     child: const Text('Add Product'),
                   ),
                 ],

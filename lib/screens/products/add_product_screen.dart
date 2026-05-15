@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../provider/product_provider.dart';
 import '../../provider/category_provider.dart';
+import '../../model/request/request.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -49,7 +49,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _isFeatured = false;
   bool _isSubmitting = false;
   PlatformFile? _thumbnailFile;
-  List<PlatformFile> _galleryFiles = [];
+  final List<PlatformFile> _galleryFiles = [];
 
   @override
   void dispose() {
@@ -101,52 +101,32 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final formData = FormData.fromMap({
-      'name': _nameController.text,
-      'categoryId': _selectedCategory,
-      if (_selectedHsn != null) 'hsnId': _selectedHsn,
-      'shortDescription': _shortDescController.text,
-      'fullDescription': _fullDescController.text,
-      'brand': _brandController.text,
-      'sku': _skuController.text,
-      'barcode': _barcodeController.text,
-      'tags': _tagsController.text,
-      'mrpPrice': _mrpController.text,
-      'sellingPrice': _sellingController.text,
-      'gstPercent': _gstController.text,
-      'stockQuantity': _stockController.text,
-      'minStockAlert': _minStockController.text,
-      'weight': _weightController.text,
-      'dimensions': _dimensionsController.text,
-      'color': _colorController.text,
-      'material': _materialController.text,
-      'warranty': _warrantyController.text,
-      'status': _status,
-      'isFeatured': _isFeatured,
-    });
+    final request = ProductRequest(
+      name: _nameController.text,
+      categoryId: _selectedCategory!,
+      hsnId: _selectedHsn,
+      shortDescription: _shortDescController.text,
+      fullDescription: _fullDescController.text,
+      sku: _skuController.text,
+      barcode: _barcodeController.text,
+      tags: _tagsController.text,
+      mrpPrice: double.tryParse(_mrpController.text) ?? 0,
+      sellingPrice: double.tryParse(_sellingController.text) ?? 0,
+      gstPercent: double.tryParse(_gstController.text),
+      stockQuantity: int.tryParse(_stockController.text),
+      minStockAlert: int.tryParse(_minStockController.text),
+      weight: _weightController.text,
+      dimensions: _dimensionsController.text,
+      color: _colorController.text,
+      material: _materialController.text,
+      warranty: _warrantyController.text,
+      status: _status,
+      isFeatured: _isFeatured,
+      thumbnailFile: _thumbnailFile,
+      galleryFiles: _galleryFiles,
+    );
 
-    if (_thumbnailFile != null && _thumbnailFile!.bytes != null) {
-      formData.files.add(
-        MapEntry(
-          'thumbnailImage',
-          MultipartFile.fromBytes(
-            _thumbnailFile!.bytes!,
-            filename: _thumbnailFile!.name,
-          ),
-        ),
-      );
-    }
-
-    for (final file in _galleryFiles) {
-      if (file.bytes != null) {
-        formData.files.add(
-          MapEntry(
-            'galleryImages',
-            MultipartFile.fromBytes(file.bytes!, filename: file.name),
-          ),
-        );
-      }
-    }
+    final formData = await request.toFormData();
 
     final result = await context.read<ProductProvider>().createProduct(
       formData: formData,
@@ -169,75 +149,81 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     final categories = context.watch<CategoryProvider>().categories;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.go('/admin/products'),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Add New Product',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => context.go('/admin/products'),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Add New Product',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth > 900) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 900) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 3, child: _buildMainForm(categories)),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 2, child: _buildSideForm()),
+                      ],
+                    );
+                  }
+                  return Column(
                     children: [
-                      Expanded(flex: 3, child: _buildMainForm(categories)),
-                      const SizedBox(width: 24),
-                      Expanded(flex: 2, child: _buildSideForm()),
+                      _buildMainForm(categories),
+                      const SizedBox(height: 24),
+                      _buildSideForm(),
                     ],
                   );
-                }
-                return Column(
-                  children: [
-                    _buildMainForm(categories),
-                    const SizedBox(height: 24),
-                    _buildSideForm(),
-                  ],
-                );
-              },
-            ),
+                },
+              ),
 
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () => context.go('/admin/products'),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submit,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Create Product'),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => context.go('/admin/products'),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submit,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Create Product'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
