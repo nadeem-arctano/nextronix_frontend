@@ -203,28 +203,21 @@ class ProductProvider extends ChangeNotifier {
     required double sellingPrice,
   }) async {
     try {
-      CommonResponse response = await NextronixRepository().updateProductPrice(
+      await NextronixRepository().updateProductPrice(
         id: id,
         mrpPrice: mrpPrice,
         sellingPrice: sellingPrice,
       );
-      if (response.statusCode == 200) {
-        // Update locally using copyWith
-        final index = _products.indexWhere((p) => p.id == id);
-        if (index != -1) {
-          _products[index] = _products[index].copyWith(
-            mrpPrice: mrpPrice,
-            sellingPrice: sellingPrice,
-          );
-          notifyListeners();
-        }
-        return null;
-      } else {
-        return AlertErrorResponse(
-          alertHeading: "Error!",
-          alertMessage: response.message ?? "Failed to update price",
+      // Update locally using copyWith
+      final index = _products.indexWhere((p) => p.id == id);
+      if (index != -1) {
+        _products[index] = _products[index].copyWith(
+          mrpPrice: mrpPrice,
+          sellingPrice: sellingPrice,
         );
+        notifyListeners();
       }
+      return null;
     } catch (e) {
       return AlertErrorResponse.getErrorResponse(e);
     }
@@ -235,26 +228,19 @@ class ProductProvider extends ChangeNotifier {
     required int stockQuantity,
   }) async {
     try {
-      CommonResponse response = await NextronixRepository().updateProductStock(
+      await NextronixRepository().updateProductStock(
         id: id,
         stockQuantity: stockQuantity,
       );
-      if (response.statusCode == 200) {
-        // Update locally using copyWith
-        final index = _products.indexWhere((p) => p.id == id);
-        if (index != -1) {
-          _products[index] = _products[index].copyWith(
-            stockQuantity: stockQuantity,
-          );
-          notifyListeners();
-        }
-        return null;
-      } else {
-        return AlertErrorResponse(
-          alertHeading: "Error!",
-          alertMessage: response.message ?? "Failed to update stock",
+      // Update locally using copyWith
+      final index = _products.indexWhere((p) => p.id == id);
+      if (index != -1) {
+        _products[index] = _products[index].copyWith(
+          stockQuantity: stockQuantity,
         );
+        notifyListeners();
       }
+      return null;
     } catch (e) {
       return AlertErrorResponse.getErrorResponse(e);
     }
