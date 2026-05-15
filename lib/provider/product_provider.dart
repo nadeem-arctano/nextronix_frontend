@@ -209,7 +209,15 @@ class ProductProvider extends ChangeNotifier {
         sellingPrice: sellingPrice,
       );
       if (response.statusCode == 200) {
-        await loadProducts(page: _currentPage);
+        // Update locally using copyWith
+        final index = _products.indexWhere((p) => p.id == id);
+        if (index != -1) {
+          _products[index] = _products[index].copyWith(
+            mrpPrice: mrpPrice,
+            sellingPrice: sellingPrice,
+          );
+          notifyListeners();
+        }
         return null;
       } else {
         return AlertErrorResponse(
@@ -232,7 +240,14 @@ class ProductProvider extends ChangeNotifier {
         stockQuantity: stockQuantity,
       );
       if (response.statusCode == 200) {
-        await loadProducts(page: _currentPage);
+        // Update locally using copyWith
+        final index = _products.indexWhere((p) => p.id == id);
+        if (index != -1) {
+          _products[index] = _products[index].copyWith(
+            stockQuantity: stockQuantity,
+          );
+          notifyListeners();
+        }
         return null;
       } else {
         return AlertErrorResponse(

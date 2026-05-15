@@ -201,6 +201,50 @@ class ProductResult {
       : 0;
 
   bool get isLowStock => (stockQuantity ?? 0) <= (minStockAlert ?? 5);
+
+  ProductResult copyWith({
+    double? mrpPrice,
+    double? sellingPrice,
+    int? stockQuantity,
+    String? status,
+    bool? isFeatured,
+  }) {
+    return ProductResult(
+      id: id,
+      categoryId: categoryId,
+      hsnId: hsnId,
+      name: name,
+      slug: slug,
+      shortDescription: shortDescription,
+      fullDescription: fullDescription,
+      brand: brand,
+      sku: sku,
+      barcode: barcode,
+      tags: tags,
+      thumbnailImage: thumbnailImage,
+      galleryImages: galleryImages,
+      mrpPrice: mrpPrice ?? this.mrpPrice,
+      sellingPrice: sellingPrice ?? this.sellingPrice,
+      gstPercent: gstPercent,
+      stockQuantity: stockQuantity ?? this.stockQuantity,
+      minStockAlert: minStockAlert,
+      weight: weight,
+      dimensions: dimensions,
+      color: color,
+      material: material,
+      warranty: warranty,
+      status: status ?? this.status,
+      isFeatured: isFeatured ?? this.isFeatured,
+      hasVariants: hasVariants,
+      totalViews: totalViews,
+      totalSales: totalSales,
+      categoryName: categoryName,
+      hsnCode: hsnCode,
+      hsnGstPercent: hsnGstPercent,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 }
 
 class PaginationResult {
