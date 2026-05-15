@@ -66,7 +66,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ? const EmptyWidget(message: 'No products found')
                     : AppListTable<ProductResult>(
                         columns: const [
-                          AppTableColumn(label: 'Product', flex: 4),
+                          AppTableColumn(label: 'Product', flex: 5),
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
                           AppTableColumn(label: 'HSN', flex: 2),
@@ -359,7 +359,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         children: [
           // Product (image + name + brand)
           Expanded(
-            flex: 4,
+            flex: 5,
             child: Row(
               children: [
                 ClipRRect(
@@ -406,6 +406,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ],
             ),
           ),
+
+          const SizedBox(width: 12),
 
           // SKU
           Expanded(
