@@ -17,7 +17,7 @@ class ProductProvider extends ChangeNotifier {
   // Filters
   String? _searchQuery;
   String? _categoryFilter;
-  String? _statusFilter;
+  String? _statusFilter = 'active';
   String? _sortBy;
   String? _stockFilter; // low, out, in
   bool? _featuredFilter;

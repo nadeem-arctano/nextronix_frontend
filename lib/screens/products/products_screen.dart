@@ -69,7 +69,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'Product', flex: 4),
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
-                          AppTableColumn(label: 'Price', flex: 2),
+                          AppTableColumn(label: 'MRP', flex: 2),
+                          AppTableColumn(label: 'Selling Price', flex: 2),
                           AppTableColumn(label: 'Stock', flex: 1),
                           AppTableColumn(label: 'Status', flex: 2),
                         ],
@@ -115,13 +116,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
               // Status chips
               _buildChip(
-                'All',
-                null,
-                provider.statusFilter,
-                (v) => provider.setStatus(v),
-              ),
-              const SizedBox(width: 6),
-              _buildChip(
                 'Active',
                 'active',
                 provider.statusFilter,
@@ -138,13 +132,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
               _buildChip(
                 'Draft',
                 'draft',
-                provider.statusFilter,
-                (v) => provider.setStatus(v),
-              ),
-              const SizedBox(width: 6),
-              _buildChip(
-                'Deleted',
-                'deleted',
                 provider.statusFilter,
                 (v) => provider.setStatus(v),
               ),
@@ -204,24 +191,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
               // Category dropdown
               SizedBox(
                 width: 160,
-                child: ShadSelect<String?>(
+                child: ShadSelect<String>(
                   placeholder: const Text('Category'),
-                  initialValue: provider.categoryFilter,
+                  initialValue: provider.categoryFilter ?? '',
                   options: [
-                    const ShadOption(
-                      value: null,
-                      child: Text('All Categories'),
-                    ),
+                    const ShadOption(value: '', child: Text('All Categories')),
                     ...context.watch<CategoryProvider>().categories.map(
                       (c) => ShadOption(
-                        value: c.id?.toString(),
+                        value: c.id?.toString() ?? '',
                         child: Text(c.name ?? ''),
                       ),
                     ),
                   ],
                   selectedOptionBuilder: (context, value) =>
-                      Text(value ?? 'All'),
-                  onChanged: (value) => provider.setCategory(value),
+                      Text(value.isEmpty ? 'All Categories' : value),
+                  onChanged: (value) => provider.setCategory(
+                    value == null || value.isEmpty ? null : value,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -229,18 +215,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
               // Stock filter
               SizedBox(
                 width: 130,
-                child: ShadSelect<String?>(
+                child: ShadSelect<String>(
                   placeholder: const Text('Stock'),
-                  initialValue: provider.stockFilter,
+                  initialValue: provider.stockFilter ?? '',
                   options: const [
-                    ShadOption(value: null, child: Text('All Stock')),
+                    ShadOption(value: '', child: Text('All Stock')),
                     ShadOption(value: 'in', child: Text('In Stock')),
                     ShadOption(value: 'low', child: Text('Low Stock')),
                     ShadOption(value: 'out', child: Text('Out of Stock')),
                   ],
                   selectedOptionBuilder: (context, value) =>
-                      Text(value ?? 'All'),
-                  onChanged: (value) => provider.setStock(value),
+                      Text(value.isEmpty ? 'All Stock' : value),
+                  onChanged: (value) => provider.setStock(
+                    value == null || value.isEmpty ? null : value,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -378,10 +366,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.small,
                         ),
-                        if (product.brand != null)
+                        if (product.shortDescription != null)
                           Text(
-                            product.brand!,
+                            product.shortDescription!,
                             style: theme.textTheme.muted.copyWith(fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                       ],
                     ),
@@ -406,24 +396,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
 
             // Price
+            // MRP
             Expanded(
               flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                    style: theme.textTheme.small,
-                  ),
-                  if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
-                    Text(
-                      '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                      style: theme.textTheme.muted.copyWith(
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
-                ],
+              child: Text(
+                '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
+                style: theme.textTheme.muted,
+              ),
+            ),
+
+            // Selling Price
+            Expanded(
+              flex: 2,
+              child: Text(
+                '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                style: theme.textTheme.small,
               ),
             ),
 

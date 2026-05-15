@@ -10,6 +10,19 @@ import '../../screens/orders/order_detail_screen.dart';
 import '../../screens/users/users_screen.dart';
 import '../../widgets/admin_layout.dart';
 
+/// Instant page transition — no slide, just a quick fade
+CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 150),
+    reverseTransitionDuration: const Duration(milliseconds: 100),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/admin/dashboard',
@@ -20,46 +33,58 @@ class AppRouter {
           GoRoute(
             path: '/admin/dashboard',
             name: 'dashboard',
-            builder: (context, state) => const DashboardScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const DashboardScreen(), state),
           ),
           GoRoute(
             path: '/admin/products',
             name: 'products',
-            builder: (context, state) => const ProductsScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const ProductsScreen(), state),
           ),
           GoRoute(
             path: '/admin/products/add',
             name: 'add-product',
-            builder: (context, state) => const AddProductScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const AddProductScreen(), state),
           ),
           GoRoute(
             path: '/admin/products/edit/:id',
             name: 'edit-product',
-            builder: (context, state) => EditProductScreen(
-              productId: int.parse(state.pathParameters['id']!),
+            pageBuilder: (context, state) => _fadePage(
+              EditProductScreen(
+                productId: int.parse(state.pathParameters['id']!),
+              ),
+              state,
             ),
           ),
           GoRoute(
             path: '/admin/categories',
             name: 'categories',
-            builder: (context, state) => const CategoriesScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const CategoriesScreen(), state),
           ),
           GoRoute(
             path: '/admin/orders',
             name: 'orders',
-            builder: (context, state) => const OrdersScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const OrdersScreen(), state),
           ),
           GoRoute(
             path: '/admin/orders/:id',
             name: 'order-detail',
-            builder: (context, state) => OrderDetailScreen(
-              orderId: int.parse(state.pathParameters['id']!),
+            pageBuilder: (context, state) => _fadePage(
+              OrderDetailScreen(
+                orderId: int.parse(state.pathParameters['id']!),
+              ),
+              state,
             ),
           ),
           GoRoute(
             path: '/admin/users',
             name: 'users',
-            builder: (context, state) => const UsersScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(const UsersScreen(), state),
           ),
         ],
       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -17,17 +16,13 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadBadge.outline(
-      backgroundColor: _color.withValues(alpha: 0.08),
-      foregroundColor: _color,
-      child: Text(
-        status.replaceAll('_', ' ').toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: _color,
-          letterSpacing: 0.3,
-        ),
+    return Text(
+      status.replaceAll('_', ' ').toUpperCase(),
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: _color,
+        letterSpacing: 0.3,
       ),
     );
   }
