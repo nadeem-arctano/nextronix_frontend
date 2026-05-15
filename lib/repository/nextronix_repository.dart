@@ -142,12 +142,20 @@ class NextronixRepository {
     String? category,
     String? status,
     String? sortBy,
+    String? stock,
+    bool? featured,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     final queries = <String, dynamic>{'page': page, 'limit': limit};
     if (search != null && search.isNotEmpty) queries['search'] = search;
     if (category != null) queries['category'] = category;
     if (status != null) queries['status'] = status;
     if (sortBy != null) queries['sortBy'] = sortBy;
+    if (stock != null) queries['stock'] = stock;
+    if (featured == true) queries['featured'] = 'true';
+    if (minPrice != null) queries['minPrice'] = minPrice;
+    if (maxPrice != null) queries['maxPrice'] = maxPrice;
     return await _apiProvider.getProducts(queries);
   }
 
@@ -288,5 +296,39 @@ class NextronixRepository {
       id,
       StatusRequest(status: status),
     );
+  }
+
+  // ─── HSN Codes ──────────────────────────────────────────────────────────────
+  Future<HsnListResponse> getHsnCodes() async {
+    return await _apiProvider.getHsnCodes();
+  }
+
+  Future<CommonResponse> createHsn({
+    required String hsnCode,
+    required double gstPercent,
+    String? description,
+  }) async {
+    return await _apiProvider.createHsn({
+      'hsnCode': hsnCode,
+      'gstPercent': gstPercent,
+      'description': description,
+    });
+  }
+
+  Future<CommonResponse> updateHsn({
+    required int id,
+    required String hsnCode,
+    required double gstPercent,
+    String? description,
+  }) async {
+    return await _apiProvider.updateHsn(id, {
+      'hsnCode': hsnCode,
+      'gstPercent': gstPercent,
+      'description': description,
+    });
+  }
+
+  Future<CommonResponse> deleteHsn({required int id}) async {
+    return await _apiProvider.deleteHsn(id);
   }
 }

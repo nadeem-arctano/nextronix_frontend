@@ -173,4 +173,20 @@ abstract class ApiProvider {
     @Path('id') int id,
     @Body() StatusRequest statusRequest,
   );
+
+  // ─── HSN Codes ─────────────────────────────────────────────────────────────
+  @GET("hsn")
+  Future<HsnListResponse> getHsnCodes();
+
+  @POST("hsn")
+  Future<CommonResponse> createHsn(@Body() Map<String, dynamic> body);
+
+  @PUT("hsn/{id}")
+  Future<CommonResponse> updateHsn(
+    @Path('id') int id,
+    @Body() Map<String, dynamic> body,
+  );
+
+  @DELETE("hsn/{id}")
+  Future<CommonResponse> deleteHsn(@Path('id') int id);
 }

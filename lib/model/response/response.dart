@@ -16,4 +16,5 @@ export 'coupon_detail_response.dart';
 export 'address_model.dart';
 export 'payment_result.dart';
 export 'user_list_response.dart';
+export 'hsn_list_response.dart';
 export 'alert_error_response.dart';

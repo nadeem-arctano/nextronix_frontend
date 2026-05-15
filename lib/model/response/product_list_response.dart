@@ -39,6 +39,7 @@ class ProductListResponse {
 class ProductResult {
   final int? id;
   final int? categoryId;
+  final int? hsnId;
   final String? name;
   final String? slug;
   final String? shortDescription;
@@ -61,15 +62,19 @@ class ProductResult {
   final String? warranty;
   final String? status;
   final bool? isFeatured;
+  final bool? hasVariants;
   final int? totalViews;
   final int? totalSales;
   final String? categoryName;
+  final String? hsnCode;
+  final double? hsnGstPercent;
   final String? createdAt;
   final String? updatedAt;
 
   ProductResult({
     this.id,
     this.categoryId,
+    this.hsnId,
     this.name,
     this.slug,
     this.shortDescription,
@@ -92,9 +97,12 @@ class ProductResult {
     this.warranty,
     this.status,
     this.isFeatured,
+    this.hasVariants,
     this.totalViews,
     this.totalSales,
     this.categoryName,
+    this.hsnCode,
+    this.hsnGstPercent,
     this.createdAt,
     this.updatedAt,
   });
@@ -120,6 +128,7 @@ class ProductResult {
     return ProductResult(
       id: parseInt(json['id']),
       categoryId: parseInt(json['categoryId']),
+      hsnId: json['hsnId'] != null ? parseInt(json['hsnId']) : null,
       name: json['name']?.toString(),
       slug: json['slug']?.toString(),
       shortDescription: json['shortDescription']?.toString(),
@@ -142,9 +151,14 @@ class ProductResult {
       warranty: json['warranty']?.toString(),
       status: json['status']?.toString() ?? 'active',
       isFeatured: parseBool(json['isFeatured']),
+      hasVariants: parseBool(json['hasVariants']),
       totalViews: parseInt(json['totalViews']),
       totalSales: parseInt(json['totalSales']),
       categoryName: json['categoryName']?.toString(),
+      hsnCode: json['hsnCode']?.toString(),
+      hsnGstPercent: json['hsnGstPercent'] != null
+          ? parseDouble(json['hsnGstPercent'])
+          : null,
       createdAt: json['createdAt']?.toString(),
       updatedAt: json['updatedAt']?.toString(),
     );

@@ -91,131 +91,264 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Widget _buildFilters(ProductProvider provider) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          // Search
-          SizedBox(
-            width: 260,
-            height: 36,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search, size: 18),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 16),
-                        onPressed: () {
-                          _searchController.clear();
-                          provider.setSearch(null);
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Row 1: Search + Status chips + Sort + Clear
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Search
+              SizedBox(
+                width: 260,
+                height: 36,
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search products...',
+                    prefixIcon: const Icon(Icons.search, size: 18),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 16),
+                            onPressed: () {
+                              _searchController.clear();
+                              provider.setSearch(null);
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                  style: const TextStyle(fontSize: 13),
+                  onSubmitted: (value) => provider.setSearch(value),
+                  onChanged: (value) => setState(() {}),
+                ),
               ),
-              style: const TextStyle(fontSize: 13),
-              onSubmitted: (value) => provider.setSearch(value),
-              onChanged: (value) => setState(() {}),
-            ),
-          ),
-          const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-          // Status chips
-          _buildChip(
-            'All',
-            null,
-            provider.statusFilter,
-            (v) => provider.setFilters(status: v),
-          ),
-          const SizedBox(width: 6),
-          _buildChip(
-            'Active',
-            'active',
-            provider.statusFilter,
-            (v) => provider.setFilters(status: v),
-          ),
-          const SizedBox(width: 6),
-          _buildChip(
-            'Inactive',
-            'inactive',
-            provider.statusFilter,
-            (v) => provider.setFilters(status: v),
-          ),
-          const SizedBox(width: 6),
-          _buildChip(
-            'Draft',
-            'draft',
-            provider.statusFilter,
-            (v) => provider.setFilters(status: v),
-          ),
-          const SizedBox(width: 12),
+              // Status chips
+              _buildChip(
+                'All',
+                null,
+                provider.statusFilter,
+                (v) => provider.setStatus(v),
+              ),
+              const SizedBox(width: 6),
+              _buildChip(
+                'Active',
+                'active',
+                provider.statusFilter,
+                (v) => provider.setStatus(v),
+              ),
+              const SizedBox(width: 6),
+              _buildChip(
+                'Inactive',
+                'inactive',
+                provider.statusFilter,
+                (v) => provider.setStatus(v),
+              ),
+              const SizedBox(width: 6),
+              _buildChip(
+                'Draft',
+                'draft',
+                provider.statusFilter,
+                (v) => provider.setStatus(v),
+              ),
+              const SizedBox(width: 6),
+              _buildChip(
+                'Deleted',
+                'deleted',
+                provider.statusFilter,
+                (v) => provider.setStatus(v),
+              ),
+              const SizedBox(width: 12),
 
-          // Sort
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-            height: 34,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.borderColor),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
+              // Sort
+              _buildDropdown<String>(
                 value: provider.sortBy,
-                hint: const Text(
-                  'Sort',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                ),
-                isDense: true,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textPrimary,
-                ),
+                hint: 'Sort',
                 items: const [
                   DropdownMenuItem(value: 'latest', child: Text('Latest')),
+                  DropdownMenuItem(value: 'oldest', child: Text('Oldest')),
                   DropdownMenuItem(value: 'price_low', child: Text('Price ↑')),
                   DropdownMenuItem(value: 'price_high', child: Text('Price ↓')),
+                  DropdownMenuItem(
+                    value: 'most_viewed',
+                    child: Text('Most Viewed'),
+                  ),
                   DropdownMenuItem(value: 'most_sold', child: Text('Top Sold')),
+                  DropdownMenuItem(value: 'name_asc', child: Text('Name A-Z')),
+                  DropdownMenuItem(value: 'name_desc', child: Text('Name Z-A')),
                 ],
-                onChanged: (value) => provider.setFilters(sort: value),
+                onChanged: (value) => provider.setSort(value),
               ),
-            ),
-          ),
 
-          if (provider.searchQuery != null ||
-              provider.statusFilter != null ||
-              provider.sortBy != null) ...[
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () {
-                _searchController.clear();
-                provider.clearFilters();
-              },
-              child: const Text(
-                'Clear',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w500,
+              if (_hasActiveFilters(provider)) ...[
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () {
+                    _searchController.clear();
+                    provider.clearFilters();
+                  },
+                  child: const Text(
+                    'Clear All',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Row 2: Category + Stock + Featured + Price
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Category dropdown
+              _buildDropdown<String>(
+                value: provider.categoryFilter,
+                hint: 'Category',
+                items: [
+                  const DropdownMenuItem<String>(
+                    value: null,
+                    child: Text('All Categories'),
+                  ),
+                  ...context.watch<CategoryProvider>().categories.map(
+                    (c) => DropdownMenuItem<String>(
+                      value: c.id?.toString(),
+                      child: Text(c.name ?? ''),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => provider.setCategory(value),
+              ),
+              const SizedBox(width: 8),
+
+              // Stock filter
+              _buildDropdown<String>(
+                value: provider.stockFilter,
+                hint: 'Stock',
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('All Stock')),
+                  DropdownMenuItem(value: 'in', child: Text('In Stock')),
+                  DropdownMenuItem(value: 'low', child: Text('Low Stock')),
+                  DropdownMenuItem(value: 'out', child: Text('Out of Stock')),
+                ],
+                onChanged: (value) => provider.setStock(value),
+              ),
+              const SizedBox(width: 8),
+
+              // Featured toggle
+              _buildChip(
+                'Featured',
+                true,
+                provider.featuredFilter,
+                (v) => provider.setFeatured(v),
+              ),
+              const SizedBox(width: 8),
+
+              // Min Price
+              SizedBox(
+                width: 100,
+                height: 34,
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Min ₹',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (value) {
+                    final v = double.tryParse(value);
+                    provider.setPriceRange(v, provider.maxPrice);
+                  },
                 ),
               ),
-            ),
-          ],
-        ],
+              const SizedBox(width: 6),
+              SizedBox(
+                width: 100,
+                height: 34,
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Max ₹',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 0,
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (value) {
+                    final v = double.tryParse(value);
+                    provider.setPriceRange(provider.minPrice, v);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _hasActiveFilters(ProductProvider provider) {
+    return provider.searchQuery != null ||
+        provider.statusFilter != null ||
+        provider.sortBy != null ||
+        provider.categoryFilter != null ||
+        provider.stockFilter != null ||
+        provider.featuredFilter != null ||
+        provider.minPrice != null ||
+        provider.maxPrice != null;
+  }
+
+  Widget _buildDropdown<T>({
+    required T? value,
+    required String hint,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+      height: 34,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          hint: Text(
+            hint,
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
+          isDense: true,
+          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+          items: items,
+          onChanged: onChanged,
+        ),
       ),
     );
   }
 
-  Widget _buildChip(
+  Widget _buildChip<T>(
     String label,
-    String? value,
-    String? currentValue,
-    ValueChanged<String?> onTap,
+    T? value,
+    T? currentValue,
+    ValueChanged<T?> onTap,
   ) {
     final isSelected = currentValue == value;
     return GestureDetector(
-      onTap: () => onTap(value),
+      onTap: () => onTap(isSelected ? null : value),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(

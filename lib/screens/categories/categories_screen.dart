@@ -4,10 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/api_constants.dart';
+import '../../model/response/response.dart';
 import '../../provider/category_provider.dart';
-import '../../model/response/category_list_response.dart';
-import '../../widgets/status_badge.dart';
+import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/page_header.dart';
+import '../../widgets/status_badge.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -29,149 +31,184 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Consumer<CategoryProvider>(
       builder: (context, provider, _) {
-        return SingleChildScrollView(
+        return Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Categories',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
+              PageHeader(
+                title: 'Categories',
+                actions: [
                   ElevatedButton.icon(
                     onPressed: () => _showCategoryDialog(context, provider),
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Icons.add, size: 16),
                     label: const Text('Add Category'),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-
-              Card(
+              Expanded(
                 child: provider.isLoading
-                    ? const SizedBox(height: 300, child: LoadingWidget())
+                    ? const LoadingWidget()
                     : provider.categories.isEmpty
-                    ? const SizedBox(
-                        height: 300,
-                        child: EmptyWidget(message: 'No categories found'),
-                      )
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columnSpacing: 30,
-                          columns: const [
-                            DataColumn(label: Text('IMAGE')),
-                            DataColumn(label: Text('NAME')),
-                            DataColumn(label: Text('PRODUCTS')),
-                            DataColumn(label: Text('STATUS')),
-                            DataColumn(label: Text('ACTIONS')),
-                          ],
-                          rows: provider.categories.map((category) {
-                            return DataRow(
-                              cells: [
-                                DataCell(
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Container(
-                                      width: 44,
-                                      height: 44,
-                                      color: AppTheme.bgColor,
-                                      child: category.image != null
-                                          ? Image.network(
-                                              ApiConstants.getImageUrl(
-                                                category.image,
-                                              ),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  const Icon(
-                                                    Icons.category,
-                                                    size: 20,
-                                                  ),
-                                            )
-                                          : const Icon(
-                                              Icons.category,
-                                              size: 20,
-                                              color: AppTheme.textSecondary,
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        category.name ?? '',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (category.description != null)
-                                        Text(
-                                          category.description!,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: AppTheme.textSecondary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                DataCell(Text('${category.productCount ?? 0}')),
-                                DataCell(
-                                  StatusBadge(
-                                    status: category.status ?? 'active',
-                                  ),
-                                ),
-                                DataCell(
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.edit_outlined,
-                                          size: 18,
-                                        ),
-                                        onPressed: () => _showCategoryDialog(
-                                          context,
-                                          provider,
-                                          category: category,
-                                        ),
-                                        tooltip: 'Edit',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          size: 18,
-                                          color: AppTheme.dangerColor,
-                                        ),
-                                        onPressed: () => _confirmDelete(
-                                          context,
-                                          provider,
-                                          category,
-                                        ),
-                                        tooltip: 'Delete',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
+                    ? const EmptyWidget(message: 'No categories found')
+                    : AppListTable<CategoryResult>(
+                        columns: const [
+                          AppTableColumn(label: 'Category', flex: 4),
+                          AppTableColumn(label: 'Products', flex: 2),
+                          AppTableColumn(label: 'Status', flex: 2),
+                        ],
+                        items: provider.categories,
+                        currentPage: 1,
+                        totalPages: 1,
+                        totalItems: provider.categories.length,
+                        itemLabel: 'categories',
+                        onPageChanged: (_) {},
+                        rowBuilder: (category, _) =>
+                            _buildCategoryRow(category, provider),
                       ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCategoryRow(CategoryResult category, CategoryProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // Category (image + name + description)
+          Expanded(
+            flex: 4,
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    color: AppTheme.dividerColor,
+                    child: category.image != null
+                        ? Image.network(
+                            ApiConstants.getImageUrl(category.image),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const Icon(Icons.category, size: 16),
+                          )
+                        : const Icon(
+                            Icons.category,
+                            size: 16,
+                            color: AppTheme.textMuted,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        category.name ?? '',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (category.description != null &&
+                          category.description!.isNotEmpty)
+                        Text(
+                          category.description!,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Products count
+          Expanded(
+            flex: 2,
+            child: Text(
+              '${category.productCount ?? 0}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ),
+
+          // Status
+          Expanded(
+            flex: 2,
+            child: StatusBadge(status: category.status ?? 'active'),
+          ),
+
+          // Actions
+          SizedBox(
+            width: 40,
+            child: PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.more_horiz,
+                size: 18,
+                color: AppTheme.textSecondary,
+              ),
+              padding: EdgeInsets.zero,
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    _showCategoryDialog(context, provider, category: category);
+                  case 'delete':
+                    _confirmDelete(context, provider, category);
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined, size: 16),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_outline,
+                        size: 16,
+                        color: AppTheme.dangerColor,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Delete',
+                        style: TextStyle(color: AppTheme.dangerColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -211,7 +248,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: status,
+                  initialValue: status,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: const [
                     DropdownMenuItem(value: 'active', child: Text('Active')),
@@ -232,7 +269,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       setDialogState(() => imageFile = result.files.first);
                     }
                   },
-                  icon: const Icon(Icons.image_outlined),
+                  icon: const Icon(Icons.image_outlined, size: 16),
                   label: Text(
                     imageFile != null ? imageFile!.name : 'Select Image',
                   ),

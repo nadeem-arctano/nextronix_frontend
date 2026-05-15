@@ -16,6 +16,15 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().loadHsnCodes();
+    });
+  }
+
   final _nameController = TextEditingController();
   final _shortDescController = TextEditingController();
   final _fullDescController = TextEditingController();
@@ -35,6 +44,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _warrantyController = TextEditingController();
 
   int? _selectedCategory;
+  int? _selectedHsn;
   String _status = 'active';
   bool _isFeatured = false;
   bool _isSubmitting = false;
@@ -94,6 +104,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final formData = FormData.fromMap({
       'name': _nameController.text,
       'categoryId': _selectedCategory,
+      if (_selectedHsn != null) 'hsnId': _selectedHsn,
       'shortDescription': _shortDescController.text,
       'fullDescription': _fullDescController.text,
       'brand': _brandController.text,
@@ -263,6 +274,36 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       );
                     }).toList(),
                     onChanged: (v) => setState(() => _selectedCategory = v),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    value: _selectedHsn,
+                    decoration: const InputDecoration(labelText: 'HSN Code'),
+                    items: context
+                        .read<ProductProvider>()
+                        .hsnCodes
+                        .map<DropdownMenuItem<int>>((h) {
+                          return DropdownMenuItem(
+                            value: h.id,
+                            child: Text(h.displayLabel),
+                          );
+                        })
+                        .toList(),
+                    onChanged: (v) {
+                      setState(() => _selectedHsn = v);
+                      // Auto-fill GST from HSN
+                      final hsn = context
+                          .read<ProductProvider>()
+                          .hsnCodes
+                          .where((h) => h.id == v)
+                          .firstOrNull;
+                      if (hsn != null) {
+                        _gstController.text =
+                            hsn.gstPercent?.toStringAsFixed(0) ?? '18';
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
