@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -36,10 +37,11 @@ class _BestProductsScreenState extends State<BestProductsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'Best Selling Products',
                 subtitle: 'Top products by quantity sold and revenue',
-                actions: [ExportButtons(reportType: 'best-products')],
+                onBack: () => context.go('/admin/reports'),
+                actions: const [ExportButtons(reportType: 'best-products')],
               ),
               const SizedBox(height: 20),
               Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -36,11 +37,12 @@ class _TopCustomersScreenState extends State<TopCustomersScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'Top Customers',
                 subtitle:
                     'Highest spending customers ranked by total purchases',
-                actions: [ExportButtons(reportType: 'top-customers')],
+                onBack: () => context.go('/admin/reports'),
+                actions: const [ExportButtons(reportType: 'top-customers')],
               ),
               const SizedBox(height: 20),
               Row(
