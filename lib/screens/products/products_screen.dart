@@ -24,7 +24,10 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
+  final _minPriceController = TextEditingController();
+  final _maxPriceController = TextEditingController();
   Timer? _debounceTimer;
+  bool _showPriceApply = false;
 
   @override
   void initState() {
@@ -39,6 +42,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
     super.dispose();
   }
 
@@ -204,6 +209,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   size: ShadButtonSize.sm,
                   onPressed: () {
                     _searchController.clear();
+                    _minPriceController.clear();
+                    _maxPriceController.clear();
                     provider.clearFilters();
                   },
                   child: Text(
@@ -296,12 +303,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
               SizedBox(
                 width: 100,
                 child: ShadInput(
+                  controller: _minPriceController,
                   placeholder: const Text('Min Price'),
                   style: const TextStyle(fontSize: 12),
                   keyboardType: TextInputType.number,
-                  onSubmitted: (value) {
-                    final v = double.tryParse(value);
-                    provider.setPriceRange(v, provider.maxPrice);
+                  onChanged: (_) {
+                    if (!_showPriceApply)
+                      setState(() => _showPriceApply = true);
                   },
                 ),
               ),
@@ -309,15 +317,52 @@ class _ProductsScreenState extends State<ProductsScreen> {
               SizedBox(
                 width: 100,
                 child: ShadInput(
+                  controller: _maxPriceController,
                   placeholder: const Text('Max Price'),
                   style: const TextStyle(fontSize: 12),
                   keyboardType: TextInputType.number,
-                  onSubmitted: (value) {
-                    final v = double.tryParse(value);
-                    provider.setPriceRange(provider.minPrice, v);
+                  onChanged: (_) {
+                    if (!_showPriceApply)
+                      setState(() => _showPriceApply = true);
                   },
                 ),
               ),
+              if (_showPriceApply) ...[
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 32,
+                  child: ShadButton(
+                    size: ShadButtonSize.sm,
+                    onPressed: () {
+                      final min = double.tryParse(_minPriceController.text);
+                      final max = double.tryParse(_maxPriceController.text);
+                      provider.setPriceRange(min, max);
+                      setState(() => _showPriceApply = false);
+                    },
+                    child: const Text('Apply', style: TextStyle(fontSize: 12)),
+                  ),
+                ),
+                if (_minPriceController.text.isNotEmpty ||
+                    _maxPriceController.text.isNotEmpty) ...[
+                  const SizedBox(width: 6),
+                  SizedBox(
+                    height: 32,
+                    child: ShadButton.outline(
+                      size: ShadButtonSize.sm,
+                      onPressed: () {
+                        _minPriceController.clear();
+                        _maxPriceController.clear();
+                        provider.setPriceRange(null, null);
+                        setState(() => _showPriceApply = false);
+                      },
+                      child: const Text(
+                        'Clear',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ],
           ),
         ),
