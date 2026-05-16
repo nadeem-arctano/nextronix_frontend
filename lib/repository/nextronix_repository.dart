@@ -348,6 +348,31 @@ class NextronixRepository {
     return await _apiProvider.deleteHsn(id);
   }
 
+  // ─── Business Settings ──────────────────────────────────────────────────────
+  Future<BusinessSettingsResponse> getBusinessSettings() async {
+    return await _apiProvider.getBusinessSettings();
+  }
+
+  Future<BusinessSettingsResponse> updateBusinessSettings({
+    required Map<String, dynamic> body,
+  }) async {
+    return await _apiProvider.updateBusinessSettings(body);
+  }
+
+  Future<BusinessSettingsResponse> uploadBusinessLogo({
+    required MultipartFile file,
+  }) async {
+    final formData = FormData.fromMap({'logo': file});
+    return await _apiProvider.uploadBusinessLogo(formData);
+  }
+
+  Future<BusinessSettingsResponse> uploadBusinessFavicon({
+    required MultipartFile file,
+  }) async {
+    final formData = FormData.fromMap({'favicon': file});
+    return await _apiProvider.uploadBusinessFavicon(formData);
+  }
+
   // ─── Coupons ───────────────────────────────────────────────────────────────
   Future<CouponListResponse> getCoupons() async {
     return await _apiProvider.getCoupons();

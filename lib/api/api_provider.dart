@@ -201,4 +201,25 @@ abstract class ApiProvider {
 
   @DELETE("hsn/{id}")
   Future<CommonResponse> deleteHsn(@Path('id') int id);
+
+  // ─── Business Settings ──────────────────────────────────────────────────────
+  @GET("business-settings")
+  Future<BusinessSettingsResponse> getBusinessSettings();
+
+  @PUT("business-settings")
+  Future<BusinessSettingsResponse> updateBusinessSettings(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @POST("business-settings/logo")
+  @MultiPart()
+  Future<BusinessSettingsResponse> uploadBusinessLogo(
+    @Body() FormData formData,
+  );
+
+  @POST("business-settings/favicon")
+  @MultiPart()
+  Future<BusinessSettingsResponse> uploadBusinessFavicon(
+    @Body() FormData formData,
+  );
 }

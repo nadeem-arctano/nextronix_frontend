@@ -8,3 +8,4 @@ export 'coupon_request.dart';
 export 'price_update_request.dart';
 export 'stock_update_request.dart';
 export 'product_request.dart';
+export 'business_settings_request.dart';

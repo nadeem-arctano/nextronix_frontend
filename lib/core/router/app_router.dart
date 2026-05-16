@@ -17,6 +17,7 @@ import '../../screens/reports/gst_report_screen.dart';
 import '../../screens/reports/coupon_report_screen.dart';
 import '../../screens/reports/top_customers_screen.dart';
 import '../../screens/reports/best_products_screen.dart';
+import '../../screens/settings/business_settings_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -147,6 +148,12 @@ class AppRouter {
             name: 'best-products',
             pageBuilder: (context, state) =>
                 _fadePage(const BestProductsScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/business',
+            name: 'business-settings',
+            pageBuilder: (context, state) =>
+                _fadePage(const BusinessSettingsScreen(), state),
           ),
         ],
       ),

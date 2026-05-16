@@ -5,3 +5,4 @@ export 'dashboard_provider.dart';
 export 'hsn_provider.dart';
 export 'coupon_provider.dart';
 export 'report_provider.dart';
+export 'business_settings_provider.dart';
