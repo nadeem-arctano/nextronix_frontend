@@ -324,7 +324,7 @@ class ProductProvider extends ChangeNotifier {
   void clearFilters() {
     _searchQuery = null;
     _categoryFilter = null;
-    _statusFilter = null;
+    _statusFilter = 'active';
     _sortBy = null;
     _stockFilter = null;
     _featuredFilter = null;

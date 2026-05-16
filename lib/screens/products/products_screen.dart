@@ -312,7 +312,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   bool _hasActiveFilters(ProductProvider provider) {
     return provider.searchQuery != null ||
-        provider.statusFilter != null ||
+        (provider.statusFilter != null && provider.statusFilter != 'active') ||
         provider.sortBy != null ||
         provider.categoryFilter != null ||
         provider.stockFilter != null ||
