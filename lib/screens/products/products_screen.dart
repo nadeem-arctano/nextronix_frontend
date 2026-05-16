@@ -352,7 +352,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       onPressed: () {
                         _minPriceController.clear();
                         _maxPriceController.clear();
-                        provider.setPriceRange(null, null);
+                        if (provider.minPrice != null ||
+                            provider.maxPrice != null) {
+                          provider.setPriceRange(null, null);
+                        }
                         setState(() => _showPriceApply = false);
                       },
                       child: const Text(
