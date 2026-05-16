@@ -24,6 +24,7 @@ class HsnResult {
   final String? hsnCode;
   final double? gstPercent;
   final String? description;
+  final int? productCount;
   final String? createdAt;
 
   HsnResult({
@@ -31,6 +32,7 @@ class HsnResult {
     this.hsnCode,
     this.gstPercent,
     this.description,
+    this.productCount,
     this.createdAt,
   });
 
@@ -39,6 +41,7 @@ class HsnResult {
     hsnCode: json['hsnCode']?.toString(),
     gstPercent: parseDouble(json['gstPercent']),
     description: json['description']?.toString(),
+    productCount: parseInt(json['productCount']),
     createdAt: json['createdAt']?.toString(),
   );
 

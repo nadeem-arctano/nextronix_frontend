@@ -5,6 +5,8 @@ import '../../screens/products/products_screen.dart';
 import '../../screens/products/add_product_screen.dart';
 import '../../screens/products/edit_product_screen.dart';
 import '../../screens/categories/categories_screen.dart';
+import '../../screens/hsn/hsn_screen.dart';
+import '../../screens/coupons/coupons_screen.dart';
 import '../../screens/orders/orders_screen.dart';
 import '../../screens/orders/order_detail_screen.dart';
 import '../../screens/users/users_screen.dart';
@@ -84,6 +86,18 @@ class AppRouter {
             name: 'users',
             pageBuilder: (context, state) =>
                 _fadePage(const UsersScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/hsn-codes',
+            name: 'hsn-codes',
+            pageBuilder: (context, state) =>
+                _fadePage(const HsnScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/coupons',
+            name: 'coupons',
+            pageBuilder: (context, state) =>
+                _fadePage(const CouponsScreen(), state),
           ),
         ],
       ),

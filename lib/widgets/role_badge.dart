@@ -11,17 +11,9 @@ class RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = AppTheme.getRoleColor(role);
-    return ShadBadge.outline(
-      backgroundColor: color.withValues(alpha: 0.1),
-      foregroundColor: color,
-      child: Text(
-        role.toUpperCase(),
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return Text(
+      role.toUpperCase(),
+      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
     );
   }
 }

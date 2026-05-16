@@ -347,4 +347,69 @@ class NextronixRepository {
   Future<CommonResponse> deleteHsn({required int id}) async {
     return await _apiProvider.deleteHsn(id);
   }
+
+  // ─── Coupons ───────────────────────────────────────────────────────────────
+  Future<CouponListResponse> getCoupons() async {
+    return await _apiProvider.getCoupons();
+  }
+
+  Future<CommonResponse> createCoupon({
+    required String code,
+    required String discountType,
+    required double discountValue,
+    double? minOrderAmount,
+    String? expiryDate,
+    int? usageLimit,
+    String? status,
+  }) async {
+    return await _apiProvider.createCoupon(
+      CouponRequest(
+        code: code,
+        discountType: discountType,
+        discountValue: discountValue,
+        minOrderAmount: minOrderAmount,
+        expiryDate: expiryDate,
+        usageLimit: usageLimit,
+        status: status ?? 'active',
+      ),
+    );
+  }
+
+  Future<CommonResponse> updateCoupon({
+    required int id,
+    required String code,
+    required String discountType,
+    required double discountValue,
+    double? minOrderAmount,
+    String? expiryDate,
+    int? usageLimit,
+    String? status,
+  }) async {
+    return await _apiProvider.updateCoupon(
+      id,
+      CouponRequest(
+        code: code,
+        discountType: discountType,
+        discountValue: discountValue,
+        minOrderAmount: minOrderAmount,
+        expiryDate: expiryDate,
+        usageLimit: usageLimit,
+        status: status ?? 'active',
+      ),
+    );
+  }
+
+  Future<CommonResponse> deleteCoupon({required int id}) async {
+    return await _apiProvider.deleteCoupon(id);
+  }
+
+  Future<CommonResponse> updateCouponStatus({
+    required int id,
+    required String status,
+  }) async {
+    return await _apiProvider.updateCouponStatus(
+      id,
+      StatusRequest(status: status),
+    );
+  }
 }
