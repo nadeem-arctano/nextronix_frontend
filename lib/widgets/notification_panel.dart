@@ -65,7 +65,7 @@ class _PanelLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
-    const panelWidth = 400.0;
+    const panelWidth = 480.0;
     const panelMaxHeight = 560.0;
     const margin = 16.0;
     const sidebarGap = 0; // breathing room from the sidebar / anchor
