@@ -26,6 +26,20 @@ import '../../screens/settings/sections/bank_section.dart';
 import '../../screens/settings/sections/payment_section.dart';
 import '../../screens/settings/sections/invoice_section.dart';
 import '../../screens/settings/sections/social_section.dart';
+import '../../screens/support/support_list_screen.dart';
+import '../../screens/support/support_detail_screen.dart';
+import '../../screens/support/contact_messages_screen.dart';
+import '../../screens/returns/returns_list_screen.dart';
+import '../../screens/returns/return_detail_screen.dart';
+import '../../screens/notifications/notifications_screen.dart';
+import '../../screens/gst/gst_dashboard_screen.dart';
+import '../../screens/gst/gstr1_screen.dart';
+import '../../screens/gst/gstr3b_screen.dart';
+import '../../screens/gst/state_wise_gst_screen.dart';
+import '../../screens/gst/invoice_breakup_screen.dart';
+import '../../screens/gst/hsn_summary_screen.dart';
+import '../../screens/gst/gst_export_screen.dart';
+import '../../screens/gst/tax_settings_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -210,6 +224,108 @@ class AppRouter {
             name: 'settings-social',
             pageBuilder: (context, state) =>
                 _fadePage(const SocialSectionScreen(), state),
+          ),
+          // ─── Support ───────────────────────────────────────────────────────
+          GoRoute(
+            path: '/admin/support',
+            name: 'support-list',
+            pageBuilder: (context, state) =>
+                _fadePage(const SupportListScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/support/:id',
+            name: 'support-detail',
+            pageBuilder: (context, state) => _fadePage(
+              SupportDetailScreen(
+                ticketId: int.parse(state.pathParameters['id']!),
+              ),
+              state,
+            ),
+          ),
+          GoRoute(
+            path: '/admin/contact-messages',
+            name: 'contact-messages',
+            pageBuilder: (context, state) =>
+                _fadePage(const ContactMessagesScreen(), state),
+          ),
+          // ─── Returns ───────────────────────────────────────────────────────
+          GoRoute(
+            path: '/admin/returns',
+            name: 'returns-list',
+            pageBuilder: (context, state) =>
+                _fadePage(const ReturnsListScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/returns/:id',
+            name: 'return-detail',
+            pageBuilder: (context, state) => _fadePage(
+              ReturnDetailScreen(
+                returnId: int.parse(state.pathParameters['id']!),
+              ),
+              state,
+            ),
+          ),
+          // ─── Notifications ─────────────────────────────────────────────────
+          GoRoute(
+            path: '/admin/notifications',
+            name: 'notifications',
+            pageBuilder: (context, state) =>
+                _fadePage(const NotificationsScreen(), state),
+          ),
+          // ─── GST Management ────────────────────────────────────────────────
+          GoRoute(
+            path: '/admin/gst',
+            name: 'gst-dashboard',
+            pageBuilder: (context, state) =>
+                _fadePage(const GstDashboardScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/reports',
+            name: 'gst-reports',
+            pageBuilder: (context, state) =>
+                _fadePage(const GstReportScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/gstr1',
+            name: 'gst-gstr1',
+            pageBuilder: (context, state) =>
+                _fadePage(const Gstr1Screen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/gstr3b',
+            name: 'gst-gstr3b',
+            pageBuilder: (context, state) =>
+                _fadePage(const Gstr3bScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/state-wise',
+            name: 'gst-state-wise',
+            pageBuilder: (context, state) =>
+                _fadePage(const StateWiseGstScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/invoice-breakup',
+            name: 'gst-invoice-breakup',
+            pageBuilder: (context, state) =>
+                _fadePage(const InvoiceBreakupScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/hsn-summary',
+            name: 'gst-hsn-summary',
+            pageBuilder: (context, state) =>
+                _fadePage(const HsnSummaryScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/export',
+            name: 'gst-export',
+            pageBuilder: (context, state) =>
+                _fadePage(const GstExportScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/gst/settings',
+            name: 'gst-settings',
+            pageBuilder: (context, state) =>
+                _fadePage(const TaxSettingsScreen(), state),
           ),
         ],
       ),

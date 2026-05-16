@@ -9,3 +9,8 @@ export 'price_update_request.dart';
 export 'stock_update_request.dart';
 export 'product_request.dart';
 export 'business_settings_request.dart';
+export 'business_settings_section_requests.dart';
+export 'support_requests.dart';
+export 'return_request.dart';
+export 'tax_settings_request.dart';
+export 'hsn_request.dart';

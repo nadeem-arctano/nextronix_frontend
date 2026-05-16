@@ -194,7 +194,7 @@ class BusinessSettingsProvider extends ChangeNotifier {
 
     try {
       final form = _formValues[section] ?? {};
-      final body = <String, dynamic>{};
+      final body = <String, String>{};
 
       form.forEach((k, v) {
         // Skip empty sensitive fields so server keeps existing value
@@ -207,18 +207,7 @@ class BusinessSettingsProvider extends ChangeNotifier {
         body[k] = v;
       });
 
-      // Cast numeric fields for invoice section
-      if (body.containsKey('invoiceStartNumber') &&
-          body['invoiceStartNumber'] is String) {
-        final s = body['invoiceStartNumber'] as String;
-        body['invoiceStartNumber'] = s.isEmpty ? null : int.tryParse(s);
-      }
-      if (body.containsKey('gstPercentage') &&
-          body['gstPercentage'] is String) {
-        final s = body['gstPercentage'] as String;
-        body['gstPercentage'] = s.isEmpty ? null : double.tryParse(s);
-      }
-
+      // Repository converts the form map into the proper section request model
       final response = await NextronixRepository().updateSettingsSection(
         section: section,
         body: body,
