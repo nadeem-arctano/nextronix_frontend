@@ -584,12 +584,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
           GestureDetector(
             onTap: () => context.go('/admin/products/edit/${product.id}'),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Icon(
-                LucideIcons.mousePointerClick,
-                size: 16,
-                color: theme.colorScheme.mutedForeground,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  LucideIcons.mousePointerClick,
+                  size: 16,
+                  color: theme.colorScheme.mutedForeground,
+                ),
               ),
             ),
           ),
