@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -69,7 +68,7 @@ class _PanelLayout extends StatelessWidget {
     const panelWidth = 400.0;
     const panelMaxHeight = 560.0;
     const margin = 16.0;
-    const sidebarGap = 16.0; // breathing room from the sidebar / anchor
+    const sidebarGap = 0; // breathing room from the sidebar / anchor
 
     // Drop the panel below the bell with a comfortable gap.
     final top = (anchorOffset.dy + anchorSize.height + sidebarGap).clamp(
