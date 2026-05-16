@@ -31,7 +31,6 @@ import '../../screens/support/support_detail_screen.dart';
 import '../../screens/support/contact_messages_screen.dart';
 import '../../screens/returns/returns_list_screen.dart';
 import '../../screens/returns/return_detail_screen.dart';
-import '../../screens/notifications/notifications_screen.dart';
 import '../../screens/gst/gst_dashboard_screen.dart';
 import '../../screens/gst/gstr1_screen.dart';
 import '../../screens/gst/gstr3b_screen.dart';
@@ -264,13 +263,6 @@ class AppRouter {
               ),
               state,
             ),
-          ),
-          // ─── Notifications ─────────────────────────────────────────────────
-          GoRoute(
-            path: '/admin/notifications',
-            name: 'notifications',
-            pageBuilder: (context, state) =>
-                _fadePage(const NotificationsScreen(), state),
           ),
           // ─── GST Management ────────────────────────────────────────────────
           GoRoute(

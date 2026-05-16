@@ -6,6 +6,7 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
 import '../provider/notification_provider.dart';
 import '../static_values/static_values.dart';
+import 'notification_panel.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -147,9 +148,7 @@ class _AdminLayoutState extends State<AdminLayout>
               _buildLogo(collapsed),
               if (!collapsed) ...[
                 const Spacer(),
-                _NotificationBell(
-                  onTap: () => context.go('/admin/notifications'),
-                ),
+                _NotificationBell(onTap: () => NotificationPanel.show(context)),
               ],
             ],
           ),
