@@ -24,3 +24,4 @@ export 'support_models.dart';
 export 'return_models.dart';
 export 'notification_models.dart';
 export 'gst_models.dart';
+export 'manager_models.dart';

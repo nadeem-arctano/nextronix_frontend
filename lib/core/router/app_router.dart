@@ -41,6 +41,7 @@ import '../../screens/gst/invoice_breakup_screen.dart';
 import '../../screens/gst/hsn_summary_screen.dart';
 import '../../screens/gst/gst_export_screen.dart';
 import '../../screens/gst/tax_settings_screen.dart';
+import '../../screens/team/team_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -344,6 +345,12 @@ class AppRouter {
               name: 'gst-settings',
               pageBuilder: (context, state) =>
                   _fadePage(const TaxSettingsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/team',
+              name: 'team',
+              pageBuilder: (context, state) =>
+                  _fadePage(const TeamScreen(), state),
             ),
           ],
         ),

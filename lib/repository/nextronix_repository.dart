@@ -724,6 +724,55 @@ class NextronixRepository {
     );
   }
 
+  // ─── Team / Managers ───────────────────────────────────────────────────────
+  Future<ManagerListResponse> getManagers() async {
+    return await _apiProvider.getManagers();
+  }
+
+  Future<ManagerDetailResponse> getManagerById({required int id}) async {
+    return await _apiProvider.getManagerById(id);
+  }
+
+  Future<ManagerDetailResponse> createManager({
+    required String name,
+    required String email,
+    required String password,
+    String? mobile,
+  }) async {
+    return await _apiProvider.createManager(
+      CreateManagerRequest(
+        name: name,
+        email: email,
+        password: password,
+        mobile: mobile,
+      ),
+    );
+  }
+
+  Future<ManagerDetailResponse> updateManager({
+    required int id,
+    String? name,
+    String? email,
+    String? mobile,
+    String? password,
+    String? status,
+  }) async {
+    return await _apiProvider.updateManager(
+      id,
+      UpdateManagerRequest(
+        name: name,
+        email: email,
+        mobile: mobile,
+        password: password,
+        status: status,
+      ),
+    );
+  }
+
+  Future<CommonResponse> deleteManager({required int id}) async {
+    return await _apiProvider.deleteManager(id);
+  }
+
   // ─── Coupons ───────────────────────────────────────────────────────────────
   Future<CouponListResponse> getCoupons() async {
     return await _apiProvider.getCoupons();

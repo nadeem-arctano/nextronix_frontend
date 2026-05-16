@@ -398,4 +398,25 @@ abstract class ApiProvider {
   Future<TaxSettingsResponse> updateTaxSettings(
     @Body() TaxSettingsRequest body,
   );
+
+  // ─── Team / Managers ───────────────────────────────────────────────────────
+  @GET("team/managers")
+  Future<ManagerListResponse> getManagers();
+
+  @GET("team/managers/{id}")
+  Future<ManagerDetailResponse> getManagerById(@Path('id') int id);
+
+  @POST("team/managers")
+  Future<ManagerDetailResponse> createManager(
+    @Body() CreateManagerRequest body,
+  );
+
+  @PUT("team/managers/{id}")
+  Future<ManagerDetailResponse> updateManager(
+    @Path('id') int id,
+    @Body() UpdateManagerRequest body,
+  );
+
+  @DELETE("team/managers/{id}")
+  Future<CommonResponse> deleteManager(@Path('id') int id);
 }

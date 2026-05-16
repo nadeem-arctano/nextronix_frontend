@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 import '../core/services/auth_storage.dart';
 import '../model/response/response.dart';
 import '../repository/nextronix_repository.dart';

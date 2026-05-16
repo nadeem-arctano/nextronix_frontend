@@ -10,3 +10,4 @@ export 'support_provider.dart';
 export 'return_provider.dart';
 export 'notification_provider.dart';
 export 'gst_provider.dart';
+export 'team_provider.dart';

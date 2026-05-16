@@ -275,6 +275,17 @@ class _AdminLayoutState extends State<AdminLayout>
                   currentPath,
                   collapsed,
                 ),
+                // Admin-only: Team management
+                if (context.watch<AuthProvider>().isAdmin)
+                  _buildNavItem(
+                    context,
+                    13,
+                    LucideIcons.users,
+                    'Team',
+                    '/admin/team',
+                    currentPath,
+                    collapsed,
+                  ),
                 _buildNavItem(
                   context,
                   12,
