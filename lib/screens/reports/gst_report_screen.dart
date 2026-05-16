@@ -40,7 +40,7 @@ class _GstReportScreenState extends State<GstReportScreen> {
               PageHeader(
                 title: 'GST Report',
                 subtitle: 'Tax breakdown with CGST, SGST, and IGST',
-                onBack: () => context.go('/admin/reports'),
+                onBack: () => context.go('/admin/gst'),
                 actions: const [ExportButtons(reportType: 'gst-report')],
               ),
               const SizedBox(height: 20),
