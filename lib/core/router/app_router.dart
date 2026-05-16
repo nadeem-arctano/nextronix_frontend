@@ -10,6 +10,13 @@ import '../../screens/coupons/coupons_screen.dart';
 import '../../screens/orders/orders_screen.dart';
 import '../../screens/orders/order_detail_screen.dart';
 import '../../screens/users/users_screen.dart';
+import '../../screens/reports/reports_dashboard.dart';
+import '../../screens/reports/daily_sales_screen.dart';
+import '../../screens/reports/monthly_sales_screen.dart';
+import '../../screens/reports/gst_report_screen.dart';
+import '../../screens/reports/coupon_report_screen.dart';
+import '../../screens/reports/top_customers_screen.dart';
+import '../../screens/reports/best_products_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -98,6 +105,48 @@ class AppRouter {
             name: 'coupons',
             pageBuilder: (context, state) =>
                 _fadePage(const CouponsScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports',
+            name: 'reports',
+            pageBuilder: (context, state) =>
+                _fadePage(const ReportsDashboard(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/daily-sales',
+            name: 'daily-sales',
+            pageBuilder: (context, state) =>
+                _fadePage(const DailySalesScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/monthly-sales',
+            name: 'monthly-sales',
+            pageBuilder: (context, state) =>
+                _fadePage(const MonthlySalesScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/gst-report',
+            name: 'gst-report',
+            pageBuilder: (context, state) =>
+                _fadePage(const GstReportScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/coupon-report',
+            name: 'coupon-report',
+            pageBuilder: (context, state) =>
+                _fadePage(const CouponReportScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/top-customers',
+            name: 'top-customers',
+            pageBuilder: (context, state) =>
+                _fadePage(const TopCustomersScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/reports/best-products',
+            name: 'best-products',
+            pageBuilder: (context, state) =>
+                _fadePage(const BestProductsScreen(), state),
           ),
         ],
       ),
