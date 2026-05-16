@@ -68,26 +68,33 @@ class _PanelLayout extends StatelessWidget {
     final screen = MediaQuery.of(context).size;
     const panelWidth = 400.0;
     const panelMaxHeight = 560.0;
-    const margin = 12.0;
+    const margin = 16.0;
+    const sidebarGap = 16.0; // breathing room from the sidebar / anchor
 
-    // Anchor below the bell, then nudge left so the panel doesn't run off-screen.
-    final top = (anchorOffset.dy + anchorSize.height + 8).clamp(
+    // Drop the panel below the bell with a comfortable gap.
+    final top = (anchorOffset.dy + anchorSize.height + sidebarGap).clamp(
       margin,
       screen.height - margin,
     );
-    final desiredLeft = anchorOffset.dx + anchorSize.width / 2 - panelWidth / 2;
-    final left = desiredLeft.clamp(margin, screen.width - panelWidth - margin);
+
+    // Place the panel to the RIGHT of the bell so it floats over the content
+    // area instead of hugging the sidebar edge.
+    final preferredLeft = anchorOffset.dx + anchorSize.width + sidebarGap;
+    final maxLeft = screen.width - panelWidth - margin;
+    final left = preferredLeft > maxLeft ? maxLeft : preferredLeft;
 
     return Stack(
       children: [
         Positioned(
-          left: left.toDouble(),
+          left: left
+              .clamp(margin, screen.width - panelWidth - margin)
+              .toDouble(),
           top: top.toDouble(),
           child: FadeTransition(
             opacity: animation,
             child: ScaleTransition(
               scale: Tween(begin: 0.96, end: 1.0).animate(animation),
-              alignment: Alignment.topCenter,
+              alignment: Alignment.topLeft,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: panelWidth,
