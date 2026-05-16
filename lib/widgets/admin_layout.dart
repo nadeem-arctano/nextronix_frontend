@@ -146,10 +146,7 @@ class _AdminLayoutState extends State<AdminLayout>
                 : MainAxisAlignment.start,
             children: [
               _buildLogo(collapsed),
-              if (!collapsed) ...[
-                const Spacer(),
-                _NotificationBell(onTap: () => NotificationPanel.show(context)),
-              ],
+              if (!collapsed) ...[const Spacer(), _NotificationBell()],
             ],
           ),
         ),
@@ -625,10 +622,9 @@ class _AdminLayoutState extends State<AdminLayout>
 }
 
 /// Sidebar header notification bell with live unread badge.
-/// Tapping navigates to /admin/notifications.
+/// Tapping opens the floating notification panel anchored to the bell.
 class _NotificationBell extends StatefulWidget {
-  final VoidCallback onTap;
-  const _NotificationBell({required this.onTap});
+  const _NotificationBell();
 
   @override
   State<_NotificationBell> createState() => _NotificationBellState();
@@ -636,6 +632,7 @@ class _NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<_NotificationBell> {
   bool _hovered = false;
+  final GlobalKey _bellKey = GlobalKey();
 
   @override
   void initState() {
@@ -646,6 +643,10 @@ class _NotificationBellState extends State<_NotificationBell> {
     });
   }
 
+  void _openPanel() {
+    NotificationPanel.show(context, anchorKey: _bellKey);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -653,11 +654,12 @@ class _NotificationBellState extends State<_NotificationBell> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: _openPanel,
         child: Selector<NotificationProvider, int>(
           selector: (_, p) => p.unreadCount,
           builder: (_, unread, __) {
             return Stack(
+              key: _bellKey,
               clipBehavior: Clip.none,
               children: [
                 AnimatedContainer(
