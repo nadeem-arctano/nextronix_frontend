@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -36,7 +37,7 @@ class _GstDashboardScreenState extends State<GstDashboardScreen> {
               PageHeader(
                 title: 'GST Dashboard',
                 subtitle: 'Overview of GST collection and tax liability',
-                onBack: () => context.go('/admin/reports'),
+                onBack: () => smartBack(context, '/admin/reports'),
               ),
               const SizedBox(height: 20),
               Expanded(

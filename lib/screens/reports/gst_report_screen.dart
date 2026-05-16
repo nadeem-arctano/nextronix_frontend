@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -40,7 +41,7 @@ class _GstReportScreenState extends State<GstReportScreen> {
               PageHeader(
                 title: 'GST Report',
                 subtitle: 'Tax breakdown with CGST, SGST, and IGST',
-                onBack: () => context.go('/admin/gst'),
+                onBack: () => smartBack(context, '/admin/gst'),
                 actions: const [ExportButtons(reportType: 'gst-report')],
               ),
               const SizedBox(height: 20),

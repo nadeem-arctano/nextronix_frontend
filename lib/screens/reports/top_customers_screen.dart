@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -41,7 +42,7 @@ class _TopCustomersScreenState extends State<TopCustomersScreen> {
                 title: 'Top Customers',
                 subtitle:
                     'Highest spending customers ranked by total purchases',
-                onBack: () => context.go('/admin/reports'),
+                onBack: () => smartBack(context, '/admin/reports'),
                 actions: const [ExportButtons(reportType: 'top-customers')],
               ),
               const SizedBox(height: 20),

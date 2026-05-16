@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -36,7 +37,7 @@ class _HsnSummaryScreenState extends State<HsnSummaryScreen> {
               PageHeader(
                 title: 'HSN Summary',
                 subtitle: 'GST grouped by HSN code',
-                onBack: () => context.go('/admin/gst'),
+                onBack: () => smartBack(context, '/admin/gst'),
               ),
               const SizedBox(height: 20),
               Expanded(

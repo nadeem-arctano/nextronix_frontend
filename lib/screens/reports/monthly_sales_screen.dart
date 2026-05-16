@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -39,7 +40,7 @@ class _MonthlySalesScreenState extends State<MonthlySalesScreen> {
               PageHeader(
                 title: 'Monthly Sales Report',
                 subtitle: 'Month-wise revenue trends and growth',
-                onBack: () => context.go('/admin/reports'),
+                onBack: () => smartBack(context, '/admin/reports'),
                 actions: const [ExportButtons(reportType: 'monthly-sales')],
               ),
               const SizedBox(height: 20),

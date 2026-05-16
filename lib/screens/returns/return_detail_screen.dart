@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -84,7 +85,7 @@ class _ReturnDetailScreenState extends State<ReturnDetailScreen> {
               PageHeader(
                 title: r?.returnNumber ?? 'Return',
                 subtitle: r?.reason ?? '',
-                onBack: () => context.go('/admin/returns'),
+                onBack: () => smartBack(context, '/admin/returns'),
               ),
               const SizedBox(height: 20),
               Expanded(

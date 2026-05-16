@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -40,7 +41,7 @@ class _DailySalesScreenState extends State<DailySalesScreen> {
               PageHeader(
                 title: 'Daily Sales Report',
                 subtitle: 'Revenue and order breakdown by day',
-                onBack: () => context.go('/admin/reports'),
+                onBack: () => smartBack(context, '/admin/reports'),
                 actions: const [ExportButtons(reportType: 'daily-sales')],
               ),
               const SizedBox(height: 20),

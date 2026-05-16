@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -38,7 +39,7 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
               PageHeader(
                 title: 'Invoice GST Breakup',
                 subtitle: 'Per-invoice tax breakdown',
-                onBack: () => context.go('/admin/gst'),
+                onBack: () => smartBack(context, '/admin/gst'),
               ),
               const SizedBox(height: 20),
               Expanded(

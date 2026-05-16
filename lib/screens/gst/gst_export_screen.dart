@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -23,7 +24,7 @@ class GstExportScreen extends StatelessWidget {
               PageHeader(
                 title: 'Monthly GST Export',
                 subtitle: 'CA-friendly monthly export for filing',
-                onBack: () => context.go('/admin/gst'),
+                onBack: () => smartBack(context, '/admin/gst'),
               ),
               const SizedBox(height: 20),
               ShadCard(

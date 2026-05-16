@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -36,7 +37,7 @@ class _Gstr3bScreenState extends State<Gstr3bScreen> {
               PageHeader(
                 title: 'GSTR-3B',
                 subtitle: 'Monthly summary return — tax liability',
-                onBack: () => context.go('/admin/gst'),
+                onBack: () => smartBack(context, '/admin/gst'),
                 actions: [
                   MonthYearPicker(
                     selectedMonth: p.selectedMonth,

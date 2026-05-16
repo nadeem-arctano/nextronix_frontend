@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/navigation_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -39,7 +40,7 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
               PageHeader(
                 title: 'Contact Messages',
                 subtitle: 'Messages submitted via the contact form',
-                onBack: () => context.go('/admin/support'),
+                onBack: () => smartBack(context, '/admin/support'),
               ),
               const SizedBox(height: 20),
               Expanded(
