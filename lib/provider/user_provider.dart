@@ -11,7 +11,7 @@ class UserProvider extends ChangeNotifier {
   String? _error;
 
   // Filters
-  String _search = '';
+  String? _search;
   String? _roleFilter;
   String? _statusFilter;
   DateTime? _startDate;
@@ -22,7 +22,7 @@ class UserProvider extends ChangeNotifier {
   PaginationResult? get pagination => _pagination;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  String get search => _search;
+  String? get search => _search;
   String? get roleFilter => _roleFilter;
   String? get statusFilter => _statusFilter;
   DateTime? get startDate => _startDate;
@@ -42,7 +42,7 @@ class UserProvider extends ChangeNotifier {
       final response = await repo.getUsers(
         page: page,
         limit: 10,
-        search: _search.isNotEmpty ? _search : null,
+        search: _search != null && _search!.isNotEmpty ? _search : null,
         startDate: _startDate != null ? dateFormat.format(_startDate!) : null,
         endDate: _endDate != null ? dateFormat.format(_endDate!) : null,
         role: _roleFilter,
@@ -62,8 +62,9 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  void setSearch(String value) {
+  void setSearch(String? value) {
     _search = value;
+    loadUsers();
   }
 
   void setRoleFilter(String? value) {
@@ -83,7 +84,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   void clearFilters() {
-    _search = '';
+    _search = null;
     _roleFilter = null;
     _statusFilter = null;
     _startDate = null;

@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
@@ -21,6 +21,7 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
   final _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -32,8 +33,18 @@ class _UsersScreenState extends State<UsersScreen> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      context.read<UserProvider>().setSearch(
+        value.trim().isEmpty ? null : value.trim(),
+      );
+    });
   }
 
   @override
@@ -92,15 +103,16 @@ class _UsersScreenState extends State<UsersScreen> {
         children: [
           // Search
           SizedBox(
-            width: 240,
+            width: 260,
             child: ShadInput(
               controller: _searchController,
               placeholder: const Text('Search name, email...'),
-              onSubmitted: (value) {
-                provider.setSearch(value);
-                provider.loadUsers();
+              style: const TextStyle(fontSize: 12),
+              onSubmitted: (value) => provider.setSearch(value),
+              onChanged: (value) {
+                setState(() {});
+                _onSearchChanged(value);
               },
-              onChanged: (value) => setState(() {}),
             ),
           ),
           const SizedBox(width: 12),
@@ -129,27 +141,6 @@ class _UsersScreenState extends State<UsersScreen> {
             (v) => provider.setRoleFilter(v),
             theme,
           ),
-          const SizedBox(width: 12),
-
-          // Date range
-          ShadButton.outline(
-            size: ShadButtonSize.sm,
-            leading: const Icon(LucideIcons.calendar, size: 14),
-            onPressed: () => _selectDateRange(provider),
-            child: Text(
-              provider.startDate != null
-                  ? '${DateFormat('dd/MM').format(provider.startDate!)} - ${DateFormat('dd/MM').format(provider.endDate ?? DateTime.now())}'
-                  : 'Date',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-          if (provider.startDate != null) ...[
-            const SizedBox(width: 4),
-            ShadIconButton.ghost(
-              icon: const Icon(LucideIcons.x, size: 14),
-              onPressed: () => provider.setDateRange(null, null),
-            ),
-          ],
         ],
       ),
     );
@@ -191,23 +182,6 @@ class _UsersScreenState extends State<UsersScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _selectDateRange(UserProvider provider) async {
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: provider.startDate != null
-          ? DateTimeRange(
-              start: provider.startDate!,
-              end: provider.endDate ?? DateTime.now(),
-            )
-          : null,
-    );
-    if (picked != null) {
-      provider.setDateRange(picked.start, picked.end);
-    }
   }
 
   Widget _buildUserRow(UserListResult user, UserProvider provider) {
