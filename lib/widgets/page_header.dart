@@ -43,7 +43,7 @@ class PageHeader extends StatelessWidget {
             ),
           ],
         ),
-        if (actions != null)
+        if (actions != null && actions!.isNotEmpty)
           Row(
             mainAxisSize: MainAxisSize.min,
             children:
