@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
+import '../provider/notification_provider.dart';
 import '../static_values/static_values.dart';
 
 class AdminLayout extends StatefulWidget {
@@ -146,19 +147,8 @@ class _AdminLayoutState extends State<AdminLayout>
               _buildLogo(collapsed),
               if (!collapsed) ...[
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(
-                    () => _isSidebarCollapsed = !_isSidebarCollapsed,
-                  ),
-                  child: AnimatedRotation(
-                    turns: _isSidebarCollapsed ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
-                    child: const Icon(
-                      LucideIcons.chevronsLeft,
-                      color: Colors.white24,
-                      size: 16,
-                    ),
-                  ),
+                _NotificationBell(
+                  onTap: () => context.go('/admin/notifications'),
                 ),
               ],
             ],
@@ -276,15 +266,6 @@ class _AdminLayoutState extends State<AdminLayout>
                   LucideIcons.refreshCw,
                   'Returns',
                   '/admin/returns',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  10,
-                  LucideIcons.bell,
-                  'Notifications',
-                  '/admin/notifications',
                   currentPath,
                   collapsed,
                 ),
@@ -638,6 +619,96 @@ class _AdminLayoutState extends State<AdminLayout>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sidebar header notification bell with live unread badge.
+/// Tapping navigates to /admin/notifications.
+class _NotificationBell extends StatefulWidget {
+  final VoidCallback onTap;
+  const _NotificationBell({required this.onTap});
+
+  @override
+  State<_NotificationBell> createState() => _NotificationBellState();
+}
+
+class _NotificationBellState extends State<_NotificationBell> {
+  bool _hovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch unread count once when sidebar mounts.
+      context.read<NotificationProvider>().loadStats();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Selector<NotificationProvider, int>(
+          selector: (_, p) => p.unreadCount,
+          builder: (_, unread, __) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: _hovered
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    LucideIcons.bell,
+                    color: _hovered ? Colors.white : Colors.white70,
+                    size: 16,
+                  ),
+                ),
+                if (unread > 0)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.dangerColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.sidebarBg,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        unread > 99 ? '99+' : '$unread',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
