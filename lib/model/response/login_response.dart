@@ -22,16 +22,40 @@ class LoginResponse {
 
 class LoginResult {
   final String? token;
+  final String? accessToken;
+  final String? refreshToken;
+  final String? refreshExpiresAt;
+  final List<String> permissions;
   final UserResult? user;
 
-  LoginResult({this.token, this.user});
+  LoginResult({
+    this.token,
+    this.accessToken,
+    this.refreshToken,
+    this.refreshExpiresAt,
+    this.permissions = const [],
+    this.user,
+  });
 
   factory LoginResult.fromJson(Map<String, dynamic> json) => LoginResult(
-    token: json["token"],
+    token: json["token"]?.toString(),
+    accessToken: json["accessToken"]?.toString() ?? json["token"]?.toString(),
+    refreshToken: json["refreshToken"]?.toString(),
+    refreshExpiresAt: json["refreshExpiresAt"]?.toString(),
+    permissions: (json["permissions"] is List)
+        ? (json["permissions"] as List).map((e) => e.toString()).toList()
+        : const [],
     user: json["user"] == null ? null : UserResult.fromJson(json["user"]),
   );
 
-  Map<String, dynamic> toJson() => {"token": token, "user": user?.toJson()};
+  Map<String, dynamic> toJson() => {
+    "token": token,
+    "accessToken": accessToken,
+    "refreshToken": refreshToken,
+    "refreshExpiresAt": refreshExpiresAt,
+    "permissions": permissions,
+    "user": user?.toJson(),
+  };
 }
 
 class UserResult {

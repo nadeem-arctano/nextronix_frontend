@@ -11,3 +11,7 @@ export 'return_provider.dart';
 export 'notification_provider.dart';
 export 'gst_provider.dart';
 export 'team_provider.dart';
+export 'audit_provider.dart';
+export 'inventory_provider.dart';
+export 'variant_provider.dart';
+export 'permission_provider.dart';

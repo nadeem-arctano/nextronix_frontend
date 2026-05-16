@@ -10,6 +10,9 @@ class NextronixRepository {
   late ApiProvider _apiProvider;
   late Dio _dio;
 
+  /// Single in-flight refresh future so concurrent 401s share one request.
+  static Future<String?>? _refreshFuture;
+
   NextronixRepository() {
     _dio = Dio(
       BaseOptions(
@@ -19,7 +22,7 @@ class NextronixRepository {
       ),
     );
 
-    // Interceptor: Injects auth token + handles 401 (JWT expired)
+    // Interceptor: attaches access token, transparently refreshes on 401.
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -29,26 +32,95 @@ class NextronixRepository {
           handler.next(options);
         },
         onError: (e, handler) async {
-          if (e.response?.statusCode == 401) {
-            // Token expired or invalid: clear in-memory + persisted session
-            globalAccessToken = null;
+          // Skip retry for the refresh endpoint itself (would loop)
+          final reqPath = e.requestOptions.path;
+          final isAuthCall =
+              reqPath.contains('/auth/login') ||
+              reqPath.contains('/auth/refresh') ||
+              reqPath.contains('/auth/register');
+
+          if (e.response?.statusCode == 401 &&
+              !isAuthCall &&
+              globalRefreshToken != null &&
+              !(e.requestOptions.extra['_retried'] == true)) {
             try {
-              await AuthStorage.clear();
-            } catch (_) {}
+              final newToken = await _refreshAccessToken();
+              if (newToken != null) {
+                final opts = e.requestOptions;
+                opts.headers['Authorization'] = 'Bearer $newToken';
+                opts.extra['_retried'] = true;
+                final clone = await _dio.fetch(opts);
+                return handler.resolve(clone);
+              }
+            } catch (_) {
+              // fall through to forced logout below
+            }
           }
+
+          if (e.response?.statusCode == 401 && !isAuthCall) {
+            await _forceLogout();
+          }
+
           handler.next(e);
         },
       ),
     );
 
-    // _dio.interceptors.add(
-    //   LogInterceptor(
-    //     requestBody: true,
-    //     responseBody: true,
-    //   ),
-    // );
-
     _apiProvider = ApiProvider(_dio, baseUrl: BaseUrl.baseurl);
+  }
+
+  /// Coalesces concurrent refresh attempts onto a single network call.
+  Future<String?> _refreshAccessToken() async {
+    final inflight = _refreshFuture;
+    if (inflight != null) return inflight;
+
+    _refreshFuture = _doRefresh();
+    try {
+      final token = await _refreshFuture;
+      return token;
+    } finally {
+      _refreshFuture = null;
+    }
+  }
+
+  Future<String?> _doRefresh() async {
+    if (globalRefreshToken == null) return null;
+    // Use a separate Dio so the refresh call doesn't loop through our
+    // interceptor (no auth header attached, no retry-on-401).
+    final raw = Dio(
+      BaseOptions(
+        baseUrl: BaseUrl.baseurl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
+    final res = await raw.post(
+      'auth/refresh',
+      data: {'refreshToken': globalRefreshToken},
+    );
+    final data = res.data?['data'] as Map<String, dynamic>?;
+    final access = data?['accessToken'] as String?;
+    final refresh = data?['refreshToken'] as String?;
+    if (access == null || refresh == null) return null;
+
+    globalAccessToken = access;
+    globalRefreshToken = refresh;
+    await AuthStorage.updateAccessToken(access);
+    await AuthStorage.updateRefreshToken(refresh);
+    return access;
+  }
+
+  Future<void> _forceLogout() async {
+    globalAccessToken = null;
+    globalRefreshToken = null;
+    globalPermissions = const [];
+    try {
+      await AuthStorage.clear();
+    } catch (_) {}
+    if (!sessionEvents.isClosed) {
+      sessionEvents.add(SessionEvent.forceLogout);
+    }
   }
 
   // ─── Auth ───────────────────────────────────────────────────────────────────
@@ -771,6 +843,206 @@ class NextronixRepository {
 
   Future<CommonResponse> deleteManager({required int id}) async {
     return await _apiProvider.deleteManager(id);
+  }
+
+  // ─── Auth: refresh + logout ───────────────────────────────────────────────
+  Future<CommonResponse> logout({
+    String? refreshToken,
+    bool? allDevices,
+  }) async {
+    return await _apiProvider.logout(
+      LogoutRequest(refreshToken: refreshToken, allDevices: allDevices),
+    );
+  }
+
+  // ─── Audit Logs ───────────────────────────────────────────────────────────
+  Future<AuditLogListResponse> getAuditLogs({
+    int page = 1,
+    int limit = 20,
+    String? module,
+    String? action,
+    String? entityType,
+    int? userId,
+    String? search,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final queries = <String, dynamic>{'page': page, 'limit': limit};
+    if (module != null) queries['module'] = module;
+    if (action != null) queries['action'] = action;
+    if (entityType != null) queries['entityType'] = entityType;
+    if (userId != null) queries['userId'] = userId;
+    if (search != null && search.isNotEmpty) queries['search'] = search;
+    if (startDate != null) queries['startDate'] = startDate;
+    if (endDate != null) queries['endDate'] = endDate;
+    return await _apiProvider.getAuditLogs(queries);
+  }
+
+  Future<AuditFiltersResponse> getAuditFilters() async {
+    return await _apiProvider.getAuditFilters();
+  }
+
+  Future<AuditLogDetailResponse> getAuditLogById({required int id}) async {
+    return await _apiProvider.getAuditLogById(id);
+  }
+
+  // ─── Inventory Logs ───────────────────────────────────────────────────────
+  Future<InventoryLogListResponse> getInventoryLogs({
+    int page = 1,
+    int limit = 20,
+    int? productId,
+    int? variantId,
+    String? reason,
+    int? userId,
+    String? search,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final queries = <String, dynamic>{'page': page, 'limit': limit};
+    if (productId != null) queries['productId'] = productId;
+    if (variantId != null) queries['variantId'] = variantId;
+    if (reason != null) queries['reason'] = reason;
+    if (userId != null) queries['userId'] = userId;
+    if (search != null && search.isNotEmpty) queries['search'] = search;
+    if (startDate != null) queries['startDate'] = startDate;
+    if (endDate != null) queries['endDate'] = endDate;
+    return await _apiProvider.getInventoryLogs(queries);
+  }
+
+  Future<InventoryLogHistoryResponse> getProductInventoryHistory({
+    required int productId,
+  }) async {
+    return await _apiProvider.getProductInventoryHistory(productId);
+  }
+
+  Future<CommonResponse> adjustStock({
+    required int productId,
+    int? variantId,
+    required int quantityChanged,
+    required String reason,
+    String? note,
+  }) async {
+    return await _apiProvider.adjustStock(
+      StockAdjustRequest(
+        productId: productId,
+        variantId: variantId,
+        quantityChanged: quantityChanged,
+        reason: reason,
+        note: note,
+      ),
+    );
+  }
+
+  // ─── Variants ─────────────────────────────────────────────────────────────
+  Future<VariantListResponse> getVariantsForProduct({
+    required int productId,
+  }) async {
+    return await _apiProvider.getVariantsForProduct(productId);
+  }
+
+  Future<VariantDetailResponse> getVariantById({required int id}) async {
+    return await _apiProvider.getVariantById(id);
+  }
+
+  Future<VariantDetailResponse> createVariant({
+    required int productId,
+    required Map<String, dynamic> fields,
+    MultipartFile? image,
+  }) async {
+    final map = <String, dynamic>{};
+    fields.forEach((k, v) {
+      if (v != null) map[k] = v.toString();
+    });
+    if (image != null) map['image'] = image;
+    final formData = FormData.fromMap(map);
+    return await _apiProvider.createVariant(productId, formData);
+  }
+
+  Future<VariantDetailResponse> updateVariant({
+    required int id,
+    required Map<String, dynamic> fields,
+    MultipartFile? image,
+  }) async {
+    final map = <String, dynamic>{};
+    fields.forEach((k, v) {
+      if (v != null) map[k] = v.toString();
+    });
+    if (image != null) map['image'] = image;
+    final formData = FormData.fromMap(map);
+    return await _apiProvider.updateVariant(id, formData);
+  }
+
+  Future<CommonResponse> deleteVariant({required int id}) async {
+    return await _apiProvider.deleteVariant(id);
+  }
+
+  Future<CommonResponse> updateVariantStock({
+    required int id,
+    required int stock,
+  }) async {
+    return await _apiProvider.updateVariantStock(
+      id,
+      VariantStockRequest(stock: stock),
+    );
+  }
+
+  Future<CommonResponse> bulkUpdateVariants({
+    required List<int> ids,
+    required String op,
+    dynamic value,
+    double? mrp,
+    double? sellingPrice,
+  }) async {
+    return await _apiProvider.bulkUpdateVariants(
+      VariantBulkRequest(
+        ids: ids,
+        op: op,
+        value: value,
+        mrp: mrp,
+        sellingPrice: sellingPrice,
+      ),
+    );
+  }
+
+  // ─── Permissions ──────────────────────────────────────────────────────────
+  Future<PermissionCatalogResponse> getPermissionCatalog() async {
+    return await _apiProvider.getPermissionCatalog();
+  }
+
+  Future<ManagerPermissionsResponse> getManagerPermissions({
+    required int userId,
+  }) async {
+    return await _apiProvider.getManagerPermissions(userId);
+  }
+
+  Future<CommonResponse> replaceManagerPermissions({
+    required int userId,
+    required List<String> keys,
+  }) async {
+    return await _apiProvider.replaceManagerPermissions(
+      userId,
+      PermissionReplaceRequest(keys: keys),
+    );
+  }
+
+  Future<CommonResponse> grantPermission({
+    required int userId,
+    required String key,
+  }) async {
+    return await _apiProvider.grantPermission(
+      userId,
+      PermissionKeyRequest(key: key),
+    );
+  }
+
+  Future<CommonResponse> revokePermission({
+    required int userId,
+    required String key,
+  }) async {
+    return await _apiProvider.revokePermission(
+      userId,
+      PermissionKeyRequest(key: key),
+    );
   }
 
   // ─── Coupons ───────────────────────────────────────────────────────────────

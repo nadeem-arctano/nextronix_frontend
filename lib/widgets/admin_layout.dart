@@ -167,135 +167,169 @@ class _AdminLayoutState extends State<AdminLayout>
         Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 12),
-            child: Column(
-              children: [
-                if (!collapsed)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 8),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'MENU',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
+            // Sidebar item count grows with new modules; let it scroll
+            // independently when the viewport can't fit everything.
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (!collapsed)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, bottom: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'MENU',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                _buildNavItem(
-                  context,
-                  0,
-                  LucideIcons.layoutDashboard,
-                  'Dashboard',
-                  '/admin/dashboard',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  1,
-                  LucideIcons.package,
-                  'Products',
-                  '/admin/products',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  2,
-                  LucideIcons.shoppingBag,
-                  'Orders',
-                  '/admin/orders',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  3,
-                  LucideIcons.users,
-                  'Users',
-                  '/admin/users',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  4,
-                  LucideIcons.layers,
-                  'Categories',
-                  '/admin/categories',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  5,
-                  LucideIcons.fileText,
-                  'HSN Codes',
-                  '/admin/hsn-codes',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  6,
-                  LucideIcons.ticket,
-                  'Coupons',
-                  '/admin/coupons',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  7,
-                  LucideIcons.lifeBuoy,
-                  'Support',
-                  '/admin/support',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  8,
-                  LucideIcons.refreshCw,
-                  'Returns',
-                  '/admin/returns',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
-                  11,
-                  LucideIcons.chartBarBig,
-                  'Reports',
-                  '/admin/reports',
-                  currentPath,
-                  collapsed,
-                ),
-                // Admin-only: Team management
-                if (context.watch<AuthProvider>().isAdmin)
                   _buildNavItem(
                     context,
-                    13,
-                    LucideIcons.users,
-                    'Team',
-                    '/admin/team',
+                    0,
+                    LucideIcons.layoutDashboard,
+                    'Dashboard',
+                    '/admin/dashboard',
                     currentPath,
                     collapsed,
                   ),
-                _buildNavItem(
-                  context,
-                  12,
-                  LucideIcons.settings,
-                  'Settings',
-                  '/admin/settings',
-                  currentPath,
-                  collapsed,
-                ),
-              ],
+                  _buildNavItem(
+                    context,
+                    1,
+                    LucideIcons.package,
+                    'Products',
+                    '/admin/products',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    2,
+                    LucideIcons.shoppingBag,
+                    'Orders',
+                    '/admin/orders',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    3,
+                    LucideIcons.users,
+                    'Users',
+                    '/admin/users',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    4,
+                    LucideIcons.layers,
+                    'Categories',
+                    '/admin/categories',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    5,
+                    LucideIcons.fileText,
+                    'HSN Codes',
+                    '/admin/hsn-codes',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    6,
+                    LucideIcons.ticket,
+                    'Coupons',
+                    '/admin/coupons',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    7,
+                    LucideIcons.lifeBuoy,
+                    'Support',
+                    '/admin/support',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    8,
+                    LucideIcons.refreshCw,
+                    'Returns',
+                    '/admin/returns',
+                    currentPath,
+                    collapsed,
+                  ),
+                  _buildNavItem(
+                    context,
+                    11,
+                    LucideIcons.chartBarBig,
+                    'Reports',
+                    '/admin/reports',
+                    currentPath,
+                    collapsed,
+                  ),
+                  if (hasPermission('canViewInventory'))
+                    _buildNavItem(
+                      context,
+                      14,
+                      LucideIcons.boxes,
+                      'Inventory',
+                      '/admin/inventory-logs',
+                      currentPath,
+                      collapsed,
+                    ),
+                  if (hasPermission('canViewAuditLogs'))
+                    _buildNavItem(
+                      context,
+                      15,
+                      LucideIcons.scrollText,
+                      'Audit Logs',
+                      '/admin/audit-logs',
+                      currentPath,
+                      collapsed,
+                    ),
+                  // Admin-only: Team management
+                  if (context.watch<AuthProvider>().isAdmin)
+                    _buildNavItem(
+                      context,
+                      13,
+                      LucideIcons.users,
+                      'Team',
+                      '/admin/team',
+                      currentPath,
+                      collapsed,
+                    ),
+                  if (context.watch<AuthProvider>().isAdmin)
+                    _buildNavItem(
+                      context,
+                      16,
+                      LucideIcons.shieldCheck,
+                      'Permissions',
+                      '/admin/permissions',
+                      currentPath,
+                      collapsed,
+                    ),
+                  _buildNavItem(
+                    context,
+                    12,
+                    LucideIcons.settings,
+                    'Settings',
+                    '/admin/settings',
+                    currentPath,
+                    collapsed,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -661,7 +695,9 @@ class _NotificationBellState extends State<_NotificationBell> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch unread count once when sidebar mounts.
+      // Bell can be unmounted before the post-frame fires (hot reload,
+      // route swap). Guard against accessing `context` after dispose.
+      if (!mounted) return;
       context.read<NotificationProvider>().loadStats();
     });
   }

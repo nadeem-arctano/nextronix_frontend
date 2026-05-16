@@ -31,6 +31,7 @@ class ProfileResult {
   final String? status;
   final String? createdAt;
   final BrandSummary? brand;
+  final List<String> permissions;
 
   ProfileResult({
     this.id,
@@ -42,6 +43,7 @@ class ProfileResult {
     this.status,
     this.createdAt,
     this.brand,
+    this.permissions = const [],
   });
 
   /// Effective brand id this user operates under.
@@ -66,6 +68,9 @@ class ProfileResult {
     status: json["status"]?.toString(),
     createdAt: json["createdAt"]?.toString(),
     brand: json["brand"] != null ? BrandSummary.fromJson(json["brand"]) : null,
+    permissions: (json["permissions"] is List)
+        ? (json["permissions"] as List).map((e) => e.toString()).toList()
+        : const [],
   );
 
   Map<String, dynamic> toJson() => {
@@ -78,6 +83,7 @@ class ProfileResult {
     "status": status,
     "createdAt": createdAt,
     "brand": brand?.toJson(),
+    "permissions": permissions,
   };
 }
 

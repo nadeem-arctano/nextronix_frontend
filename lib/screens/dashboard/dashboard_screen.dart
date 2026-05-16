@@ -34,7 +34,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<DashboardProvider>().loadDashboard().then((_) {
+        if (!mounted) return;
         _fadeController.forward();
       });
     });

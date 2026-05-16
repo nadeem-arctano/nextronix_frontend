@@ -25,3 +25,7 @@ export 'return_models.dart';
 export 'notification_models.dart';
 export 'gst_models.dart';
 export 'manager_models.dart';
+export 'audit_models.dart';
+export 'inventory_models.dart';
+export 'variant_models.dart';
+export 'permission_models.dart';

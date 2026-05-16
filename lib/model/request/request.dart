@@ -1,5 +1,6 @@
 export 'login_request.dart';
 export 'register_request.dart';
+export 'auth_requests.dart';
 export 'status_request.dart';
 export 'payment_status_request.dart';
 export 'bulk_ids_request.dart';
@@ -15,3 +16,6 @@ export 'return_request.dart';
 export 'tax_settings_request.dart';
 export 'hsn_request.dart';
 export 'manager_requests.dart';
+export 'inventory_requests.dart';
+export 'variant_requests.dart';
+export 'permission_requests.dart';

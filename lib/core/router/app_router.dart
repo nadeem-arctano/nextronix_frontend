@@ -42,6 +42,10 @@ import '../../screens/gst/hsn_summary_screen.dart';
 import '../../screens/gst/gst_export_screen.dart';
 import '../../screens/gst/tax_settings_screen.dart';
 import '../../screens/team/team_screen.dart';
+import '../../screens/audit_logs/audit_logs_screen.dart';
+import '../../screens/inventory_logs/inventory_logs_screen.dart';
+import '../../screens/permissions/permissions_screen.dart';
+import '../../screens/products/variants/variants_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -351,6 +355,34 @@ class AppRouter {
               name: 'team',
               pageBuilder: (context, state) =>
                   _fadePage(const TeamScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/permissions',
+              name: 'permissions',
+              pageBuilder: (context, state) =>
+                  _fadePage(const PermissionsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/audit-logs',
+              name: 'audit-logs',
+              pageBuilder: (context, state) =>
+                  _fadePage(const AuditLogsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/inventory-logs',
+              name: 'inventory-logs',
+              pageBuilder: (context, state) =>
+                  _fadePage(const InventoryLogsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/products/:id/variants',
+              name: 'product-variants',
+              pageBuilder: (context, state) => _fadePage(
+                VariantsScreen(
+                  productId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
             ),
           ],
         ),

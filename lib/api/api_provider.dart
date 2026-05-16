@@ -15,6 +15,12 @@ abstract class ApiProvider {
   @POST("auth/register")
   Future<CommonResponse> register(@Body() RegisterRequest registerRequest);
 
+  @POST("auth/refresh")
+  Future<LoginResponse> refreshAccessToken(@Body() RefreshTokenRequest body);
+
+  @POST("auth/logout")
+  Future<CommonResponse> logout(@Body() LogoutRequest body);
+
   @GET("auth/me")
   Future<ProfileResponse> getProfile();
 
@@ -419,4 +425,92 @@ abstract class ApiProvider {
 
   @DELETE("team/managers/{id}")
   Future<CommonResponse> deleteManager(@Path('id') int id);
+
+  // ─── Audit Logs ────────────────────────────────────────────────────────────
+  @GET("audit-logs")
+  Future<AuditLogListResponse> getAuditLogs(
+    @Queries() Map<String, dynamic> queries,
+  );
+
+  @GET("audit-logs/filters")
+  Future<AuditFiltersResponse> getAuditFilters();
+
+  @GET("audit-logs/{id}")
+  Future<AuditLogDetailResponse> getAuditLogById(@Path('id') int id);
+
+  // ─── Inventory Logs ────────────────────────────────────────────────────────
+  @GET("inventory-logs")
+  Future<InventoryLogListResponse> getInventoryLogs(
+    @Queries() Map<String, dynamic> queries,
+  );
+
+  @GET("inventory-logs/product/{productId}")
+  Future<InventoryLogHistoryResponse> getProductInventoryHistory(
+    @Path('productId') int productId,
+  );
+
+  @POST("inventory-logs/adjust")
+  Future<CommonResponse> adjustStock(@Body() StockAdjustRequest body);
+
+  // ─── Variants ──────────────────────────────────────────────────────────────
+  @GET("variants/products/{productId}")
+  Future<VariantListResponse> getVariantsForProduct(
+    @Path('productId') int productId,
+  );
+
+  @GET("variants/{id}")
+  Future<VariantDetailResponse> getVariantById(@Path('id') int id);
+
+  @POST("variants/products/{productId}")
+  @MultiPart()
+  Future<VariantDetailResponse> createVariant(
+    @Path('productId') int productId,
+    @Body() FormData formData,
+  );
+
+  @PUT("variants/{id}")
+  @MultiPart()
+  Future<VariantDetailResponse> updateVariant(
+    @Path('id') int id,
+    @Body() FormData formData,
+  );
+
+  @DELETE("variants/{id}")
+  Future<CommonResponse> deleteVariant(@Path('id') int id);
+
+  @PATCH("variants/{id}/stock")
+  Future<CommonResponse> updateVariantStock(
+    @Path('id') int id,
+    @Body() VariantStockRequest body,
+  );
+
+  @POST("variants/bulk")
+  Future<CommonResponse> bulkUpdateVariants(@Body() VariantBulkRequest body);
+
+  // ─── Permissions ───────────────────────────────────────────────────────────
+  @GET("permissions/catalog")
+  Future<PermissionCatalogResponse> getPermissionCatalog();
+
+  @GET("permissions/managers/{userId}")
+  Future<ManagerPermissionsResponse> getManagerPermissions(
+    @Path('userId') int userId,
+  );
+
+  @PUT("permissions/managers/{userId}")
+  Future<CommonResponse> replaceManagerPermissions(
+    @Path('userId') int userId,
+    @Body() PermissionReplaceRequest body,
+  );
+
+  @POST("permissions/managers/{userId}/grant")
+  Future<CommonResponse> grantPermission(
+    @Path('userId') int userId,
+    @Body() PermissionKeyRequest body,
+  );
+
+  @POST("permissions/managers/{userId}/revoke")
+  Future<CommonResponse> revokePermission(
+    @Path('userId') int userId,
+    @Body() PermissionKeyRequest body,
+  );
 }
