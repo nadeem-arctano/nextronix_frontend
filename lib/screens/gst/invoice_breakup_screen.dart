@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -34,9 +35,10 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'Invoice GST Breakup',
                 subtitle: 'Per-invoice tax breakdown',
+                onBack: () => context.go('/admin/gst'),
               ),
               const SizedBox(height: 20),
               Expanded(

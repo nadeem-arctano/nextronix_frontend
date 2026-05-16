@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -32,9 +33,10 @@ class _HsnSummaryScreenState extends State<HsnSummaryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'HSN Summary',
                 subtitle: 'GST grouped by HSN code',
+                onBack: () => context.go('/admin/gst'),
               ),
               const SizedBox(height: 20),
               Expanded(

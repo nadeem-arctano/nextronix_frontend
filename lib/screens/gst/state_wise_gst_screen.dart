@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -32,9 +33,10 @@ class _StateWiseGstScreenState extends State<StateWiseGstScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'State-wise GST',
                 subtitle: 'GST collection grouped by shipping state',
+                onBack: () => context.go('/admin/gst'),
               ),
               const SizedBox(height: 20),
               Expanded(

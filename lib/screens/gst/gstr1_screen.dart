@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -36,6 +37,7 @@ class _Gstr1ScreenState extends State<Gstr1Screen> {
               PageHeader(
                 title: 'GSTR-1',
                 subtitle: 'Outward supplies — rate-wise summary',
+                onBack: () => context.go('/admin/gst'),
                 actions: [
                   MonthYearPicker(
                     selectedMonth: p.selectedMonth,

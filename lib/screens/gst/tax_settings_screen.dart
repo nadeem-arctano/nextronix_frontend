@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -51,9 +52,10 @@ class _TaxSettingsScreenState extends State<TaxSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const PageHeader(
+                  PageHeader(
                     title: 'Tax Settings',
                     subtitle: 'Default GST rate and invoice tax configuration',
+                    onBack: () => context.go('/admin/gst'),
                   ),
                   const SizedBox(height: 20),
                   Expanded(
