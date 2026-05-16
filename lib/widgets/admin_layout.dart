@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
+import '../provider/auth_provider.dart';
 import '../provider/notification_provider.dart';
 import '../static_values/static_values.dart';
 import 'notification_panel.dart';
@@ -485,27 +486,38 @@ class _AdminLayoutState extends State<AdminLayout>
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Admin',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  'admin@nextronix.com',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    fontSize: 11,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final name = auth.user?.name ?? 'Admin';
+                final email = auth.user?.email ?? '';
+                final brandName = auth.profile?.brand?.businessName;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      brandName != null && brandName.isNotEmpty
+                          ? brandName
+                          : email,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           GestureDetector(
@@ -522,7 +534,7 @@ class _AdminLayoutState extends State<AdminLayout>
   }
 
   void _handleLogout() {
-    globalAccessToken = null;
+    context.read<AuthProvider>().logout();
   }
 
   Widget _buildNavItem(

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../api/api_provider.dart';
 import '../api/base_url.dart';
+import '../core/services/auth_storage.dart';
 import '../model/request/request.dart';
 import '../model/response/response.dart';
 import '../static_values/static_values.dart';
@@ -29,8 +30,11 @@ class NextronixRepository {
         },
         onError: (e, handler) async {
           if (e.response?.statusCode == 401) {
-            // Handle token expiry → redirect to login
+            // Token expired or invalid: clear in-memory + persisted session
             globalAccessToken = null;
+            try {
+              await AuthStorage.clear();
+            } catch (_) {}
           }
           handler.next(e);
         },

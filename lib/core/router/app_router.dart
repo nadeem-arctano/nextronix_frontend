@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../provider/auth_provider.dart';
+import '../../screens/auth/login_screen.dart';
 import '../../screens/dashboard/dashboard_screen.dart';
 import '../../screens/products/products_screen.dart';
 import '../../screens/products/add_product_screen.dart';
@@ -55,272 +57,297 @@ CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
 }
 
 class AppRouter {
-  static final GoRouter router = GoRouter(
-    initialLocation: '/admin/dashboard',
-    routes: [
-      // Standalone pages (no sidebar)
-      GoRoute(
-        path: '/admin/products/add',
-        name: 'add-product',
-        pageBuilder: (context, state) =>
-            _fadePage(const AddProductScreen(), state),
-      ),
-      GoRoute(
-        path: '/admin/products/edit/:id',
-        name: 'edit-product',
-        pageBuilder: (context, state) => _fadePage(
-          EditProductScreen(productId: int.parse(state.pathParameters['id']!)),
-          state,
+  /// Builds the router instance bound to the given AuthProvider so route
+  /// changes react to login/logout state.
+  static GoRouter build(AuthProvider auth) {
+    return GoRouter(
+      initialLocation: '/admin/dashboard',
+      refreshListenable: auth,
+      redirect: (context, state) {
+        // While bootstrapping (reading saved token) keep the current location.
+        if (auth.isInitializing) return null;
+
+        final loggingIn = state.matchedLocation == '/login';
+        if (!auth.isAuthenticated) {
+          return loggingIn ? null : '/login';
+        }
+        // Already authenticated → bounce away from /login
+        if (loggingIn) return '/admin/dashboard';
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/login',
+          name: 'login',
+          pageBuilder: (context, state) =>
+              _fadePage(const LoginScreen(), state),
         ),
-      ),
-      ShellRoute(
-        builder: (context, state, child) => AdminLayout(child: child),
-        routes: [
-          GoRoute(
-            path: '/admin/dashboard',
-            name: 'dashboard',
-            pageBuilder: (context, state) =>
-                _fadePage(const DashboardScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/products',
-            name: 'products',
-            pageBuilder: (context, state) =>
-                _fadePage(const ProductsScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/categories',
-            name: 'categories',
-            pageBuilder: (context, state) =>
-                _fadePage(const CategoriesScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/orders',
-            name: 'orders',
-            pageBuilder: (context, state) =>
-                _fadePage(const OrdersScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/orders/:id',
-            name: 'order-detail',
-            pageBuilder: (context, state) => _fadePage(
-              OrderDetailScreen(
-                orderId: int.parse(state.pathParameters['id']!),
-              ),
-              state,
+        // Standalone pages (no sidebar)
+        GoRoute(
+          path: '/admin/products/add',
+          name: 'add-product',
+          pageBuilder: (context, state) =>
+              _fadePage(const AddProductScreen(), state),
+        ),
+        GoRoute(
+          path: '/admin/products/edit/:id',
+          name: 'edit-product',
+          pageBuilder: (context, state) => _fadePage(
+            EditProductScreen(
+              productId: int.parse(state.pathParameters['id']!),
             ),
+            state,
           ),
-          GoRoute(
-            path: '/admin/users',
-            name: 'users',
-            pageBuilder: (context, state) =>
-                _fadePage(const UsersScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/hsn-codes',
-            name: 'hsn-codes',
-            pageBuilder: (context, state) =>
-                _fadePage(const HsnScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/coupons',
-            name: 'coupons',
-            pageBuilder: (context, state) =>
-                _fadePage(const CouponsScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports',
-            name: 'reports',
-            pageBuilder: (context, state) =>
-                _fadePage(const ReportsDashboard(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/daily-sales',
-            name: 'daily-sales',
-            pageBuilder: (context, state) =>
-                _fadePage(const DailySalesScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/monthly-sales',
-            name: 'monthly-sales',
-            pageBuilder: (context, state) =>
-                _fadePage(const MonthlySalesScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/gst-report',
-            name: 'gst-report',
-            pageBuilder: (context, state) =>
-                _fadePage(const GstReportScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/coupon-report',
-            name: 'coupon-report',
-            pageBuilder: (context, state) =>
-                _fadePage(const CouponReportScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/top-customers',
-            name: 'top-customers',
-            pageBuilder: (context, state) =>
-                _fadePage(const TopCustomersScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/reports/best-products',
-            name: 'best-products',
-            pageBuilder: (context, state) =>
-                _fadePage(const BestProductsScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings',
-            name: 'settings-hub',
-            pageBuilder: (context, state) =>
-                _fadePage(const SettingsHubScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/business-info',
-            name: 'settings-business-info',
-            pageBuilder: (context, state) =>
-                _fadePage(const BusinessInfoSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/contact',
-            name: 'settings-contact',
-            pageBuilder: (context, state) =>
-                _fadePage(const ContactSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/address',
-            name: 'settings-address',
-            pageBuilder: (context, state) =>
-                _fadePage(const AddressSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/branding',
-            name: 'settings-branding',
-            pageBuilder: (context, state) =>
-                _fadePage(const BrandingSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/bank',
-            name: 'settings-bank',
-            pageBuilder: (context, state) =>
-                _fadePage(const BankSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/payment',
-            name: 'settings-payment',
-            pageBuilder: (context, state) =>
-                _fadePage(const PaymentSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/invoice',
-            name: 'settings-invoice',
-            pageBuilder: (context, state) =>
-                _fadePage(const InvoiceSectionScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/settings/social',
-            name: 'settings-social',
-            pageBuilder: (context, state) =>
-                _fadePage(const SocialSectionScreen(), state),
-          ),
-          // ─── Support ───────────────────────────────────────────────────────
-          GoRoute(
-            path: '/admin/support',
-            name: 'support-list',
-            pageBuilder: (context, state) =>
-                _fadePage(const SupportListScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/support/:id',
-            name: 'support-detail',
-            pageBuilder: (context, state) => _fadePage(
-              SupportDetailScreen(
-                ticketId: int.parse(state.pathParameters['id']!),
-              ),
-              state,
+        ),
+        ShellRoute(
+          builder: (context, state, child) => AdminLayout(child: child),
+          routes: [
+            GoRoute(
+              path: '/admin/dashboard',
+              name: 'dashboard',
+              pageBuilder: (context, state) =>
+                  _fadePage(const DashboardScreen(), state),
             ),
-          ),
-          GoRoute(
-            path: '/admin/contact-messages',
-            name: 'contact-messages',
-            pageBuilder: (context, state) =>
-                _fadePage(const ContactMessagesScreen(), state),
-          ),
-          // ─── Returns ───────────────────────────────────────────────────────
-          GoRoute(
-            path: '/admin/returns',
-            name: 'returns-list',
-            pageBuilder: (context, state) =>
-                _fadePage(const ReturnsListScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/returns/:id',
-            name: 'return-detail',
-            pageBuilder: (context, state) => _fadePage(
-              ReturnDetailScreen(
-                returnId: int.parse(state.pathParameters['id']!),
-              ),
-              state,
+            GoRoute(
+              path: '/admin/products',
+              name: 'products',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ProductsScreen(), state),
             ),
-          ),
-          // ─── GST Management ────────────────────────────────────────────────
-          GoRoute(
-            path: '/admin/gst',
-            name: 'gst-dashboard',
-            pageBuilder: (context, state) =>
-                _fadePage(const GstDashboardScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/reports',
-            name: 'gst-reports',
-            pageBuilder: (context, state) =>
-                _fadePage(const GstReportScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/gstr1',
-            name: 'gst-gstr1',
-            pageBuilder: (context, state) =>
-                _fadePage(const Gstr1Screen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/gstr3b',
-            name: 'gst-gstr3b',
-            pageBuilder: (context, state) =>
-                _fadePage(const Gstr3bScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/state-wise',
-            name: 'gst-state-wise',
-            pageBuilder: (context, state) =>
-                _fadePage(const StateWiseGstScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/invoice-breakup',
-            name: 'gst-invoice-breakup',
-            pageBuilder: (context, state) =>
-                _fadePage(const InvoiceBreakupScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/hsn-summary',
-            name: 'gst-hsn-summary',
-            pageBuilder: (context, state) =>
-                _fadePage(const HsnSummaryScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/export',
-            name: 'gst-export',
-            pageBuilder: (context, state) =>
-                _fadePage(const GstExportScreen(), state),
-          ),
-          GoRoute(
-            path: '/admin/gst/settings',
-            name: 'gst-settings',
-            pageBuilder: (context, state) =>
-                _fadePage(const TaxSettingsScreen(), state),
-          ),
-        ],
-      ),
-    ],
-  );
+            GoRoute(
+              path: '/admin/categories',
+              name: 'categories',
+              pageBuilder: (context, state) =>
+                  _fadePage(const CategoriesScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/orders',
+              name: 'orders',
+              pageBuilder: (context, state) =>
+                  _fadePage(const OrdersScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/orders/:id',
+              name: 'order-detail',
+              pageBuilder: (context, state) => _fadePage(
+                OrderDetailScreen(
+                  orderId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            GoRoute(
+              path: '/admin/users',
+              name: 'users',
+              pageBuilder: (context, state) =>
+                  _fadePage(const UsersScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/hsn-codes',
+              name: 'hsn-codes',
+              pageBuilder: (context, state) =>
+                  _fadePage(const HsnScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/coupons',
+              name: 'coupons',
+              pageBuilder: (context, state) =>
+                  _fadePage(const CouponsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports',
+              name: 'reports',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ReportsDashboard(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/daily-sales',
+              name: 'daily-sales',
+              pageBuilder: (context, state) =>
+                  _fadePage(const DailySalesScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/monthly-sales',
+              name: 'monthly-sales',
+              pageBuilder: (context, state) =>
+                  _fadePage(const MonthlySalesScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/gst-report',
+              name: 'gst-report',
+              pageBuilder: (context, state) =>
+                  _fadePage(const GstReportScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/coupon-report',
+              name: 'coupon-report',
+              pageBuilder: (context, state) =>
+                  _fadePage(const CouponReportScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/top-customers',
+              name: 'top-customers',
+              pageBuilder: (context, state) =>
+                  _fadePage(const TopCustomersScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/reports/best-products',
+              name: 'best-products',
+              pageBuilder: (context, state) =>
+                  _fadePage(const BestProductsScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings',
+              name: 'settings-hub',
+              pageBuilder: (context, state) =>
+                  _fadePage(const SettingsHubScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/business-info',
+              name: 'settings-business-info',
+              pageBuilder: (context, state) =>
+                  _fadePage(const BusinessInfoSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/contact',
+              name: 'settings-contact',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ContactSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/address',
+              name: 'settings-address',
+              pageBuilder: (context, state) =>
+                  _fadePage(const AddressSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/branding',
+              name: 'settings-branding',
+              pageBuilder: (context, state) =>
+                  _fadePage(const BrandingSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/bank',
+              name: 'settings-bank',
+              pageBuilder: (context, state) =>
+                  _fadePage(const BankSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/payment',
+              name: 'settings-payment',
+              pageBuilder: (context, state) =>
+                  _fadePage(const PaymentSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/invoice',
+              name: 'settings-invoice',
+              pageBuilder: (context, state) =>
+                  _fadePage(const InvoiceSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/social',
+              name: 'settings-social',
+              pageBuilder: (context, state) =>
+                  _fadePage(const SocialSectionScreen(), state),
+            ),
+            // ─── Support ───────────────────────────────────────────────────────
+            GoRoute(
+              path: '/admin/support',
+              name: 'support-list',
+              pageBuilder: (context, state) =>
+                  _fadePage(const SupportListScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/support/:id',
+              name: 'support-detail',
+              pageBuilder: (context, state) => _fadePage(
+                SupportDetailScreen(
+                  ticketId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            GoRoute(
+              path: '/admin/contact-messages',
+              name: 'contact-messages',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ContactMessagesScreen(), state),
+            ),
+            // ─── Returns ───────────────────────────────────────────────────────
+            GoRoute(
+              path: '/admin/returns',
+              name: 'returns-list',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ReturnsListScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/returns/:id',
+              name: 'return-detail',
+              pageBuilder: (context, state) => _fadePage(
+                ReturnDetailScreen(
+                  returnId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            // ─── GST Management ────────────────────────────────────────────────
+            GoRoute(
+              path: '/admin/gst',
+              name: 'gst-dashboard',
+              pageBuilder: (context, state) =>
+                  _fadePage(const GstDashboardScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/reports',
+              name: 'gst-reports',
+              pageBuilder: (context, state) =>
+                  _fadePage(const GstReportScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/gstr1',
+              name: 'gst-gstr1',
+              pageBuilder: (context, state) =>
+                  _fadePage(const Gstr1Screen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/gstr3b',
+              name: 'gst-gstr3b',
+              pageBuilder: (context, state) =>
+                  _fadePage(const Gstr3bScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/state-wise',
+              name: 'gst-state-wise',
+              pageBuilder: (context, state) =>
+                  _fadePage(const StateWiseGstScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/invoice-breakup',
+              name: 'gst-invoice-breakup',
+              pageBuilder: (context, state) =>
+                  _fadePage(const InvoiceBreakupScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/hsn-summary',
+              name: 'gst-hsn-summary',
+              pageBuilder: (context, state) =>
+                  _fadePage(const HsnSummaryScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/export',
+              name: 'gst-export',
+              pageBuilder: (context, state) =>
+                  _fadePage(const GstExportScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/gst/settings',
+              name: 'gst-settings',
+              pageBuilder: (context, state) =>
+                  _fadePage(const TaxSettingsScreen(), state),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

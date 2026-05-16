@@ -36,6 +36,7 @@ class LoginResult {
 
 class UserResult {
   final int? id;
+  final int? parentAdminId;
   final String? name;
   final String? email;
   final String? mobile;
@@ -46,6 +47,7 @@ class UserResult {
 
   UserResult({
     this.id,
+    this.parentAdminId,
     this.name,
     this.email,
     this.mobile,
@@ -55,8 +57,19 @@ class UserResult {
     this.updatedAt,
   });
 
+  /// Effective brand id this user operates under.
+  /// - Admin → own id
+  /// - Manager → parentAdminId
+  int? get effectiveAdminId {
+    if (role == 'admin') return id;
+    return parentAdminId;
+  }
+
   factory UserResult.fromJson(Map<String, dynamic> json) => UserResult(
     id: parseInt(json['id']),
+    parentAdminId: json['parentAdminId'] != null
+        ? parseInt(json['parentAdminId'])
+        : null,
     name: json['name']?.toString(),
     email: json['email']?.toString(),
     mobile: json['mobile']?.toString(),
@@ -68,6 +81,7 @@ class UserResult {
 
   Map<String, dynamic> toJson() => {
     "id": id,
+    "parentAdminId": parentAdminId,
     "name": name,
     "email": email,
     "mobile": mobile,
