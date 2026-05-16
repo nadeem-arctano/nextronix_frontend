@@ -353,10 +353,53 @@ class NextronixRepository {
     return await _apiProvider.getBusinessSettings();
   }
 
-  Future<BusinessSettingsResponse> updateBusinessSettings({
+  // Section getters
+  Future<BusinessSettingsResponse> getSettingsSection(String section) async {
+    switch (section) {
+      case 'business-info':
+        return await _apiProvider.getBusinessInfoSection();
+      case 'contact':
+        return await _apiProvider.getContactSection();
+      case 'address':
+        return await _apiProvider.getAddressSection();
+      case 'branding':
+        return await _apiProvider.getBrandingSection();
+      case 'bank':
+        return await _apiProvider.getBankSection();
+      case 'payment':
+        return await _apiProvider.getPaymentSection();
+      case 'invoice':
+        return await _apiProvider.getInvoiceSection();
+      case 'social':
+        return await _apiProvider.getSocialSection();
+      default:
+        throw ArgumentError('Unknown settings section: $section');
+    }
+  }
+
+  // Section updaters
+  Future<BusinessSettingsResponse> updateSettingsSection({
+    required String section,
     required Map<String, dynamic> body,
   }) async {
-    return await _apiProvider.updateBusinessSettings(body);
+    switch (section) {
+      case 'business-info':
+        return await _apiProvider.updateBusinessInfoSection(body);
+      case 'contact':
+        return await _apiProvider.updateContactSection(body);
+      case 'address':
+        return await _apiProvider.updateAddressSection(body);
+      case 'bank':
+        return await _apiProvider.updateBankSection(body);
+      case 'payment':
+        return await _apiProvider.updatePaymentSection(body);
+      case 'invoice':
+        return await _apiProvider.updateInvoiceSection(body);
+      case 'social':
+        return await _apiProvider.updateSocialSection(body);
+      default:
+        throw ArgumentError('Unknown settings section: $section');
+    }
   }
 
   Future<BusinessSettingsResponse> uploadBusinessLogo({

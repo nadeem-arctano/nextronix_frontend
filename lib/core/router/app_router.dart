@@ -17,7 +17,15 @@ import '../../screens/reports/gst_report_screen.dart';
 import '../../screens/reports/coupon_report_screen.dart';
 import '../../screens/reports/top_customers_screen.dart';
 import '../../screens/reports/best_products_screen.dart';
-import '../../screens/settings/business_settings_screen.dart';
+import '../../screens/settings/settings_hub_screen.dart';
+import '../../screens/settings/sections/business_info_section.dart';
+import '../../screens/settings/sections/contact_section.dart';
+import '../../screens/settings/sections/address_section.dart';
+import '../../screens/settings/sections/branding_section.dart';
+import '../../screens/settings/sections/bank_section.dart';
+import '../../screens/settings/sections/payment_section.dart';
+import '../../screens/settings/sections/invoice_section.dart';
+import '../../screens/settings/sections/social_section.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -150,10 +158,58 @@ class AppRouter {
                 _fadePage(const BestProductsScreen(), state),
           ),
           GoRoute(
-            path: '/admin/settings/business',
-            name: 'business-settings',
+            path: '/admin/settings',
+            name: 'settings-hub',
             pageBuilder: (context, state) =>
-                _fadePage(const BusinessSettingsScreen(), state),
+                _fadePage(const SettingsHubScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/business-info',
+            name: 'settings-business-info',
+            pageBuilder: (context, state) =>
+                _fadePage(const BusinessInfoSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/contact',
+            name: 'settings-contact',
+            pageBuilder: (context, state) =>
+                _fadePage(const ContactSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/address',
+            name: 'settings-address',
+            pageBuilder: (context, state) =>
+                _fadePage(const AddressSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/branding',
+            name: 'settings-branding',
+            pageBuilder: (context, state) =>
+                _fadePage(const BrandingSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/bank',
+            name: 'settings-bank',
+            pageBuilder: (context, state) =>
+                _fadePage(const BankSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/payment',
+            name: 'settings-payment',
+            pageBuilder: (context, state) =>
+                _fadePage(const PaymentSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/invoice',
+            name: 'settings-invoice',
+            pageBuilder: (context, state) =>
+                _fadePage(const InvoiceSectionScreen(), state),
+          ),
+          GoRoute(
+            path: '/admin/settings/social',
+            name: 'settings-social',
+            pageBuilder: (context, state) =>
+                _fadePage(const SocialSectionScreen(), state),
           ),
         ],
       ),

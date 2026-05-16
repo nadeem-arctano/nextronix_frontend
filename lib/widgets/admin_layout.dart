@@ -275,7 +275,7 @@ class _AdminLayoutState extends State<AdminLayout>
                   8,
                   LucideIcons.settings,
                   'Settings',
-                  '/admin/settings/business',
+                  '/admin/settings',
                   currentPath,
                   collapsed,
                 ),

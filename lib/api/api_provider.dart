@@ -206,20 +206,82 @@ abstract class ApiProvider {
   @GET("business-settings")
   Future<BusinessSettingsResponse> getBusinessSettings();
 
-  @PUT("business-settings")
-  Future<BusinessSettingsResponse> updateBusinessSettings(
+  // Section: Business Info
+  @GET("business-settings/business-info")
+  Future<BusinessSettingsResponse> getBusinessInfoSection();
+
+  @PUT("business-settings/business-info")
+  Future<BusinessSettingsResponse> updateBusinessInfoSection(
     @Body() Map<String, dynamic> body,
   );
 
-  @POST("business-settings/logo")
+  // Section: Contact
+  @GET("business-settings/contact")
+  Future<BusinessSettingsResponse> getContactSection();
+
+  @PUT("business-settings/contact")
+  Future<BusinessSettingsResponse> updateContactSection(
+    @Body() Map<String, dynamic> body,
+  );
+
+  // Section: Address
+  @GET("business-settings/address")
+  Future<BusinessSettingsResponse> getAddressSection();
+
+  @PUT("business-settings/address")
+  Future<BusinessSettingsResponse> updateAddressSection(
+    @Body() Map<String, dynamic> body,
+  );
+
+  // Section: Branding
+  @GET("business-settings/branding")
+  Future<BusinessSettingsResponse> getBrandingSection();
+
+  @POST("business-settings/branding/logo")
   @MultiPart()
   Future<BusinessSettingsResponse> uploadBusinessLogo(
     @Body() FormData formData,
   );
 
-  @POST("business-settings/favicon")
+  @POST("business-settings/branding/favicon")
   @MultiPart()
   Future<BusinessSettingsResponse> uploadBusinessFavicon(
     @Body() FormData formData,
+  );
+
+  // Section: Bank
+  @GET("business-settings/bank")
+  Future<BusinessSettingsResponse> getBankSection();
+
+  @PUT("business-settings/bank")
+  Future<BusinessSettingsResponse> updateBankSection(
+    @Body() Map<String, dynamic> body,
+  );
+
+  // Section: Payment
+  @GET("business-settings/payment")
+  Future<BusinessSettingsResponse> getPaymentSection();
+
+  @PUT("business-settings/payment")
+  Future<BusinessSettingsResponse> updatePaymentSection(
+    @Body() Map<String, dynamic> body,
+  );
+
+  // Section: Invoice
+  @GET("business-settings/invoice")
+  Future<BusinessSettingsResponse> getInvoiceSection();
+
+  @PUT("business-settings/invoice")
+  Future<BusinessSettingsResponse> updateInvoiceSection(
+    @Body() Map<String, dynamic> body,
+  );
+
+  // Section: Social
+  @GET("business-settings/social")
+  Future<BusinessSettingsResponse> getSocialSection();
+
+  @PUT("business-settings/social")
+  Future<BusinessSettingsResponse> updateSocialSection(
+    @Body() Map<String, dynamic> body,
   );
 }

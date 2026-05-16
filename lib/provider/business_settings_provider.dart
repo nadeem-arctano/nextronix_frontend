@@ -4,160 +4,242 @@ import 'package:flutter/foundation.dart';
 import '../model/response/response.dart';
 import '../repository/nextronix_repository.dart';
 
+/// Sections supported by the per-section APIs.
+class SettingsSections {
+  static const String businessInfo = 'business-info';
+  static const String contact = 'contact';
+  static const String address = 'address';
+  static const String branding = 'branding';
+  static const String bank = 'bank';
+  static const String payment = 'payment';
+  static const String invoice = 'invoice';
+  static const String social = 'social';
+
+  static const List<String> all = [
+    businessInfo,
+    contact,
+    address,
+    branding,
+    bank,
+    payment,
+    invoice,
+    social,
+  ];
+}
+
+/// Provider managing per-section business settings.
+/// Each section has its own load/save lifecycle and form values.
 class BusinessSettingsProvider extends ChangeNotifier {
-  BusinessSettings? _settings;
-  bool _isLoading = false;
-  bool _isSaving = false;
+  // Hub data (used for sidebar previews)
+  BusinessSettings? _hubSettings;
+  bool _isHubLoading = false;
+
+  // Per-section state
+  final Map<String, BusinessSettings> _sectionData = {};
+  final Map<String, bool> _sectionLoading = {};
+  final Map<String, bool> _sectionSaving = {};
+  final Map<String, String?> _sectionError = {};
+
+  // Per-section form values + initial snapshots for unsaved-changes detection
+  final Map<String, Map<String, String>> _formValues = {};
+  final Map<String, Map<String, String>> _initialValues = {};
+
+  // Branding upload state
   bool _isUploadingLogo = false;
   bool _isUploadingFavicon = false;
-  String? _error;
 
-  // Local form values for unsaved-changes detection
-  final Map<String, String> _formValues = {};
-  final Map<String, String> _initialValues = {};
+  // ─── Hub getters ────────────────────────────────────────────────────────────
+  BusinessSettings? get hubSettings => _hubSettings;
+  bool get isHubLoading => _isHubLoading;
 
-  BusinessSettings? get settings => _settings;
-  bool get isLoading => _isLoading;
-  bool get isSaving => _isSaving;
+  // ─── Section getters ────────────────────────────────────────────────────────
+  BusinessSettings? sectionData(String section) => _sectionData[section];
+  bool isSectionLoading(String section) => _sectionLoading[section] ?? false;
+  bool isSectionSaving(String section) => _sectionSaving[section] ?? false;
+  String? sectionError(String section) => _sectionError[section];
+
   bool get isUploadingLogo => _isUploadingLogo;
   bool get isUploadingFavicon => _isUploadingFavicon;
-  String? get error => _error;
 
-  bool get hasUnsavedChanges {
-    if (_formValues.isEmpty) return false;
-    for (final entry in _formValues.entries) {
-      final initial = _initialValues[entry.key] ?? '';
-      if (entry.value != initial) return true;
+  // ─── Form helpers ───────────────────────────────────────────────────────────
+  String getValue(String section, String key) {
+    return _formValues[section]?[key] ?? '';
+  }
+
+  void setValue(String section, String key, String value) {
+    _formValues.putIfAbsent(section, () => {});
+    _formValues[section]![key] = value;
+    notifyListeners();
+  }
+
+  bool hasUnsavedChanges(String section) {
+    final form = _formValues[section];
+    final initial = _initialValues[section];
+    if (form == null || initial == null) return false;
+    for (final entry in form.entries) {
+      final init = initial[entry.key] ?? '';
+      if (entry.value != init) return true;
     }
     return false;
   }
 
-  String getValue(String key) => _formValues[key] ?? '';
-
-  void setValue(String key, String value) {
-    _formValues[key] = value;
+  void resetChanges(String section) {
+    final initial = _initialValues[section];
+    if (initial == null) return;
+    _formValues[section] = Map<String, String>.from(initial);
     notifyListeners();
   }
 
-  Future<AlertErrorResponse?> loadSettings() async {
-    _isLoading = true;
-    _error = null;
+  // ─── Hub: load full settings (used on settings home screen) ─────────────────
+  Future<AlertErrorResponse?> loadHub() async {
+    _isHubLoading = true;
     notifyListeners();
-
     try {
       final response = await NextronixRepository().getBusinessSettings();
-      _settings = response.data;
-      _hydrateForm(_settings);
-      _isLoading = false;
+      _hubSettings = response.data;
+      _isHubLoading = false;
       notifyListeners();
       return null;
     } catch (e) {
-      _isLoading = false;
-      _error = 'Failed to load settings';
+      _isHubLoading = false;
       notifyListeners();
       return AlertErrorResponse.getErrorResponse(e);
     }
   }
 
-  void _hydrateForm(BusinessSettings? s) {
-    _formValues.clear();
-    _initialValues.clear();
-    if (s == null) return;
-
-    final map = <String, String?>{
-      'businessName': s.businessName,
-      'legalBusinessName': s.legalBusinessName,
-      'gstNumber': s.gstNumber,
-      'panNumber': s.panNumber,
-      'websiteUrl': s.websiteUrl,
-      'businessEmail': s.businessEmail,
-      'businessPhone': s.businessPhone,
-      'supportEmail': s.supportEmail,
-      'supportPhone': s.supportPhone,
-      'addressLine1': s.addressLine1,
-      'addressLine2': s.addressLine2,
-      'city': s.city,
-      'state': s.state,
-      'country': s.country,
-      'pincode': s.pincode,
-      'accountHolderName': s.accountHolderName,
-      'bankName': s.bankName,
-      'ifscCode': s.ifscCode,
-      'branchName': s.branchName,
-      'upiId': s.upiId,
-      'razorpayKey': s.razorpayKey,
-      'stripePublicKey': s.stripePublicKey,
-      'invoicePrefix': s.invoicePrefix,
-      'invoiceStartNumber': s.invoiceStartNumber?.toString(),
-      'gstPercentage': s.gstPercentage?.toString(),
-      'invoiceFooter': s.invoiceFooter,
-      'invoiceTerms': s.invoiceTerms,
-      'instagramUrl': s.instagramUrl,
-      'facebookUrl': s.facebookUrl,
-      'youtubeUrl': s.youtubeUrl,
-      'twitterUrl': s.twitterUrl,
-    };
-
-    map.forEach((k, v) {
-      _formValues[k] = v ?? '';
-      _initialValues[k] = v ?? '';
-    });
-
-    // Sensitive fields default to empty (placeholder is shown if `Set` is true)
-    _formValues['accountNumber'] = '';
-    _initialValues['accountNumber'] = '';
-    _formValues['razorpaySecret'] = '';
-    _initialValues['razorpaySecret'] = '';
-    _formValues['stripeSecretKey'] = '';
-    _initialValues['stripeSecretKey'] = '';
-  }
-
-  Future<AlertErrorResponse?> saveSettings() async {
-    _isSaving = true;
-    _error = null;
+  // ─── Section: load ──────────────────────────────────────────────────────────
+  Future<AlertErrorResponse?> loadSection(String section) async {
+    _sectionLoading[section] = true;
+    _sectionError[section] = null;
     notifyListeners();
 
     try {
-      // Build only changed values + always-allowed sensitive fields
+      final response = await NextronixRepository().getSettingsSection(section);
+      _sectionData[section] = response.data ?? BusinessSettings();
+      _hydrateForm(section, _sectionData[section]!);
+      _sectionLoading[section] = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _sectionLoading[section] = false;
+      _sectionError[section] = 'Failed to load section';
+      notifyListeners();
+      return AlertErrorResponse.getErrorResponse(e);
+    }
+  }
+
+  void _hydrateForm(String section, BusinessSettings s) {
+    final values = <String, String>{};
+
+    switch (section) {
+      case SettingsSections.businessInfo:
+        values['businessName'] = s.businessName ?? '';
+        values['legalBusinessName'] = s.legalBusinessName ?? '';
+        values['gstNumber'] = s.gstNumber ?? '';
+        values['panNumber'] = s.panNumber ?? '';
+        values['websiteUrl'] = s.websiteUrl ?? '';
+        break;
+      case SettingsSections.contact:
+        values['businessEmail'] = s.businessEmail ?? '';
+        values['businessPhone'] = s.businessPhone ?? '';
+        values['supportEmail'] = s.supportEmail ?? '';
+        values['supportPhone'] = s.supportPhone ?? '';
+        break;
+      case SettingsSections.address:
+        values['addressLine1'] = s.addressLine1 ?? '';
+        values['addressLine2'] = s.addressLine2 ?? '';
+        values['city'] = s.city ?? '';
+        values['state'] = s.state ?? '';
+        values['country'] = s.country ?? '';
+        values['pincode'] = s.pincode ?? '';
+        break;
+      case SettingsSections.bank:
+        values['accountHolderName'] = s.accountHolderName ?? '';
+        values['bankName'] = s.bankName ?? '';
+        values['ifscCode'] = s.ifscCode ?? '';
+        values['branchName'] = s.branchName ?? '';
+        values['accountNumber'] =
+            ''; // sensitive: always blank, masked preview shown
+        break;
+      case SettingsSections.payment:
+        values['upiId'] = s.upiId ?? '';
+        values['razorpayKey'] = s.razorpayKey ?? '';
+        values['stripePublicKey'] = s.stripePublicKey ?? '';
+        values['razorpaySecret'] = '';
+        values['stripeSecretKey'] = '';
+        break;
+      case SettingsSections.invoice:
+        values['invoicePrefix'] = s.invoicePrefix ?? '';
+        values['invoiceStartNumber'] = s.invoiceStartNumber?.toString() ?? '';
+        values['gstPercentage'] = s.gstPercentage?.toString() ?? '';
+        values['invoiceFooter'] = s.invoiceFooter ?? '';
+        values['invoiceTerms'] = s.invoiceTerms ?? '';
+        break;
+      case SettingsSections.social:
+        values['instagramUrl'] = s.instagramUrl ?? '';
+        values['facebookUrl'] = s.facebookUrl ?? '';
+        values['youtubeUrl'] = s.youtubeUrl ?? '';
+        values['twitterUrl'] = s.twitterUrl ?? '';
+        break;
+    }
+
+    _formValues[section] = Map.from(values);
+    _initialValues[section] = Map.from(values);
+  }
+
+  // ─── Section: save ──────────────────────────────────────────────────────────
+  Future<AlertErrorResponse?> saveSection(String section) async {
+    _sectionSaving[section] = true;
+    notifyListeners();
+
+    try {
+      final form = _formValues[section] ?? {};
       final body = <String, dynamic>{};
-      _formValues.forEach((k, v) {
-        // Send sensitive fields only if user typed something
-        if (k == 'accountNumber' ||
-            k == 'razorpaySecret' ||
-            k == 'stripeSecretKey') {
-          if (v.isNotEmpty) body[k] = v;
-        } else {
-          body[k] = v;
+
+      form.forEach((k, v) {
+        // Skip empty sensitive fields so server keeps existing value
+        if ((k == 'accountNumber' ||
+                k == 'razorpaySecret' ||
+                k == 'stripeSecretKey') &&
+            v.isEmpty) {
+          return;
         }
+        body[k] = v;
       });
 
-      // Cast numeric fields
-      if (body['invoiceStartNumber'] != null &&
+      // Cast numeric fields for invoice section
+      if (body.containsKey('invoiceStartNumber') &&
           body['invoiceStartNumber'] is String) {
         final s = body['invoiceStartNumber'] as String;
         body['invoiceStartNumber'] = s.isEmpty ? null : int.tryParse(s);
       }
-      if (body['gstPercentage'] != null && body['gstPercentage'] is String) {
+      if (body.containsKey('gstPercentage') &&
+          body['gstPercentage'] is String) {
         final s = body['gstPercentage'] as String;
         body['gstPercentage'] = s.isEmpty ? null : double.tryParse(s);
       }
 
-      final response = await NextronixRepository().updateBusinessSettings(
+      final response = await NextronixRepository().updateSettingsSection(
+        section: section,
         body: body,
       );
-      _settings = response.data;
-      _hydrateForm(_settings);
-      _isSaving = false;
+
+      _sectionData[section] = response.data ?? BusinessSettings();
+      _hydrateForm(section, _sectionData[section]!);
+      _sectionSaving[section] = false;
       notifyListeners();
+
+      // Refresh hub preview in background
+      loadHub();
       return null;
     } catch (e) {
-      _isSaving = false;
-      _error = 'Failed to save settings';
+      _sectionSaving[section] = false;
       notifyListeners();
       return AlertErrorResponse.getErrorResponse(e);
     }
   }
 
+  // ─── Branding uploads ───────────────────────────────────────────────────────
   Future<AlertErrorResponse?> uploadLogo(
     Uint8List bytes,
     String filename,
@@ -169,9 +251,11 @@ class BusinessSettingsProvider extends ChangeNotifier {
       final response = await NextronixRepository().uploadBusinessLogo(
         file: file,
       );
-      _settings = response.data;
+      _sectionData[SettingsSections.branding] =
+          response.data ?? BusinessSettings();
       _isUploadingLogo = false;
       notifyListeners();
+      loadHub();
       return null;
     } catch (e) {
       _isUploadingLogo = false;
@@ -191,20 +275,16 @@ class BusinessSettingsProvider extends ChangeNotifier {
       final response = await NextronixRepository().uploadBusinessFavicon(
         file: file,
       );
-      _settings = response.data;
+      _sectionData[SettingsSections.branding] =
+          response.data ?? BusinessSettings();
       _isUploadingFavicon = false;
       notifyListeners();
+      loadHub();
       return null;
     } catch (e) {
       _isUploadingFavicon = false;
       notifyListeners();
       return AlertErrorResponse.getErrorResponse(e);
     }
-  }
-
-  void resetChanges() {
-    _formValues.clear();
-    _formValues.addAll(_initialValues);
-    notifyListeners();
   }
 }
