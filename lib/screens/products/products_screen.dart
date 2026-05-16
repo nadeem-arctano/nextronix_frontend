@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
@@ -23,6 +24,7 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -35,8 +37,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      context.read<ProductProvider>().setSearch(
+        value.trim().isEmpty ? null : value.trim(),
+      );
+    });
   }
 
   @override
@@ -119,7 +131,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   placeholder: const Text('Search products...'),
                   style: const TextStyle(fontSize: 12),
                   onSubmitted: (value) => provider.setSearch(value),
-                  onChanged: (value) => setState(() {}),
+                  onChanged: (value) {
+                    setState(() {});
+                    _onSearchChanged(value);
+                  },
                 ),
               ),
               const SizedBox(width: 12),
