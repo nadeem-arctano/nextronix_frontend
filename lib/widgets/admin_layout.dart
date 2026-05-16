@@ -281,15 +281,6 @@ class _AdminLayoutState extends State<AdminLayout>
                 ),
                 _buildNavItem(
                   context,
-                  9,
-                  LucideIcons.receipt,
-                  'GST',
-                  '/admin/gst',
-                  currentPath,
-                  collapsed,
-                ),
-                _buildNavItem(
-                  context,
                   10,
                   LucideIcons.bell,
                   'Notifications',

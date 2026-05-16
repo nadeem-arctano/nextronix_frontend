@@ -33,9 +33,10 @@ class _GstDashboardScreenState extends State<GstDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const PageHeader(
+              PageHeader(
                 title: 'GST Dashboard',
                 subtitle: 'Overview of GST collection and tax liability',
+                onBack: () => context.go('/admin/reports'),
               ),
               const SizedBox(height: 20),
               Expanded(

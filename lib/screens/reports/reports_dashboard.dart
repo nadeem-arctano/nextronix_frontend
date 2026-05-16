@@ -126,7 +126,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
         description: 'GST breakdown by rate with CGST, SGST, IGST',
         icon: LucideIcons.receipt,
         color: const Color(0xFFD97706),
-        route: '/admin/reports/gst-report',
+        route: '/admin/gst',
       ),
       _ReportItem(
         title: 'Coupon Report',
