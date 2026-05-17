@@ -104,11 +104,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           AppTableColumn(label: 'SKU', flex: 2),
                           AppTableColumn(label: 'Category', flex: 2),
                           AppTableColumn(label: 'HSN', flex: 2),
+                          AppTableColumn(label: 'Color', flex: 2),
                           AppTableColumn(label: 'Price', flex: 2),
                           AppTableColumn(label: 'Stock', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
+                          AppTableColumn(label: 'Status', flex: 1),
                         ],
-                        trailingWidth: 90,
+                        trailingWidth: 70,
                         items: provider.products,
                         currentPage: provider.currentPage,
                         totalPages: provider.totalPages,
@@ -566,6 +567,41 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ),
 
+          // Color (variant-specific label preferred over the base color field)
+          Expanded(
+            flex: 2,
+            child: Builder(
+              builder: (_) {
+                final label =
+                    (product.variantOptionColor?.trim().isNotEmpty ?? false)
+                    ? product.variantOptionColor!
+                    : (product.color?.trim().isNotEmpty ?? false)
+                    ? product.color!
+                    : null;
+                if (label == null) {
+                  return Text(
+                    '-',
+                    style: theme.textTheme.muted.copyWith(fontSize: 12),
+                  );
+                }
+                return Row(
+                  children: [
+                    _ColorSwatch(label: label),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.muted.copyWith(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
           // Price
           Expanded(
             flex: 2,
@@ -631,7 +667,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
           // Status
           Expanded(
-            flex: 2,
+            flex: 1,
             child: StatusBadge(status: product.status ?? 'active'),
           ),
 
@@ -648,7 +684,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Icon(
                   LucideIcons.mousePointerClick,
                   size: 16,
@@ -660,7 +696,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
           // Actions
           SizedBox(
-            width: 40,
+            width: 32,
             child: PopupMenuButton<String>(
               icon: Icon(
                 LucideIcons.ellipsis,
@@ -898,6 +934,67 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (picked == null || picked.id == null) return;
     if (!context.mounted) return;
     context.push('/admin/products/${picked.id}/variations');
+  }
+}
+
+// ─── Color swatch helper ─────────────────────────────────────────────────────
+//
+// Tries to map a free-text colour label (e.g. "Midnight Black", "Pearl White")
+// to a Flutter Color so we can render a tiny circle next to the label. Falls
+// back to a neutral grey when the label doesn't match anything obvious.
+class _ColorSwatch extends StatelessWidget {
+  final String label;
+  const _ColorSwatch({required this.label});
+
+  static const Map<String, Color> _palette = {
+    'black': Color(0xFF111827),
+    'midnight': Color(0xFF111827),
+    'white': Color(0xFFF3F4F6),
+    'pearl': Color(0xFFF3F4F6),
+    'red': Color(0xFFEF4444),
+    'crimson': Color(0xFFB91C1C),
+    'sunset': Color(0xFFF97316),
+    'orange': Color(0xFFF97316),
+    'yellow': Color(0xFFFACC15),
+    'gold': Color(0xFFD97706),
+    'green': Color(0xFF10B981),
+    'emerald': Color(0xFF10B981),
+    'olive': Color(0xFF65A30D),
+    'blue': Color(0xFF3B82F6),
+    'ocean': Color(0xFF0EA5E9),
+    'navy': Color(0xFF1E3A8A),
+    'sky': Color(0xFF38BDF8),
+    'purple': Color(0xFFA855F7),
+    'violet': Color(0xFF8B5CF6),
+    'pink': Color(0xFFEC4899),
+    'rose': Color(0xFFF43F5E),
+    'brown': Color(0xFF92400E),
+    'beige': Color(0xFFE7DAC9),
+    'grey': Color(0xFF9CA3AF),
+    'gray': Color(0xFF9CA3AF),
+    'silver': Color(0xFFD1D5DB),
+  };
+
+  Color _resolve() {
+    final lower = label.toLowerCase();
+    for (final entry in _palette.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    return const Color(0xFF9CA3AF);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _resolve();
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+    );
   }
 }
 
