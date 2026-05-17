@@ -498,6 +498,29 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 ),
                               ),
                             ),
+                          ] else if (product.groupRole == 'child') ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.textSecondary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'VARIATION',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textSecondary,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ),
                           ],
                         ],
                       ),

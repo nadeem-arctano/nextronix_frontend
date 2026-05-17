@@ -57,6 +57,10 @@ class ProductProvider extends ChangeNotifier {
         featured: _featuredFilter,
         minPrice: _minPrice,
         maxPrice: _maxPrice,
+        // Admin view always shows everything — parents AND children — so the
+        // user can see and manage individual variant rows directly from the
+        // products list.
+        includeChildren: true,
       );
 
       _products = response.data ?? [];
