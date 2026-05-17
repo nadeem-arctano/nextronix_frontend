@@ -305,7 +305,9 @@ class _UsersScreenState extends State<UsersScreen> {
             flex: 2,
             child: Text(
               user.createdAt != null
-                  ? DateFormat('MMM dd').format(DateTime.parse(user.createdAt!))
+                  ? DateFormat(
+                      'MMM dd, yyyy',
+                    ).format(DateTime.parse(user.createdAt!))
                   : '-',
               style: theme.textTheme.muted,
             ),
