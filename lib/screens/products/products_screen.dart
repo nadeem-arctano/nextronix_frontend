@@ -10,6 +10,7 @@ import '../../core/constants/api_constants.dart';
 import '../../model/response/response.dart';
 import '../../provider/product_provider.dart';
 import '../../provider/category_provider.dart';
+import '../../repository/nextronix_repository.dart';
 import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
@@ -29,6 +30,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final _maxPriceController = TextEditingController();
   Timer? _debounceTimer;
   bool _showPriceApply = false;
+
+  // Variant-group expansion state. Tracked per parent product id so the user
+  // can drill into a parent's variations inline without navigating away.
+  final Set<int> _expandedParents = <int>{};
+  final Set<int> _loadingParents = <int>{};
+  final Map<int, List<VariantGroupMember>> _childrenCache =
+      <int, List<VariantGroupMember>>{};
+  final Map<int, String> _childrenError = <int, String>{};
 
   @override
   void initState() {
@@ -56,6 +65,57 @@ class _ProductsScreenState extends State<ProductsScreen> {
         value.trim().isEmpty ? null : value.trim(),
       );
     });
+  }
+
+  /// Toggles the expanded state for a parent row and lazily fetches its
+  /// children the first time. Cached per parent id so subsequent toggles
+  /// don't re-hit the network.
+  Future<void> _toggleParentExpansion(int parentId) async {
+    if (_expandedParents.contains(parentId)) {
+      setState(() => _expandedParents.remove(parentId));
+      return;
+    }
+
+    setState(() => _expandedParents.add(parentId));
+
+    if (_childrenCache.containsKey(parentId)) return;
+
+    setState(() {
+      _loadingParents.add(parentId);
+      _childrenError.remove(parentId);
+    });
+
+    try {
+      final repo = NextronixRepository();
+      final res = await repo.getProductGroup(id: parentId);
+      if (!mounted) return;
+      setState(() {
+        _childrenCache[parentId] = res.data?.children ?? const [];
+        _loadingParents.remove(parentId);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _childrenError[parentId] = 'Failed to load variations';
+        _loadingParents.remove(parentId);
+      });
+    }
+  }
+
+  /// Re-fetches the cached children for a parent after a child edit so the
+  /// expanded rows show fresh price/stock immediately.
+  Future<void> _refreshChildren(int parentId) async {
+    try {
+      final repo = NextronixRepository();
+      final res = await repo.getProductGroup(id: parentId);
+      if (!mounted) return;
+      setState(() {
+        _childrenCache[parentId] = res.data?.children ?? const [];
+      });
+    } catch (_) {
+      // Silent — the cell will keep showing the old value until the user
+      // re-toggles. We don't want to flash an error overlay for a refresh.
+    }
   }
 
   @override
@@ -118,7 +178,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         onPageChanged: (page) =>
                             provider.loadProducts(page: page),
                         rowBuilder: (product, _) =>
-                            _buildProductRow(product, provider),
+                            _buildProductRowWithChildren(product, provider),
                       ),
               ),
             ],
@@ -434,7 +494,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Widget _buildProductRow(ProductResult product, ProductProvider provider) {
     final theme = ShadTheme.of(context);
-    return Padding(
+    final isParent = product.groupRole == 'parent';
+    final isExpanded = isParent && _expandedParents.contains(product.id);
+    return Container(
+      color: isExpanded
+          ? theme.colorScheme.muted.withValues(alpha: 0.18)
+          : Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -443,6 +508,28 @@ class _ProductsScreenState extends State<ProductsScreen> {
             flex: 6,
             child: Row(
               children: [
+                // Chevron occupies a fixed slot on every row so the image and
+                // names line up regardless of whether the row is a parent.
+                SizedBox(
+                  width: 22,
+                  child: isParent
+                      ? GestureDetector(
+                          onTap: () => _toggleParentExpansion(product.id!),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: AnimatedRotation(
+                              turns: isExpanded ? 0.25 : 0,
+                              duration: const Duration(milliseconds: 150),
+                              child: Icon(
+                                LucideIcons.chevronRight,
+                                size: 16,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: Container(
@@ -490,7 +577,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'PARENT',
+                                'VARIATION',
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
@@ -712,66 +799,482 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     context.push('/admin/products/${product.id}/variations');
                   case 'featured':
                     provider.toggleFeatured(id: product.id!);
-                  case 'delete':
-                    _confirmDelete(context, provider, product.id!);
+                  case 'activate':
+                    provider.updateProductStatus(
+                      id: product.id!,
+                      status: 'active',
+                    );
+                  case 'deactivate':
+                    provider.updateProductStatus(
+                      id: product.id!,
+                      status: 'inactive',
+                    );
                 }
               },
-              itemBuilder: (_) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.pencil, size: 16),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
+              itemBuilder: (_) {
+                final isActive = (product.status ?? 'active') == 'active';
+                final canManageVariations = isParent;
+                return [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(LucideIcons.pencil, size: 16),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuItem(
-                  value: 'variants',
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.layers, size: 16),
-                      SizedBox(width: 8),
-                      Text('Manage Variations'),
-                    ],
+                  if (canManageVariations)
+                    const PopupMenuItem(
+                      value: 'variants',
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.layers, size: 16),
+                          SizedBox(width: 8),
+                          Text('Manage Variations'),
+                        ],
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'featured',
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.star,
+                          size: 16,
+                          color: AppTheme.warningColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          (product.isFeatured ?? false)
+                              ? 'Unfeature'
+                              : 'Feature',
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'featured',
+                  const PopupMenuDivider(),
+                  if (isActive)
+                    const PopupMenuItem(
+                      value: 'deactivate',
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.circleOff, size: 16),
+                          SizedBox(width: 8),
+                          Text('Set Inactive'),
+                        ],
+                      ),
+                    )
+                  else
+                    const PopupMenuItem(
+                      value: 'activate',
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.circleCheck, size: 16),
+                          SizedBox(width: 8),
+                          Text('Set Active'),
+                        ],
+                      ),
+                    ),
+                ];
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Wraps a parent product row with its inline children when expanded.
+  /// Standalone and child products fall through and render the bare row.
+  Widget _buildProductRowWithChildren(
+    ProductResult product,
+    ProductProvider provider,
+  ) {
+    final theme = ShadTheme.of(context);
+    final isParent = product.groupRole == 'parent';
+    final isExpanded = isParent && _expandedParents.contains(product.id);
+
+    if (!isParent || !isExpanded) {
+      return _buildProductRow(product, provider);
+    }
+
+    final isLoading = _loadingParents.contains(product.id);
+    final children = _childrenCache[product.id];
+    final error = _childrenError[product.id];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildProductRow(product, provider),
+        Container(
+          color: theme.colorScheme.muted.withValues(alpha: 0.18),
+          child: Column(
+            children: [
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else if (error != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Icon(
-                        LucideIcons.star,
-                        size: 16,
-                        color: AppTheme.warningColor,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        (product.isFeatured ?? false) ? 'Unfeature' : 'Feature',
-                      ),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(
-                        LucideIcons.trash2,
-                        size: 16,
+                        LucideIcons.circleAlert,
+                        size: 14,
                         color: AppTheme.dangerColor,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Delete',
-                        style: TextStyle(color: AppTheme.dangerColor),
+                      Expanded(
+                        child: Text(
+                          error,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.dangerColor,
+                          ),
+                        ),
                       ),
+                      ShadButton.ghost(
+                        size: ShadButtonSize.sm,
+                        onPressed: () {
+                          _childrenCache.remove(product.id);
+                          _toggleParentExpansion(product.id!);
+                          // Re-toggle to retry: first call collapsed, second
+                          // call re-expands and re-fetches.
+                          _toggleParentExpansion(product.id!);
+                        },
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if ((children ?? const []).isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Text(
+                    'No variations yet.',
+                    style: theme.textTheme.muted.copyWith(fontSize: 12),
+                  ),
+                )
+              else
+                ...children!.map(
+                  (child) => _buildVariantChildRow(
+                    child,
+                    parentId: product.id!,
+                    theme: theme,
+                    provider: provider,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Slim, indented row for a variant child shown beneath its expanded parent.
+  /// We keep the columns roughly aligned with the main table but skip a few
+  /// (Category/HSN are inherited from the parent and would just repeat).
+  Widget _buildVariantChildRow(
+    VariantGroupMember child, {
+    required int parentId,
+    required ShadThemeData theme,
+    required ProductProvider provider,
+  }) {
+    final colorLabel = (child.variantOptionColor?.trim().isNotEmpty ?? false)
+        ? child.variantOptionColor!
+        : (child.color?.trim().isNotEmpty ?? false)
+        ? child.color!
+        : null;
+    final sizeLabel = child.variantOptionSize?.trim().isNotEmpty ?? false
+        ? child.variantOptionSize
+        : null;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.border.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          // Indent + thumbnail + name (matches parent's flex: 6 column)
+          Expanded(
+            flex: 6,
+            child: Row(
+              children: [
+                const SizedBox(width: 22), // align with parent's chevron slot
+                Container(
+                  width: 16,
+                  height: 1,
+                  color: theme.colorScheme.border,
+                ),
+                const SizedBox(width: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    color: theme.colorScheme.muted,
+                    child: child.thumbnailImage != null
+                        ? Image.network(
+                            ApiConstants.getImageUrl(child.thumbnailImage),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(LucideIcons.image, size: 12),
+                          )
+                        : Icon(
+                            LucideIcons.image,
+                            size: 12,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        child.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.small.copyWith(fontSize: 12),
+                      ),
+                      if ([
+                        colorLabel,
+                        sizeLabel,
+                      ].whereType<String>().isNotEmpty)
+                        Text(
+                          [
+                            colorLabel,
+                            sizeLabel,
+                          ].whereType<String>().join(' • '),
+                          style: theme.textTheme.muted.copyWith(fontSize: 11),
+                        ),
                     ],
                   ),
                 ),
               ],
+            ),
+          ),
+
+          // SKU
+          Expanded(
+            flex: 2,
+            child: Text(
+              child.sku ?? '-',
+              style: theme.textTheme.muted.copyWith(fontSize: 11),
+            ),
+          ),
+
+          // Category / HSN — empty for children (inherited from parent)
+          Expanded(flex: 2, child: const SizedBox.shrink()),
+          Expanded(flex: 2, child: const SizedBox.shrink()),
+
+          // Color
+          Expanded(
+            flex: 2,
+            child: colorLabel == null
+                ? Text('-', style: theme.textTheme.muted.copyWith(fontSize: 11))
+                : Row(
+                    children: [
+                      _ColorSwatch(label: colorLabel),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          colorLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.muted.copyWith(fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+
+          // Price
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '₹${child.sellingPrice.toStringAsFixed(0)}',
+                      style: theme.textTheme.small.copyWith(fontSize: 12),
+                    ),
+                    if (child.mrpPrice > child.sellingPrice)
+                      Text(
+                        '₹${child.mrpPrice.toStringAsFixed(0)}',
+                        style: theme.textTheme.muted.copyWith(
+                          fontSize: 10,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => _showPriceEditDialogFor(
+                    id: child.id,
+                    name: child.name ?? '',
+                    currentMrp: child.mrpPrice,
+                    currentSelling: child.sellingPrice,
+                    provider: provider,
+                    onSaved: () => _refreshChildren(parentId),
+                  ),
+                  child: Icon(
+                    LucideIcons.pencil,
+                    size: 12,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Stock
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Text(
+                  '${child.stockQuantity}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: child.stockQuantity <= 5
+                        ? AppTheme.dangerColor
+                        : theme.colorScheme.foreground,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => _showStockEditDialogFor(
+                    id: child.id,
+                    name: child.name ?? '',
+                    currentStock: child.stockQuantity,
+                    provider: provider,
+                    onSaved: () => _refreshChildren(parentId),
+                  ),
+                  child: Icon(
+                    LucideIcons.pencil,
+                    size: 12,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Status
+          Expanded(
+            flex: 1,
+            child: StatusBadge(status: child.status ?? 'active'),
+          ),
+
+          // Trailing controls — keep widths consistent with the parent row
+          // (featured slot + click-to-edit + actions popup).
+          const SizedBox(width: 18),
+          GestureDetector(
+            onTap: () => context.go('/admin/products/edit/${child.id}'),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(
+                  LucideIcons.mousePointerClick,
+                  size: 16,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: PopupMenuButton<String>(
+              icon: Icon(
+                LucideIcons.ellipsis,
+                size: 16,
+                color: theme.colorScheme.mutedForeground,
+              ),
+              padding: EdgeInsets.zero,
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    context.go('/admin/products/edit/${child.id}');
+                  case 'activate':
+                    provider.updateProductStatus(
+                      id: child.id,
+                      status: 'active',
+                    );
+                  case 'deactivate':
+                    provider.updateProductStatus(
+                      id: child.id,
+                      status: 'inactive',
+                    );
+                }
+              },
+              itemBuilder: (_) {
+                final isActive = (child.status ?? 'active') == 'active';
+                return [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(LucideIcons.pencil, size: 14),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  if (isActive)
+                    const PopupMenuItem(
+                      value: 'deactivate',
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.circleOff, size: 14),
+                          SizedBox(width: 8),
+                          Text('Set Inactive'),
+                        ],
+                      ),
+                    )
+                  else
+                    const PopupMenuItem(
+                      value: 'activate',
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.circleCheck, size: 14),
+                          SizedBox(width: 8),
+                          Text('Set Active'),
+                        ],
+                      ),
+                    ),
+                ];
+              },
             ),
           ),
         ],
@@ -784,15 +1287,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ProductResult product,
     ProductProvider provider,
   ) {
+    _showStockEditDialogFor(
+      id: product.id!,
+      name: product.name ?? '',
+      currentStock: product.stockQuantity ?? 0,
+      provider: provider,
+    );
+  }
+
+  void _showStockEditDialogFor({
+    required int id,
+    required String name,
+    required int currentStock,
+    required ProductProvider provider,
+    VoidCallback? onSaved,
+  }) {
     final stockController = TextEditingController(
-      text: (product.stockQuantity ?? 0).toString(),
+      text: currentStock.toString(),
     );
 
     showShadDialog(
       context: context,
       builder: (ctx) => ShadDialog(
         title: const Text('Edit Stock'),
-        description: Text(product.name ?? ''),
+        description: Text(name),
         actions: [
           ShadButton.outline(
             child: const Text('Cancel'),
@@ -804,7 +1322,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               final qty = int.tryParse(stockController.text);
               if (qty == null) return;
               Navigator.of(ctx).pop();
-              await provider.updateStock(id: product.id!, stockQuantity: qty);
+              await provider.updateStock(id: id, stockQuantity: qty);
+              onSaved?.call();
             },
           ),
         ],
@@ -832,18 +1351,35 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ProductResult product,
     ProductProvider provider,
   ) {
+    _showPriceEditDialogFor(
+      id: product.id!,
+      name: product.name ?? '',
+      currentMrp: product.mrpPrice ?? 0,
+      currentSelling: product.sellingPrice ?? 0,
+      provider: provider,
+    );
+  }
+
+  void _showPriceEditDialogFor({
+    required int id,
+    required String name,
+    required double currentMrp,
+    required double currentSelling,
+    required ProductProvider provider,
+    VoidCallback? onSaved,
+  }) {
     final mrpController = TextEditingController(
-      text: (product.mrpPrice ?? 0).toStringAsFixed(0),
+      text: currentMrp.toStringAsFixed(0),
     );
     final sellingController = TextEditingController(
-      text: (product.sellingPrice ?? 0).toStringAsFixed(0),
+      text: currentSelling.toStringAsFixed(0),
     );
 
     showShadDialog(
       context: context,
       builder: (ctx) => ShadDialog(
         title: const Text('Edit Price'),
-        description: Text(product.name ?? ''),
+        description: Text(name),
         actions: [
           ShadButton.outline(
             child: const Text('Cancel'),
@@ -857,10 +1393,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
               if (mrp == null || selling == null) return;
               Navigator.of(ctx).pop();
               await provider.updatePrice(
-                id: product.id!,
+                id: id,
                 mrpPrice: mrp,
                 sellingPrice: selling,
               );
+              onSaved?.call();
             },
           ),
         ],
@@ -887,32 +1424,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
             const SizedBox(height: 16),
           ],
         ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, ProductProvider provider, int id) {
-    showShadDialog(
-      context: context,
-      builder: (ctx) => ShadDialog.alert(
-        title: const Text('Delete Product'),
-        description: const Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Text('Are you sure you want to delete this product?'),
-        ),
-        actions: [
-          ShadButton.outline(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-          ShadButton.destructive(
-            child: const Text('Delete'),
-            onPressed: () {
-              provider.deleteProduct(id: id);
-              Navigator.of(ctx).pop();
-            },
-          ),
-        ],
       ),
     );
   }

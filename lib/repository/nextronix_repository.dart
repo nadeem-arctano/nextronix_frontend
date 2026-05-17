@@ -215,7 +215,6 @@ class NextronixRepository {
     bool? featured,
     double? minPrice,
     double? maxPrice,
-    bool? includeChildren,
   }) async {
     final queries = <String, dynamic>{'page': page, 'limit': limit};
     if (search != null && search.isNotEmpty) queries['search'] = search;
@@ -226,7 +225,6 @@ class NextronixRepository {
     if (featured == true) queries['featured'] = 'true';
     if (minPrice != null) queries['minPrice'] = minPrice;
     if (maxPrice != null) queries['maxPrice'] = maxPrice;
-    if (includeChildren == true) queries['includeChildren'] = 'true';
     return await _apiProvider.getProducts(queries);
   }
 

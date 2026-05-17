@@ -66,7 +66,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     ),
   ];
 
-  @override
+  @override 
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
