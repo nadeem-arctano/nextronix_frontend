@@ -12,6 +12,7 @@ import '../../../core/services/toast_service.dart';
 import '../../../model/request/request.dart';
 import '../../../provider/category_provider.dart';
 import '../../../provider/product_provider.dart';
+import '../../../provider/variant_provider.dart';
 import '../../../widgets/forms/forms.dart';
 import 'controller/add_product_form.dart';
 import 'steps/step_images.dart';
@@ -19,6 +20,7 @@ import 'steps/step_info.dart';
 import 'steps/step_pricing.dart';
 import 'steps/step_review.dart';
 import 'steps/step_specs.dart';
+import 'steps/step_variants.dart';
 import 'steps/step_warranty.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -61,6 +63,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
       icon: LucideIcons.shieldCheck,
     ),
     WizardStep(
+      title: 'Variants',
+      subtitle: 'Color & size combinations',
+      icon: LucideIcons.layers,
+    ),
+    WizardStep(
       title: 'Review & publish',
       subtitle: 'Final check',
       icon: LucideIcons.checkCheck,
@@ -101,6 +108,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       case AddProductStep.images:
       case AddProductStep.specs:
       case AddProductStep.warranty:
+      case AddProductStep.variants:
       case AddProductStep.review:
         return true;
     }
@@ -215,13 +223,78 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     final formData = await request.toFormData();
     if (!mounted) return null;
-    final result = await context.read<ProductProvider>().createProduct(
-      formData: formData,
-    );
-    if (result != null && mounted) {
-      ToastService.fromError(context, result);
+    final result = await context
+        .read<ProductProvider>()
+        .createProductReturningId(formData: formData);
+
+    if (result.error != null) {
+      if (mounted) ToastService.fromError(context, result.error!);
+      return result.error;
     }
-    return result;
+
+    // Parent product is created. If the user filled out variants, create
+    // them now under the new product id. Failures here surface as a
+    // toast but the parent product stays in place — the user can retry
+    // variant creation from the Variants screen later.
+    if (_form.hasVariants && result.id != null) {
+      await _createVariants(productId: result.id!);
+    }
+    return null;
+  }
+
+  /// Iterates the form's variant matrix and POSTs each non-empty row to
+  /// the variants API. Rows where the user left SKU + price + stock all
+  /// blank are skipped silently — those are combinations the user
+  /// explicitly chose not to sell.
+  Future<void> _createVariants({required int productId}) async {
+    final variantProvider = context.read<VariantProvider>();
+    var firstFailure = false;
+    var firstVariant = true;
+
+    for (final combo in _form.variantCombinations) {
+      final draft = _form.rowFor(combo.color, combo.size);
+      final sku = draft.sku.text.trim();
+      final priceStr = draft.sellingPrice.text.trim();
+      final stockStr = draft.stock.text.trim();
+      // Skip empty rows the user clearly didn't fill in.
+      if (sku.isEmpty &&
+          priceStr.isEmpty &&
+          (stockStr.isEmpty || stockStr == '0')) {
+        continue;
+      }
+
+      final fields = <String, dynamic>{
+        'variantName': [
+          combo.color,
+          combo.size,
+        ].where((s) => s.isNotEmpty).join(' / '),
+        if (combo.color.isNotEmpty) 'color': combo.color,
+        if (combo.size.isNotEmpty) 'size': combo.size,
+        if (sku.isNotEmpty) 'sku': sku,
+        if (priceStr.isNotEmpty) 'sellingPrice': priceStr,
+        // Mirror selling as MRP if the user didn't differentiate — this
+        // matches the backend's expectation that mrp >= sellingPrice.
+        if (priceStr.isNotEmpty) 'mrp': priceStr,
+        if (stockStr.isNotEmpty) 'stock': stockStr,
+        // First created variant is the default.
+        'isDefault': firstVariant,
+      };
+      firstVariant = false;
+
+      final err = await variantProvider.create(
+        productId: productId,
+        fields: fields,
+      );
+      if (err != null && !firstFailure) {
+        firstFailure = true;
+        if (mounted) {
+          ToastService.warning(
+            context,
+            'Created the product, but some variants failed: ${err.alertMessage}',
+          );
+        }
+      }
+    }
   }
 
   // ─── Build ────────────────────────────────────────────────────────────────
@@ -316,6 +389,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         return StepSpecs(form: _form);
       case AddProductStep.warranty:
         return StepWarranty(form: _form);
+      case AddProductStep.variants:
+        return StepVariants(form: _form);
       case AddProductStep.review:
         return StepReview(form: _form);
     }

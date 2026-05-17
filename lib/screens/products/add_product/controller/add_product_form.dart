@@ -60,6 +60,55 @@ class AddProductForm {
   String status = 'active';
   bool isFeatured = false;
 
+  // ─── Variants (optional Step 6 — see AddProductStep.variants) ────────────
+  bool hasVariants = false;
+  final List<String> colorOptions = [];
+  final List<String> sizeOptions = [];
+
+  /// Per-row override map keyed by `"<color>::<size>"`.
+  /// Stores the SKU / price / stock the user typed for each combination.
+  final Map<String, VariantRowDraft> variantRows = {};
+
+  /// Computes the cartesian product of colors × sizes and returns the
+  /// list of (color, size) keys in render order. Always uses fresh data,
+  /// so removing a color/size automatically prunes the matrix.
+  List<({String color, String size})> get variantCombinations {
+    final colors = colorOptions.isEmpty ? <String>[''] : colorOptions;
+    final sizes = sizeOptions.isEmpty ? <String>[''] : sizeOptions;
+    if (colors.length == 1 &&
+        colors.first.isEmpty &&
+        sizes.length == 1 &&
+        sizes.first.isEmpty) {
+      return const [];
+    }
+    final out = <({String color, String size})>[];
+    for (final c in colors) {
+      for (final s in sizes) {
+        out.add((color: c, size: s));
+      }
+    }
+    return out;
+  }
+
+  /// Returns the row draft for a combination, creating an empty one on
+  /// first access so the UI controllers stay stable across rebuilds.
+  VariantRowDraft rowFor(String color, String size) {
+    final key = '$color::$size';
+    return variantRows.putIfAbsent(key, () => VariantRowDraft());
+  }
+
+  /// Drop draft rows whose color or size has been removed from the
+  /// option lists. Called whenever colorOptions/sizeOptions change.
+  void pruneOrphanRows() {
+    final valid = variantCombinations
+        .map((c) => '${c.color}::${c.size}')
+        .toSet();
+    final stale = variantRows.keys.where((k) => !valid.contains(k)).toList();
+    for (final k in stale) {
+      variantRows.remove(k)?.dispose();
+    }
+  }
+
   /// Returns the value buyers'd see as a discount percentage. Used by the
   /// review block + the live banner under the price fields.
   double? get discountPercent {
@@ -103,6 +152,9 @@ class AddProductForm {
       c.dispose();
     }
     images.dispose();
+    for (final row in variantRows.values) {
+      row.dispose();
+    }
   }
 
   /// Stitches the Amazon-style metadata that doesn't yet have its own
@@ -151,7 +203,7 @@ class AddProductForm {
 
 /// Each step in the wizard. Order here matches the visual order at the top
 /// of the page.
-enum AddProductStep { info, images, pricing, specs, warranty, review }
+enum AddProductStep { info, images, pricing, specs, warranty, variants, review }
 
 extension AddProductStepX on AddProductStep {
   String get title {
@@ -166,6 +218,8 @@ extension AddProductStepX on AddProductStep {
         return 'Specifications';
       case AddProductStep.warranty:
         return 'Warranty';
+      case AddProductStep.variants:
+        return 'Variants';
       case AddProductStep.review:
         return 'Review & publish';
     }
@@ -183,8 +237,28 @@ extension AddProductStepX on AddProductStep {
         return 'Material, weight, origin';
       case AddProductStep.warranty:
         return 'Coverage and service';
+      case AddProductStep.variants:
+        return 'Color & size combinations';
       case AddProductStep.review:
         return 'Final check';
     }
+  }
+}
+
+/// One row in the auto-generated variants matrix.
+///
+/// Lives inside `AddProductForm.variantRows`. The matrix is recomputed
+/// from `colorOptions × sizeOptions` on every rebuild, but the
+/// `TextEditingController`s here are keyed by combination so the user's
+/// typed SKU/price/stock survives across re-renders.
+class VariantRowDraft {
+  final TextEditingController sku = TextEditingController();
+  final TextEditingController sellingPrice = TextEditingController();
+  final TextEditingController stock = TextEditingController(text: '0');
+
+  void dispose() {
+    sku.dispose();
+    sellingPrice.dispose();
+    stock.dispose();
   }
 }

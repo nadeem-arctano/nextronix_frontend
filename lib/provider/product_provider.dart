@@ -114,6 +114,40 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  /// Create a product and return its newly-assigned id (or null on
+  /// failure). Used by flows that need to attach children — e.g. the
+  /// Add Product wizard creating variants right after the parent.
+  Future<({int? id, AlertErrorResponse? error})> createProductReturningId({
+    required FormData formData,
+  }) async {
+    try {
+      final response = await NextronixRepository().createProduct(
+        formData: formData,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Backend returns the new product object under `data`. Grab the id
+        // for the caller; if anything looks off we still return `null` so
+        // they can handle it gracefully.
+        int? newId;
+        final data = response.data;
+        if (data is Map && data['id'] != null) {
+          newId = int.tryParse(data['id'].toString());
+        }
+        await loadProducts();
+        return (id: newId, error: null);
+      }
+      return (
+        id: null,
+        error: AlertErrorResponse(
+          alertHeading: 'Error!',
+          alertMessage: response.message ?? 'Failed to create product',
+        ),
+      );
+    } catch (e) {
+      return (id: null, error: AlertErrorResponse.getErrorResponse(e));
+    }
+  }
+
   Future<AlertErrorResponse?> updateProduct({
     required int id,
     required FormData formData,
