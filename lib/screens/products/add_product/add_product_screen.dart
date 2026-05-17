@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../../core/services/toast_service.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../model/request/request.dart';
 import '../../../provider/category_provider.dart';
 import '../../../provider/product_provider.dart';
@@ -33,6 +32,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _form = AddProductForm();
   AddProductStep _step = AddProductStep.info;
   bool _isSubmitting = false;
+  bool _isSavingDraft = false;
 
   static const _stepperSteps = [
     WizardStep(
@@ -75,97 +75,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
       context.read<ProductProvider>().loadHsnCodes();
       context.read<CategoryProvider>().loadCategories();
     });
-    // The stepper's lock state depends on whether key fields are filled.
-    // Listening here means future-step chips light up the moment the user
-    // finishes typing them, without waiting for a Next press.
-    _form.name.addListener(_onGateInputChanged);
-    _form.mrp.addListener(_onGateInputChanged);
-    _form.selling.addListener(_onGateInputChanged);
-  }
-
-  void _onGateInputChanged() {
-    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _form.name.removeListener(_onGateInputChanged);
-    _form.mrp.removeListener(_onGateInputChanged);
-    _form.selling.removeListener(_onGateInputChanged);
     _form.dispose();
     super.dispose();
   }
 
   // ─── Step navigation ─────────────────────────────────────────────────────
+  /// Jump to any step. The stepper is fully free-roam — past, current, or
+  /// future steps all switch instantly. Validation only runs when the user
+  /// presses Next or Submit so red errors don't surface from poking around.
   void _go(int idx) {
     setState(() => _step = AddProductStep.values[idx]);
-  }
-
-  /// Decide whether the user can jump from `_step` to `targetIdx` directly
-  /// via the top stepper.
-  ///
-  /// Rules:
-  ///   - Backward (or staying put) is always allowed — already-filled data
-  ///     stays intact in `AddProductForm` so they can review/edit anything.
-  ///   - Forward jumps validate every required step in between, just like
-  ///     pressing Next that many times. If any step in the chain fails its
-  ///     validation, we land the user on the first failing step.
-  void _onStepperTap(int targetIdx) {
-    final currentIdx = _step.index;
-    if (targetIdx <= currentIdx) {
-      _go(targetIdx);
-      return;
-    }
-    // Forward jump: walk every step from current → targetIdx-1 and make
-    // sure each one's validation passes before advancing past it.
-    for (var i = currentIdx; i < targetIdx; i++) {
-      _step = AddProductStep.values[i];
-      if (!_validateCurrent()) {
-        if (_step == AddProductStep.info && _form.categoryId == null) {
-          ToastService.warning(context, 'Pick a category to continue');
-        } else {
-          ToastService.warning(
-            context,
-            'Complete "${_step.title}" before moving forward',
-          );
-        }
-        setState(() {}); // surface the failing step in the UI
-        return;
-      }
-    }
-    setState(() => _step = AddProductStep.values[targetIdx]);
-  }
-
-  /// Used by the stepper to fade and lock future steps the user hasn't
-  /// earned yet. Only checks "static" form data (no validators run here)
-  /// because we don't want to show red errors on fields the user hasn't
-  /// touched. The Next button still does the strict validation.
-  bool _isStepUnlocked(int targetIdx) {
-    if (targetIdx <= _step.index) return true; // past + active always open
-    // Walk the steps before `targetIdx` and require their minimum data.
-    for (var i = 0; i < targetIdx; i++) {
-      final s = AddProductStep.values[i];
-      switch (s) {
-        case AddProductStep.info:
-          if (_form.name.text.trim().isEmpty || _form.categoryId == null) {
-            return false;
-          }
-          break;
-        case AddProductStep.pricing:
-          final mrp = double.tryParse(_form.mrp.text);
-          final selling = double.tryParse(_form.selling.text);
-          if (mrp == null || mrp <= 0 || selling == null || selling <= 0) {
-            return false;
-          }
-          break;
-        case AddProductStep.images:
-        case AddProductStep.specs:
-        case AddProductStep.warranty:
-        case AddProductStep.review:
-          break;
-      }
-    }
-    return true;
   }
 
   bool _validateCurrent() {
@@ -194,9 +117,47 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (i < AddProductStep.values.length - 1) _go(i + 1);
   }
 
-  void _back() {
-    final i = _step.index;
-    if (i > 0) _go(i - 1);
+  void _cancel() {
+    context.go('/admin/products');
+  }
+
+  /// Save the current form state as a draft. The product is created with
+  /// `status='draft'` regardless of which step the user is on. Required
+  /// fields are still enforced (name + category + MRP + selling); soft
+  /// fields can be empty and will be filled in later.
+  Future<void> _saveDraft() async {
+    if (_form.name.text.trim().isEmpty || _form.categoryId == null) {
+      ToastService.warning(
+        context,
+        'Add at least a product name and category before saving as draft.',
+      );
+      _go(AddProductStep.info.index);
+      return;
+    }
+    final mrp = double.tryParse(_form.mrp.text);
+    final selling = double.tryParse(_form.selling.text);
+    if (mrp == null || mrp <= 0 || selling == null || selling <= 0) {
+      ToastService.warning(
+        context,
+        'MRP and selling price are required even for a draft.',
+      );
+      _go(AddProductStep.pricing.index);
+      return;
+    }
+
+    setState(() => _isSavingDraft = true);
+    final originalStatus = _form.status;
+    _form.status = 'draft';
+    final err = await _persist();
+    if (!mounted) return;
+    setState(() {
+      _isSavingDraft = false;
+      _form.status = originalStatus;
+    });
+    if (err == null) {
+      ToastService.success(context, 'Draft saved');
+      context.go('/admin/products');
+    }
   }
 
   // ─── Submit ──────────────────────────────────────────────────────────────
@@ -212,7 +173,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
 
     setState(() => _isSubmitting = true);
+    final err = await _persist();
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    if (err == null) {
+      ToastService.success(context, 'Product created successfully');
+      context.go('/admin/products');
+    }
+  }
 
+  /// Shared persistence path used by both `Submit` and `Save as draft`.
+  /// Returns `null` on success, otherwise the AlertErrorResponse.
+  Future<dynamic> _persist() async {
     final ordered = _form.images.orderedForSubmit();
     final request = ProductRequest(
       name: _form.name.text.trim(),
@@ -242,19 +214,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
 
     final formData = await request.toFormData();
-    if (!mounted) return;
+    if (!mounted) return null;
     final result = await context.read<ProductProvider>().createProduct(
       formData: formData,
     );
-
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
-    if (result == null) {
-      ToastService.success(context, 'Product created successfully');
-      context.go('/admin/products');
-    } else {
+    if (result != null && mounted) {
       ToastService.fromError(context, result);
     }
+    return result;
   }
 
   // ─── Build ────────────────────────────────────────────────────────────────
@@ -268,11 +235,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
       body: Column(
         children: [
           _buildTopBar(theme),
+          // Stepper is fully free-roam — every chip is tappable so users
+          // can hop between sections and review/edit as they like.
           WizardStepper(
             steps: _stepperSteps,
             currentIndex: _step.index,
-            onTap: _onStepperTap,
-            canTap: _isStepUnlocked,
+            onTap: _go,
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -280,21 +248,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1100),
-                  child: _buildStepBody(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildStepBody(),
+                      // Action bar lives inline at the end of the scroll
+                      // content so it scrolls with the page instead of
+                      // floating over it.
+                      WizardActionBar(
+                        onCancel: _cancel,
+                        onSaveDraft: _saveDraft,
+                        onNext: _next,
+                        onSubmit: _submit,
+                        isLast: isLast,
+                        isSubmitting: _isSubmitting,
+                        isSavingDraft: _isSavingDraft,
+                        submitLabel: 'Submit',
+                        submitIcon: LucideIcons.check,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          WizardActionBar(
-            currentIndex: _step.index,
-            totalSteps: AddProductStep.values.length,
-            onBack: _step.index == 0 ? null : _back,
-            onNext: _next,
-            onSubmit: _submit,
-            isLast: isLast,
-            isSubmitting: _isSubmitting,
-            submitLabel: 'Create product',
-            submitIcon: LucideIcons.check,
           ),
         ],
       ),
@@ -322,29 +298,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppTheme.brand.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              'STEP ${_step.index + 1} / ${AddProductStep.values.length}',
-              style: TextStyle(
-                color: AppTheme.brand,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          const Spacer(),
-          ShadButton.outline(
-            size: ShadButtonSize.sm,
-            onPressed: () => context.go('/admin/products'),
-            child: const Text('Cancel'),
           ),
         ],
       ),

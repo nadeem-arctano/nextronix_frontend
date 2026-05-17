@@ -1,71 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Sticky bottom bar used by every wizard: Back on the left, current
-/// position in the middle, primary action on the right.
+import '../../core/theme/app_theme.dart';
+
+/// Bottom action bar used by every wizard.
 ///
-/// The primary action shape is controlled by `isLast`:
-///  - `false` → "Next" with right-arrow
-///  - `true`  → submit button rendered with the icon + label provided
+/// Layout
+/// ──────
+/// **Left**   – Cancel (always present, neutral outline button)
+/// **Right**  – optional Save as draft + Next/Submit
 ///
-/// `isSubmitting` swaps the submit icon for a small spinner.
+/// The bar renders inline (no fixed positioning) so it sits at the end
+/// of the page content and scrolls with everything else.
 class WizardActionBar extends StatelessWidget {
-  final int currentIndex;
-  final int totalSteps;
-  final VoidCallback? onBack;
+  final VoidCallback? onCancel;
+  final VoidCallback? onSaveDraft;
   final VoidCallback? onNext;
   final VoidCallback? onSubmit;
   final bool isLast;
   final bool isSubmitting;
+  final bool isSavingDraft;
   final String submitLabel;
   final IconData submitIcon;
 
   const WizardActionBar({
     super.key,
-    required this.currentIndex,
-    required this.totalSteps,
-    required this.onBack,
+    required this.onCancel,
     required this.onNext,
     required this.onSubmit,
     required this.isLast,
+    this.onSaveDraft,
     this.isSubmitting = false,
+    this.isSavingDraft = false,
     this.submitLabel = 'Submit',
     this.submitIcon = LucideIcons.check,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.background,
-        border: Border(top: BorderSide(color: theme.colorScheme.border)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 16),
       child: Row(
         children: [
-          // Hide Back entirely when there's nowhere to go (first step).
-          if (onBack != null) ...[
-            ShadButton.outline(
-              leading: const Icon(LucideIcons.arrowLeft, size: 14),
-              onPressed: onBack,
-              child: const Text('Back'),
+          // ─── Left: Cancel ─────────────────────────────────────────────
+          ShadButton.outline(onPressed: onCancel, child: const Text('Cancel')),
+          const Spacer(),
+          // ─── Right: Save as draft + Next/Submit ───────────────────────
+          if (onSaveDraft != null) ...[
+            ShadButton.secondary(
+              leading: isSavingDraft
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(LucideIcons.save, size: 14),
+              onPressed: isSavingDraft ? null : onSaveDraft,
+              child: Text(isSavingDraft ? 'Saving...' : 'Save as draft'),
             ),
             const SizedBox(width: 8),
           ],
-          Text(
-            'Step ${currentIndex + 1} of $totalSteps',
-            style: theme.textTheme.muted,
-          ),
-          const Spacer(),
           if (!isLast)
             ShadButton(
-              trailing: const Icon(LucideIcons.arrowRight, size: 14),
+              backgroundColor: AppTheme.brand,
+              trailing: const Icon(
+                LucideIcons.arrowRight,
+                size: 14,
+                color: Colors.white,
+              ),
               onPressed: onNext,
-              child: const Text('Next'),
+              child: const Text('Next', style: TextStyle(color: Colors.white)),
             )
           else
             ShadButton(
+              backgroundColor: AppTheme.brand,
               leading: isSubmitting
                   ? const SizedBox(
                       width: 14,
@@ -75,9 +86,12 @@ class WizardActionBar extends StatelessWidget {
                         color: Colors.white,
                       ),
                     )
-                  : Icon(submitIcon, size: 14),
+                  : Icon(submitIcon, size: 14, color: Colors.white),
               onPressed: isSubmitting ? null : onSubmit,
-              child: Text(isSubmitting ? 'Saving...' : submitLabel),
+              child: Text(
+                isSubmitting ? 'Submitting...' : submitLabel,
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
         ],
       ),
