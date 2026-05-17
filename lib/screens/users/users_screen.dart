@@ -353,10 +353,12 @@ class _UsersScreenState extends State<UsersScreen> {
 }
 
 /// Compact, web-friendly date range picker shown inside a centered dialog
-/// (max ~360px wide) instead of the default full-screen `showDateRangePicker`.
+/// (max ~380px wide) instead of the default full-screen `showDateRangePicker`.
 ///
-/// Flow: user picks the start date, taps "Next", then picks the end date
-/// and taps "Apply". Returns a [DateTimeRange] or null if dismissed.
+/// UX: two clickable fields (From / To) at the top plus quick presets
+/// (Today, Last 7d, Last 30d, This month). Tapping a field activates that
+/// side; the inline calendar below picks for the active field. Returns a
+/// [DateTimeRange] on Apply, or null if dismissed.
 class _CompactDateRangeDialog extends StatefulWidget {
   final DateTime? initialStart;
   final DateTime? initialEnd;
@@ -368,10 +370,12 @@ class _CompactDateRangeDialog extends StatefulWidget {
       _CompactDateRangeDialogState();
 }
 
+enum _PickerField { start, end }
+
 class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
   late DateTime _start;
   late DateTime _end;
-  bool _editingStart = true;
+  _PickerField _active = _PickerField.start;
 
   @override
   void initState() {
@@ -381,44 +385,110 @@ class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
     _end = widget.initialEnd ?? now;
   }
 
+  void _applyPreset(int days) {
+    final now = DateTime.now();
+    setState(() {
+      _end = DateTime(now.year, now.month, now.day);
+      _start = _end.subtract(Duration(days: days - 1));
+    });
+  }
+
+  void _applyThisMonth() {
+    final now = DateTime.now();
+    setState(() {
+      _start = DateTime(now.year, now.month, 1);
+      _end = DateTime(now.year, now.month, now.day);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final dateFmt = DateFormat('MMM dd, yyyy');
     final firstDate = DateTime(2020);
     final lastDate = DateTime.now();
+    final isInvalid = _end.isBefore(_start);
+
+    DateTime calInitial;
+    DateTime calFirst;
+    if (_active == _PickerField.start) {
+      calInitial = _start;
+      calFirst = firstDate;
+    } else {
+      calFirst = _start;
+      calInitial = _end.isBefore(_start) ? _start : _end;
+    }
 
     return Dialog(
       backgroundColor: theme.colorScheme.background,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360),
+        constraints: const BoxConstraints(maxWidth: 380),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _editingStart ? 'Select start date' : 'Select end date',
-                style: theme.textTheme.h4,
+              Text('Select date range', style: theme.textTheme.h4),
+              const SizedBox(height: 12),
+
+              // From / To fields side-by-side
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDateField(
+                      label: 'From',
+                      value: dateFmt.format(_start),
+                      active: _active == _PickerField.start,
+                      onTap: () => setState(() => _active = _PickerField.start),
+                      theme: theme,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildDateField(
+                      label: 'To',
+                      value: dateFmt.format(_end),
+                      active: _active == _PickerField.end,
+                      onTap: () => setState(() => _active = _PickerField.end),
+                      theme: theme,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${dateFmt.format(_start)}  →  ${dateFmt.format(_end)}',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
+
+              const SizedBox(height: 10),
+
+              // Quick presets
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _buildPresetChip('Today', () => _applyPreset(1), theme),
+                  _buildPresetChip('Last 7d', () => _applyPreset(7), theme),
+                  _buildPresetChip('Last 30d', () => _applyPreset(30), theme),
+                  _buildPresetChip('This month', _applyThisMonth, theme),
+                ],
               ),
+
               const SizedBox(height: 8),
+
+              // Re-key the picker on every active-field change AND on every
+              // initial-date change, so it always rebuilds with the freshest
+              // selection (avoids stale internal state in CalendarDatePicker).
               SizedBox(
                 height: 320,
                 child: CalendarDatePicker(
-                  key: ValueKey(_editingStart),
-                  initialDate: _editingStart ? _start : _end,
-                  firstDate: _editingStart ? firstDate : _start,
+                  key: ValueKey(
+                    '${_active.name}_${calInitial.toIso8601String()}_${calFirst.toIso8601String()}',
+                  ),
+                  initialDate: calInitial,
+                  firstDate: calFirst,
                   lastDate: lastDate,
                   onDateChanged: (date) {
                     setState(() {
-                      if (_editingStart) {
+                      if (_active == _PickerField.start) {
                         _start = date;
                         if (_end.isBefore(_start)) _end = _start;
                       } else {
@@ -428,7 +498,18 @@ class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
                   },
                 ),
               ),
+
+              if (isInvalid)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'End date must be on or after start date',
+                    style: TextStyle(fontSize: 11, color: AppTheme.dangerColor),
+                  ),
+                ),
+
               const SizedBox(height: 8),
+
               Row(
                 children: [
                   TextButton(
@@ -436,27 +517,78 @@ class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
                     child: const Text('Cancel'),
                   ),
                   const Spacer(),
-                  if (!_editingStart)
-                    TextButton(
-                      onPressed: () => setState(() => _editingStart = true),
-                      child: const Text('Back'),
-                    ),
-                  const SizedBox(width: 4),
-                  if (_editingStart)
-                    FilledButton(
-                      onPressed: () => setState(() => _editingStart = false),
-                      child: const Text('Next'),
-                    )
-                  else
-                    FilledButton(
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pop(DateTimeRange(start: _start, end: _end)),
-                      child: const Text('Apply'),
-                    ),
+                  FilledButton(
+                    onPressed: isInvalid
+                        ? null
+                        : () => Navigator.of(
+                            context,
+                          ).pop(DateTimeRange(start: _start, end: _end)),
+                    child: const Text('Apply'),
+                  ),
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateField({
+    required String label,
+    required String value,
+    required bool active,
+    required VoidCallback onTap,
+    required ShadThemeData theme,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: active
+              ? theme.colorScheme.primary.withValues(alpha: 0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: active
+                ? theme.colorScheme.primary
+                : theme.colorScheme.border,
+            width: active ? 1.2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: theme.textTheme.muted.copyWith(fontSize: 10)),
+            const SizedBox(height: 2),
+            Text(value, style: theme.textTheme.small.copyWith(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(
+    String label,
+    VoidCallback onTap,
+    ShadThemeData theme,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.colorScheme.border),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: theme.colorScheme.mutedForeground,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
