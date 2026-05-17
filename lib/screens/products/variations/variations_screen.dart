@@ -75,13 +75,7 @@ class _VariationsScreenState extends State<VariationsScreen> {
                     subtitle: prov.hasGroup
                         ? '${prov.childrenCount} variation${prov.childrenCount == 1 ? '' : 's'} linked'
                         : 'Group this product with same-category SKUs to manage them as one variant family.',
-                    actions: [
-                      ShadButton.outline(
-                        leading: const Icon(Icons.arrow_back, size: 14),
-                        onPressed: () => context.pop(),
-                        child: const Text('Back'),
-                      ),
-                    ],
+                    onBack: () => context.pop(),
                   ),
                   const SizedBox(height: 16),
                   if (_loadingAnchor || prov.isLoading)

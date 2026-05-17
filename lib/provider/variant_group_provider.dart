@@ -158,20 +158,25 @@ class VariantGroupProvider extends ChangeNotifier {
   }
 
   /// Removes a product from its group.
-  ///   • Child  → that child becomes standalone.
+  ///   • Child  → that child becomes standalone. If it was the LAST child,
+  ///     the parent is auto-demoted by the server too and the group ceases
+  ///     to exist.
   ///   • Parent → ENTIRE group dissolves (caller should confirm first).
-  /// After the call, [loadGroup] is re-invoked using [anchorId] (or the
-  /// removed id as a fallback) so children that are still in the group
-  /// stay visible if the removed product wasn't the parent.
+  /// After the call we always re-fetch the group payload for the screen's
+  /// anchor so the UI re-renders cleanly: a still-living group keeps
+  /// rendering, a fully-dissolved group flips to the empty-state.
   Future<AlertErrorResponse?> removeMember({required int id}) async {
     _isSaving = true;
     notifyListeners();
     try {
       await _repo.removeFromVariantGroup(id: id);
-      // Reload from the anchor if it still belongs to a group; otherwise clear.
-      final reloadId = _anchorId == id ? null : _anchorId;
-      if (reloadId != null) {
-        await loadGroup(reloadId);
+      final anchor = _anchorId;
+      if (anchor != null) {
+        // Reload from the original anchor — even if the anchor itself was
+        // removed, the server now returns null for it (standalone) and
+        // `hasGroup` becomes false, which the variations screen renders as
+        // "No variations yet".
+        await loadGroup(anchor);
       } else {
         _group = null;
         _isSaving = false;
