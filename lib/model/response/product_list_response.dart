@@ -71,6 +71,12 @@ class ProductResult {
   final String? createdAt;
   final String? updatedAt;
 
+  // Variant grouping (introduced when groups feature shipped).
+  final String? groupRole; // 'standalone' | 'parent' | 'child'
+  final int? parentProductId;
+  final String? variantOptionColor;
+  final String? variantOptionSize;
+
   ProductResult({
     this.id,
     this.categoryId,
@@ -105,6 +111,10 @@ class ProductResult {
     this.hsnGstPercent,
     this.createdAt,
     this.updatedAt,
+    this.groupRole,
+    this.parentProductId,
+    this.variantOptionColor,
+    this.variantOptionSize,
   });
 
   factory ProductResult.fromJson(Map<String, dynamic> json) {
@@ -161,6 +171,12 @@ class ProductResult {
           : null,
       createdAt: json['createdAt']?.toString(),
       updatedAt: json['updatedAt']?.toString(),
+      groupRole: json['groupRole']?.toString(),
+      parentProductId: json['parentProductId'] != null
+          ? parseInt(json['parentProductId'])
+          : null,
+      variantOptionColor: json['variantOptionColor']?.toString(),
+      variantOptionSize: json['variantOptionSize']?.toString(),
     );
   }
 

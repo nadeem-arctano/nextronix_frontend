@@ -121,9 +121,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   /// Save the current form state as a draft. The product is created with
-  /// `status='draft'` regardless of which step the user is on. Required
-  /// fields are still enforced (name + category + MRP + selling); soft
-  /// fields can be empty and will be filled in later.
+  /// `status='draft'` regardless of which step the user is on. Drafts only
+  /// require name + category — pricing, stock, and other soft fields can
+  /// be missing and are filled in later. Empty MRP/selling are persisted
+  /// as 0 so the row passes server validation.
   Future<void> _saveDraft() async {
     if (_form.name.text.trim().isEmpty || _form.categoryId == null) {
       ToastService.warning(
@@ -131,16 +132,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         'Add at least a product name and category before saving as draft.',
       );
       _go(AddProductStep.info.index);
-      return;
-    }
-    final mrp = double.tryParse(_form.mrp.text);
-    final selling = double.tryParse(_form.selling.text);
-    if (mrp == null || mrp <= 0 || selling == null || selling <= 0) {
-      ToastService.warning(
-        context,
-        'MRP and selling price are required even for a draft.',
-      );
-      _go(AddProductStep.pricing.index);
       return;
     }
 

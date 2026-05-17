@@ -70,6 +70,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
               PageHeader(
                 title: 'Products',
                 actions: [
+                  ShadButton.outline(
+                    leading: const Icon(LucideIcons.layers, size: 14),
+                    size: ShadButtonSize.sm,
+                    onPressed: () => _openAddVariantPicker(context, provider),
+                    child: const Text('Add Variant'),
+                  ),
+                  const SizedBox(width: 8),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 14),
                     size: ShadButtonSize.sm,
@@ -460,13 +467,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        product.name ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.small,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              product.name ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.small,
+                            ),
+                          ),
+                          if (product.groupRole == 'parent') ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brand.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'PARENT',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.brand,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      if (product.shortDescription != null)
+                      if (product.shortDescription != null &&
+                          product.shortDescription!.trim().isNotEmpty)
                         Text(
                           product.shortDescription!,
                           style: theme.textTheme.muted.copyWith(fontSize: 11),
@@ -614,7 +650,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   case 'edit':
                     context.go('/admin/products/edit/${product.id}');
                   case 'variants':
-                    context.push('/admin/products/${product.id}/variants');
+                    context.push('/admin/products/${product.id}/variations');
                   case 'featured':
                     provider.toggleFeatured(id: product.id!);
                   case 'delete':
@@ -638,7 +674,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     children: [
                       Icon(LucideIcons.layers, size: 16),
                       SizedBox(width: 8),
-                      Text('Manage Variants'),
+                      Text('Manage Variations'),
                     ],
                   ),
                 ),
@@ -818,6 +854,219 @@ class _ProductsScreenState extends State<ProductsScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── Add Variant entry-point ───────────────────────────────────────────────
+  //
+  // Opens a picker that lists ALL standalone products (across categories)
+  // plus existing parents. When the user picks one, we navigate to its
+  // variations screen — that page handles the same-category eligibility
+  // and SKU picker for adding children.
+  Future<void> _openAddVariantPicker(
+    BuildContext context,
+    ProductProvider provider,
+  ) async {
+    final picked = await showDialog<ProductResult>(
+      context: context,
+      builder: (_) => _AddVariantPickerDialog(products: provider.products),
+    );
+    if (picked == null || picked.id == null) return;
+    if (!context.mounted) return;
+    context.push('/admin/products/${picked.id}/variations');
+  }
+}
+
+// ─── Add Variant picker dialog ───────────────────────────────────────────────
+//
+// Simple chooser: pick the product you want to attach a variant to. We only
+// surface standalone or parent products — children are owned by an existing
+// group and the variations screen would just redirect to the parent anyway.
+class _AddVariantPickerDialog extends StatefulWidget {
+  final List<ProductResult> products;
+  const _AddVariantPickerDialog({required this.products});
+
+  @override
+  State<_AddVariantPickerDialog> createState() =>
+      _AddVariantPickerDialogState();
+}
+
+class _AddVariantPickerDialogState extends State<_AddVariantPickerDialog> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _q = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final visible = widget.products.where((p) {
+      // Only standalone or parents — children can't open the variations page.
+      final role = p.groupRole ?? 'standalone';
+      if (role == 'child') return false;
+      if (_q.isEmpty) return true;
+      final n = (p.name ?? '').toLowerCase();
+      final s = (p.sku ?? '').toLowerCase();
+      return n.contains(_q) || s.contains(_q);
+    }).toList();
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Add variant',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Pick the product you want to attach a variation to. You\'ll be taken to its variations screen next.',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              ShadInput(
+                controller: _searchCtrl,
+                placeholder: const Text('Search by name or SKU…'),
+                onChanged: (v) => setState(() => _q = v.trim().toLowerCase()),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: visible.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No matching products.',
+                          style: theme.textTheme.muted,
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: visible.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 6),
+                        itemBuilder: (_, i) {
+                          final p = visible[i];
+                          final isParent = p.groupRole == 'parent';
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => Navigator.of(context).pop(p),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppTheme.borderColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: theme.colorScheme.muted,
+                                      child: p.thumbnailImage != null
+                                          ? Image.network(
+                                              ApiConstants.getImageUrl(
+                                                p.thumbnailImage,
+                                              ),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, _, _) =>
+                                                  const Icon(
+                                                    LucideIcons.image,
+                                                    size: 16,
+                                                  ),
+                                            )
+                                          : const Icon(
+                                              LucideIcons.image,
+                                              size: 16,
+                                            ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                p.name ?? '(unnamed)',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isParent) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.brand
+                                                      .withValues(alpha: 0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  'PARENT',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.brand,
+                                                    letterSpacing: 0.6,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        if (p.sku != null)
+                                          Text(
+                                            p.sku!,
+                                            style: theme.textTheme.muted
+                                                .copyWith(fontSize: 11),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 16,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

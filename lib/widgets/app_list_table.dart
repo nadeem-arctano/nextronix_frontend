@@ -22,6 +22,14 @@ class AppListTable<T> extends StatelessWidget {
   final ValueChanged<int> onPageChanged;
   final double trailingWidth;
 
+  /// Optional row selection. When [onSelectionChanged] is provided, a leading
+  /// checkbox column is rendered both in the header (toggles all-on-page) and
+  /// each row. The widget is purely controlled — pass [selectedKeys] from
+  /// state and update it inside [onSelectionChanged].
+  final Set<int>? selectedKeys;
+  final int Function(T item)? keyOf;
+  final ValueChanged<Set<int>>? onSelectionChanged;
+
   const AppListTable({
     super.key,
     required this.columns,
@@ -33,11 +41,25 @@ class AppListTable<T> extends StatelessWidget {
     required this.itemLabel,
     required this.onPageChanged,
     this.trailingWidth = 40,
+    this.selectedKeys,
+    this.keyOf,
+    this.onSelectionChanged,
   });
+
+  bool get _selectable =>
+      onSelectionChanged != null && keyOf != null && selectedKeys != null;
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final allKeys = _selectable ? items.map(keyOf!).toSet() : <int>{};
+    final allSelected =
+        _selectable &&
+        allKeys.isNotEmpty &&
+        allKeys.every(selectedKeys!.contains);
+    final someSelected =
+        _selectable && allKeys.any(selectedKeys!.contains) && !allSelected;
+
     return ShadCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -59,6 +81,25 @@ class AppListTable<T> extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
+                      if (_selectable)
+                        SizedBox(
+                          width: 32,
+                          child: Checkbox(
+                            value: allSelected
+                                ? true
+                                : (someSelected ? null : false),
+                            tristate: true,
+                            onChanged: (v) {
+                              final next = Set<int>.from(selectedKeys!);
+                              if (v == true) {
+                                next.addAll(allKeys);
+                              } else {
+                                next.removeAll(allKeys);
+                              }
+                              onSelectionChanged!(next);
+                            },
+                          ),
+                        ),
                       ...columns.map(
                         (col) => Expanded(
                           flex: col.flex,
@@ -81,10 +122,37 @@ class AppListTable<T> extends StatelessWidget {
                 Expanded(
                   child: ListView.separated(
                     itemCount: items.length,
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         Divider(height: 1, color: theme.colorScheme.border),
                     itemBuilder: (context, index) {
-                      return rowBuilder(items[index], index);
+                      final item = items[index];
+                      final row = rowBuilder(item, index);
+                      if (!_selectable) return row;
+                      final id = keyOf!(item);
+                      final isOn = selectedKeys!.contains(id);
+                      return Row(
+                        children: [
+                          SizedBox(
+                            width: 32,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: Checkbox(
+                                value: isOn,
+                                onChanged: (v) {
+                                  final next = Set<int>.from(selectedKeys!);
+                                  if (v == true) {
+                                    next.add(id);
+                                  } else {
+                                    next.remove(id);
+                                  }
+                                  onSelectionChanged!(next);
+                                },
+                              ),
+                            ),
+                          ),
+                          Expanded(child: row),
+                        ],
+                      );
                     },
                   ),
                 ),
