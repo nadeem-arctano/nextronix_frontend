@@ -513,4 +513,36 @@ abstract class ApiProvider {
     @Path('userId') int userId,
     @Body() PermissionKeyRequest body,
   );
+
+  // ─── Variant Groups ────────────────────────────────────────────────────────
+  @POST("products/groups")
+  Future<VariantGroupResponse> createVariantGroup(
+    @Body() CreateVariantGroupRequest body,
+  );
+
+  @GET("products/groupable")
+  Future<GroupableListResponse> getGroupableProducts(
+    @Queries() Map<String, dynamic> queries,
+  );
+
+  @GET("products/{id}/group")
+  Future<VariantGroupResponse> getProductGroup(@Path('id') int id);
+
+  @POST("products/{id}/group/add")
+  Future<VariantGroupResponse> addToVariantGroup(
+    @Path('id') int id,
+    @Body() AddToVariantGroupRequest body,
+  );
+
+  @POST("products/{id}/group/remove")
+  Future<CommonResponse> removeFromVariantGroup(@Path('id') int id);
+
+  @POST("products/{id}/group/promote")
+  Future<VariantGroupResponse> promoteVariantToParent(@Path('id') int id);
+
+  @PUT("products/{id}/group/options")
+  Future<CommonResponse> updateVariantGroupOptions(
+    @Path('id') int id,
+    @Body() VariantGroupOption body,
+  );
 }

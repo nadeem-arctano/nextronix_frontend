@@ -29,3 +29,4 @@ export 'audit_models.dart';
 export 'inventory_models.dart';
 export 'variant_models.dart';
 export 'permission_models.dart';
+export 'variant_group_models.dart';

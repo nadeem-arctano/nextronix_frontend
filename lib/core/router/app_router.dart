@@ -47,6 +47,7 @@ import '../../screens/audit_logs/audit_logs_screen.dart';
 import '../../screens/inventory_logs/inventory_logs_screen.dart';
 import '../../screens/permissions/permissions_screen.dart';
 import '../../screens/products/variants/variants_screen.dart';
+import '../../screens/products/variations/variations_screen.dart';
 import '../../widgets/admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
@@ -427,6 +428,16 @@ class AppRouter {
               name: 'product-variants',
               pageBuilder: (context, state) => _fadePage(
                 VariantsScreen(
+                  productId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            GoRoute(
+              path: '/admin/products/:id/variations',
+              name: 'product-variations',
+              pageBuilder: (context, state) => _fadePage(
+                VariationsScreen(
                   productId: int.parse(state.pathParameters['id']!),
                 ),
                 state,

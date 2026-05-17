@@ -177,9 +177,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     ShadButton.outline(
                       leading: const Icon(LucideIcons.layers, size: 14),
                       onPressed: () => context.push(
-                        '/admin/products/${widget.productId}/variants',
+                        '/admin/products/${widget.productId}/variations',
                       ),
-                      child: const Text('Manage Variants'),
+                      child: const Text('Manage Variations'),
                     ),
                   ],
                 ),

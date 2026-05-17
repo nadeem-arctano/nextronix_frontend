@@ -14,4 +14,5 @@ export 'team_provider.dart';
 export 'audit_provider.dart';
 export 'inventory_provider.dart';
 export 'variant_provider.dart';
+export 'variant_group_provider.dart';
 export 'permission_provider.dart';

@@ -19,3 +19,4 @@ export 'manager_requests.dart';
 export 'inventory_requests.dart';
 export 'variant_requests.dart';
 export 'permission_requests.dart';
+export 'variant_group_requests.dart';

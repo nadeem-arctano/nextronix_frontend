@@ -41,6 +41,7 @@ class NextronixAdmin extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuditProvider()),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => VariantProvider()),
+        ChangeNotifierProvider(create: (_) => VariantGroupProvider()),
         ChangeNotifierProvider(create: (_) => PermissionProvider()),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(

@@ -1109,4 +1109,68 @@ class NextronixRepository {
       StatusRequest(status: status),
     );
   }
+
+  // ─── Variant Groups ────────────────────────────────────────────────────────
+  Future<VariantGroupResponse> createVariantGroup({
+    required int parentId,
+    required List<int> childIds,
+    required Map<int, VariantGroupOption> optionsByProduct,
+  }) async {
+    return await _apiProvider.createVariantGroup(
+      CreateVariantGroupRequest(
+        parentId: parentId,
+        childIds: childIds,
+        optionsByProduct: optionsByProduct.map(
+          (k, v) => MapEntry(k.toString(), v),
+        ),
+      ),
+    );
+  }
+
+  Future<GroupableListResponse> getGroupableProducts({
+    required int categoryId,
+    int? excludeProductId,
+    String? search,
+  }) async {
+    final queries = <String, dynamic>{'categoryId': categoryId};
+    if (excludeProductId != null)
+      queries['excludeProductId'] = excludeProductId;
+    if (search != null && search.isNotEmpty) queries['search'] = search;
+    return await _apiProvider.getGroupableProducts(queries);
+  }
+
+  Future<VariantGroupResponse> getProductGroup({required int id}) async {
+    return await _apiProvider.getProductGroup(id);
+  }
+
+  Future<VariantGroupResponse> addToVariantGroup({
+    required int anchorId,
+    required int childId,
+    String? color,
+    String? size,
+  }) async {
+    return await _apiProvider.addToVariantGroup(
+      anchorId,
+      AddToVariantGroupRequest(childId: childId, color: color, size: size),
+    );
+  }
+
+  Future<CommonResponse> removeFromVariantGroup({required int id}) async {
+    return await _apiProvider.removeFromVariantGroup(id);
+  }
+
+  Future<VariantGroupResponse> promoteVariantToParent({required int id}) async {
+    return await _apiProvider.promoteVariantToParent(id);
+  }
+
+  Future<CommonResponse> updateVariantGroupOptions({
+    required int id,
+    String? color,
+    String? size,
+  }) async {
+    return await _apiProvider.updateVariantGroupOptions(
+      id,
+      VariantGroupOption(color: color, size: size),
+    );
+  }
 }
