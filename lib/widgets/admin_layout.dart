@@ -222,7 +222,7 @@ class _AdminLayoutState extends State<AdminLayout>
                       context,
                       3,
                       LucideIcons.users,
-                      'Users',
+                      'Customers',
                       '/admin/users',
                       currentPath,
                       collapsed,
