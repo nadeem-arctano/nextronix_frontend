@@ -44,12 +44,15 @@ class WizardActionBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ShadButton.outline(
-            leading: const Icon(LucideIcons.arrowLeft, size: 14),
-            onPressed: onBack,
-            child: const Text('Back'),
-          ),
-          const SizedBox(width: 8),
+          // Hide Back entirely when there's nowhere to go (first step).
+          if (onBack != null) ...[
+            ShadButton.outline(
+              leading: const Icon(LucideIcons.arrowLeft, size: 14),
+              onPressed: onBack,
+              child: const Text('Back'),
+            ),
+            const SizedBox(width: 8),
+          ],
           Text(
             'Step ${currentIndex + 1} of $totalSteps',
             style: theme.textTheme.muted,

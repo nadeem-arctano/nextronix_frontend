@@ -75,10 +75,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
       context.read<ProductProvider>().loadHsnCodes();
       context.read<CategoryProvider>().loadCategories();
     });
+    // The stepper's lock state depends on whether key fields are filled.
+    // Listening here means future-step chips light up the moment the user
+    // finishes typing them, without waiting for a Next press.
+    _form.name.addListener(_onGateInputChanged);
+    _form.mrp.addListener(_onGateInputChanged);
+    _form.selling.addListener(_onGateInputChanged);
+  }
+
+  void _onGateInputChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _form.name.removeListener(_onGateInputChanged);
+    _form.mrp.removeListener(_onGateInputChanged);
+    _form.selling.removeListener(_onGateInputChanged);
     _form.dispose();
     super.dispose();
   }
@@ -86,6 +99,73 @@ class _AddProductScreenState extends State<AddProductScreen> {
   // ─── Step navigation ─────────────────────────────────────────────────────
   void _go(int idx) {
     setState(() => _step = AddProductStep.values[idx]);
+  }
+
+  /// Decide whether the user can jump from `_step` to `targetIdx` directly
+  /// via the top stepper.
+  ///
+  /// Rules:
+  ///   - Backward (or staying put) is always allowed — already-filled data
+  ///     stays intact in `AddProductForm` so they can review/edit anything.
+  ///   - Forward jumps validate every required step in between, just like
+  ///     pressing Next that many times. If any step in the chain fails its
+  ///     validation, we land the user on the first failing step.
+  void _onStepperTap(int targetIdx) {
+    final currentIdx = _step.index;
+    if (targetIdx <= currentIdx) {
+      _go(targetIdx);
+      return;
+    }
+    // Forward jump: walk every step from current → targetIdx-1 and make
+    // sure each one's validation passes before advancing past it.
+    for (var i = currentIdx; i < targetIdx; i++) {
+      _step = AddProductStep.values[i];
+      if (!_validateCurrent()) {
+        if (_step == AddProductStep.info && _form.categoryId == null) {
+          ToastService.warning(context, 'Pick a category to continue');
+        } else {
+          ToastService.warning(
+            context,
+            'Complete "${_step.title}" before moving forward',
+          );
+        }
+        setState(() {}); // surface the failing step in the UI
+        return;
+      }
+    }
+    setState(() => _step = AddProductStep.values[targetIdx]);
+  }
+
+  /// Used by the stepper to fade and lock future steps the user hasn't
+  /// earned yet. Only checks "static" form data (no validators run here)
+  /// because we don't want to show red errors on fields the user hasn't
+  /// touched. The Next button still does the strict validation.
+  bool _isStepUnlocked(int targetIdx) {
+    if (targetIdx <= _step.index) return true; // past + active always open
+    // Walk the steps before `targetIdx` and require their minimum data.
+    for (var i = 0; i < targetIdx; i++) {
+      final s = AddProductStep.values[i];
+      switch (s) {
+        case AddProductStep.info:
+          if (_form.name.text.trim().isEmpty || _form.categoryId == null) {
+            return false;
+          }
+          break;
+        case AddProductStep.pricing:
+          final mrp = double.tryParse(_form.mrp.text);
+          final selling = double.tryParse(_form.selling.text);
+          if (mrp == null || mrp <= 0 || selling == null || selling <= 0) {
+            return false;
+          }
+          break;
+        case AddProductStep.images:
+        case AddProductStep.specs:
+        case AddProductStep.warranty:
+        case AddProductStep.review:
+          break;
+      }
+    }
+    return true;
   }
 
   bool _validateCurrent() {
@@ -191,7 +271,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
           WizardStepper(
             steps: _stepperSteps,
             currentIndex: _step.index,
-            onTap: _go,
+            onTap: _onStepperTap,
+            canTap: _isStepUnlocked,
           ),
           Expanded(
             child: SingleChildScrollView(

@@ -23,18 +23,27 @@ class WizardStep {
 /// Horizontal step strip with click-to-jump support.
 ///
 /// - Active step      → brand colour, filled icon circle
-/// - Completed step   → green check
-/// - Future step      → muted, click still allowed (jump back/forward)
+/// - Completed step   → green check (any step before the active one is
+///                      considered completed and remains tappable)
+/// - Future step      → muted; tappable only when `canTap(index)` returns
+///   `true` (default: every step is tappable). Locked steps render at
+///   reduced opacity, show a small lock glyph, and use a "forbidden"
+///   cursor on web.
 class WizardStepper extends StatelessWidget {
   final List<WizardStep> steps;
   final int currentIndex;
   final ValueChanged<int> onTap;
+
+  /// Optional gate. Past steps + the active step are always tappable
+  /// regardless of what this returns.
+  final bool Function(int index)? canTap;
 
   const WizardStepper({
     super.key,
     required this.steps,
     required this.currentIndex,
     required this.onTap,
+    this.canTap,
   });
 
   @override
@@ -52,13 +61,20 @@ class WizardStepper extends StatelessWidget {
           children: steps.asMap().entries.expand((e) {
             final idx = e.key;
             final step = e.value;
+            // Past + current are always tappable. Future steps consult the
+            // optional gate; if no gate is supplied they default to tappable
+            // (preserves the old behaviour for callers that don't care).
+            final tappable = idx <= currentIndex
+                ? true
+                : (canTap?.call(idx) ?? true);
             return [
               _StepChip(
                 step: step,
                 number: idx + 1,
                 isActive: idx == currentIndex,
                 isDone: idx < currentIndex,
-                onTap: () => onTap(idx),
+                tappable: tappable,
+                onTap: tappable ? () => onTap(idx) : null,
               ),
               if (idx < steps.length - 1)
                 Padding(
@@ -82,13 +98,15 @@ class _StepChip extends StatelessWidget {
   final int number;
   final bool isActive;
   final bool isDone;
-  final VoidCallback onTap;
+  final bool tappable;
+  final VoidCallback? onTap;
 
   const _StepChip({
     required this.step,
     required this.number,
     required this.isActive,
     required this.isDone,
+    required this.tappable,
     required this.onTap,
   });
 
@@ -100,79 +118,93 @@ class _StepChip extends StatelessWidget {
         : isDone
         ? AppTheme.successColor
         : theme.colorScheme.mutedForeground;
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+
+    final chip = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActive
+                  ? AppTheme.brand
+                  : isDone
+                  ? AppTheme.successColor
+                  : theme.colorScheme.background,
+              border: Border.all(
                 color: isActive
                     ? AppTheme.brand
                     : isDone
                     ? AppTheme.successColor
-                    : theme.colorScheme.background,
-                border: Border.all(
-                  color: isActive
-                      ? AppTheme.brand
-                      : isDone
-                      ? AppTheme.successColor
-                      : theme.colorScheme.border,
-                ),
-              ),
-              child: Center(
-                child: isDone
-                    ? const Icon(
-                        LucideIcons.check,
-                        size: 14,
-                        color: Colors.white,
-                      )
-                    : Icon(
-                        step.icon,
-                        size: 13,
-                        color: isActive
-                            ? Colors.white
-                            : theme.colorScheme.mutedForeground,
-                      ),
+                    : theme.colorScheme.border,
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '$number. ',
-                      style: theme.textTheme.muted.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
+            child: Center(
+              child: isDone
+                  ? const Icon(LucideIcons.check, size: 14, color: Colors.white)
+                  : Icon(
+                      step.icon,
+                      size: 13,
+                      color: isActive
+                          ? Colors.white
+                          : theme.colorScheme.mutedForeground,
                     ),
-                    Text(
-                      step.title,
-                      style: TextStyle(
-                        color: accent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '$number. ',
+                    style: theme.textTheme.muted.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-                Text(
-                  step.subtitle,
-                  style: theme.textTheme.muted.copyWith(fontSize: 10),
-                ),
-              ],
+                  ),
+                  Text(
+                    step.title,
+                    style: TextStyle(
+                      color: accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                step.subtitle,
+                style: theme.textTheme.muted.copyWith(fontSize: 10),
+              ),
+            ],
+          ),
+          if (!tappable && !isActive && !isDone) ...[
+            const SizedBox(width: 6),
+            Icon(
+              LucideIcons.lock,
+              size: 11,
+              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.6),
             ),
           ],
-        ),
+        ],
       ),
+    );
+
+    if (!tappable) {
+      // Locked: dim it and signal "no-go" via the cursor.
+      return MouseRegion(
+        cursor: SystemMouseCursors.forbidden,
+        child: Opacity(opacity: 0.45, child: chip),
+      );
+    }
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: chip,
     );
   }
 }
