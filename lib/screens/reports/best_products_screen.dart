@@ -24,6 +24,7 @@ class _BestProductsScreenState extends State<BestProductsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReportProvider>().loadBestProducts();
     });
   }

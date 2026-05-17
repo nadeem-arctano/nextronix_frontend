@@ -21,6 +21,7 @@ class _GstDashboardScreenState extends State<GstDashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<GstProvider>().loadDashboard();
     });
   }

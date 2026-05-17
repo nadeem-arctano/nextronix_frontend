@@ -47,6 +47,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ProductProvider>().loadProductById(id: widget.productId);
       context.read<CategoryProvider>().loadCategories();
     });

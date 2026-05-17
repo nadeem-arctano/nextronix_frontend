@@ -29,6 +29,7 @@ class _SupportListScreenState extends State<SupportListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final p = context.read<SupportProvider>();
       p.loadStats();
       p.loadTickets();

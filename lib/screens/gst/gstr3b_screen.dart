@@ -21,6 +21,7 @@ class _Gstr3bScreenState extends State<Gstr3bScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<GstProvider>().loadGstr3b();
     });
   }

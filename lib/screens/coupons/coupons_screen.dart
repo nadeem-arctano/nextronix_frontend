@@ -21,6 +21,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<CouponProvider>().loadCoupons();
     });
   }

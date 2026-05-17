@@ -20,6 +20,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final provider = context.read<ReportProvider>();
       provider.loadDailySales();
       provider.loadMonthlySales();

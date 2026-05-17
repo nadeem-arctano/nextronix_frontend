@@ -24,6 +24,7 @@ class _TopCustomersScreenState extends State<TopCustomersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReportProvider>().loadTopCustomers();
     });
   }

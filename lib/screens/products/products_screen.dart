@@ -33,6 +33,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ProductProvider>().loadProducts();
       context.read<CategoryProvider>().loadCategories();
     });

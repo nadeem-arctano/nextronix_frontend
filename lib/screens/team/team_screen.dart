@@ -24,6 +24,7 @@ class _TeamScreenState extends State<TeamScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<TeamProvider>().loadManagers();
     });
   }

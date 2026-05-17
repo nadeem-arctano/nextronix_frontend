@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../provider/auth_provider.dart';
@@ -62,25 +63,72 @@ CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
 }
 
 class AppRouter {
+  /// Reads the actual browser URL at app start, ignoring `/` (which may be
+  /// a transient default before the URL strategy reads the real location).
+  /// Returns `/admin/dashboard` for an actual root visit so logged-in users
+  /// land somewhere useful.
+  static String _readInitialPath() {
+    final p = html.window.location.pathname ?? '/';
+    if (p.isEmpty || p == '/') return '/admin/dashboard';
+    return p;
+  }
+
   /// Builds the router instance bound to the given AuthProvider so route
   /// changes react to login/logout state.
   static GoRouter build(AuthProvider auth) {
+    // Snapshot the actual browser URL once at construction time. On hard
+    // reloads Flutter Web's engine briefly publishes the default `/` route
+    // via the platform RouteInformationProvider before our URL strategy
+    // reads the real location. Without an explicit initialLocation,
+    // GoRouter would see `/` and bounce the user away from a deep-linked
+    // URL like `/admin/products`. The phantom `/` guard inside `redirect`
+    // also catches subsequent stale callbacks.
+    final initialPath = _readInitialPath();
+
     return GoRouter(
-      initialLocation: '/admin/dashboard',
-      refreshListenable: auth,
+      initialLocation: initialPath,
+      // Listen ONLY to `auth.authRoutingTick`, not to AuthProvider itself.
+      // This keeps incidental notifies (profile refresh, loading flags) from
+      // forcing GoRouter to re-evaluate redirects — which can otherwise
+      // briefly publish a stale `/` URI and bounce a deep-linked reload to
+      // /admin/dashboard.
+      refreshListenable: auth.authRoutingTick,
       redirect: (context, state) {
+        // ── DEBUG: trace every redirect call. Remove once stable.
+        // ignore: avoid_print
+        print(
+          '[router.redirect] uri=${state.uri} matched=${state.matchedLocation} '
+          'auth.isInitializing=${auth.isInitializing} '
+          'isAuthenticated=${auth.isAuthenticated}',
+        );
+
         // While bootstrapping (reading saved token) keep the current location.
         if (auth.isInitializing) return null;
+
+        // Phantom `/` guard: Flutter Web's RouteInformationProvider can
+        // publish `/` after GoRouter has already settled on the real URL.
+        // If the browser still says we're on something else, redirect to
+        // that real path instead of falling through to the `/` GoRoute.
+        if (state.uri.toString() == '/') {
+          final realPath = html.window.location.pathname ?? '/';
+          if (realPath != '/') {
+            // ignore: avoid_print
+            print('[router.redirect]   → ignoring spurious / (real=$realPath)');
+            return realPath;
+          }
+        }
 
         final loggingIn = state.matchedLocation == '/login';
         if (!auth.isAuthenticated) {
           return loggingIn ? null : '/login';
         }
-        // Already authenticated → bounce away from /login
+        // Already authenticated → never let them sit on /login
         if (loggingIn) return '/admin/dashboard';
         return null;
       },
       routes: [
+        // Bare root → dashboard (only triggered for literal `/` URLs)
+        GoRoute(path: '/', redirect: (_, __) => '/admin/dashboard'),
         GoRoute(
           path: '/login',
           name: 'login',

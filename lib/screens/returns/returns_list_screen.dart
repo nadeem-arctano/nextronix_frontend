@@ -28,6 +28,7 @@ class _ReturnsListScreenState extends State<ReturnsListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final p = context.read<ReturnProvider>();
       p.loadStats();
       p.loadReturns();

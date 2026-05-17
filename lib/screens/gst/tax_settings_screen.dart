@@ -23,6 +23,7 @@ class _TaxSettingsScreenState extends State<TaxSettingsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<GstProvider>().loadTaxSettings();
     });
   }

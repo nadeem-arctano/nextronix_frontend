@@ -28,6 +28,7 @@ class _ReturnDetailScreenState extends State<ReturnDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReturnProvider>().loadReturnById(widget.returnId);
     });
   }

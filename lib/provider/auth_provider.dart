@@ -19,6 +19,21 @@ class AuthProvider extends ChangeNotifier {
 
   StreamSubscription<SessionEvent>? _sessionSub;
 
+  /// Listenable used by `GoRouter.refreshListenable`.
+  ///
+  /// We deliberately don't expose the whole `AuthProvider` (a `ChangeNotifier`)
+  /// to the router because every profile-refresh `notifyListeners()` would
+  /// cause GoRouter to re-evaluate redirects. Under some conditions that
+  /// re-evaluation publishes a stale `/` URI and bounces the user away from
+  /// a deep-linked reload (e.g. `/admin/products` → `/admin/dashboard`).
+  ///
+  /// This notifier only fires when **routing-relevant state** flips:
+  ///   - bootstrap finishes
+  ///   - login completes
+  ///   - logout / forced session clear
+  final ValueNotifier<int> authRoutingTick = ValueNotifier<int>(0);
+  void _bumpRoutingTick() => authRoutingTick.value++;
+
   bool get isInitializing => _isInitializing;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -36,6 +51,7 @@ class AuthProvider extends ChangeNotifier {
     _sessionSub = sessionEvents.stream.listen((evt) async {
       if (evt == SessionEvent.forceLogout) {
         await _clearLocalSession();
+        _bumpRoutingTick();
         notifyListeners();
       }
     });
@@ -44,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
   @override
   void dispose() {
     _sessionSub?.cancel();
+    authRoutingTick.dispose();
     super.dispose();
   }
 
@@ -65,6 +82,8 @@ class AuthProvider extends ChangeNotifier {
       await _clearLocalSession();
     } finally {
       _isInitializing = false;
+      // Routing-relevant: bootstrap is what the redirect guard waits for.
+      _bumpRoutingTick();
       notifyListeners();
     }
   }
@@ -109,6 +128,8 @@ class AuthProvider extends ChangeNotifier {
       await _refreshProfile();
 
       _isLoading = false;
+      // Routing-relevant: user just authenticated.
+      _bumpRoutingTick();
       notifyListeners();
       return null;
     } catch (e) {
@@ -146,6 +167,8 @@ class AuthProvider extends ChangeNotifier {
       // best-effort — local clear runs anyway
     }
     await _clearLocalSession();
+    // Routing-relevant: user is now logged out.
+    _bumpRoutingTick();
     notifyListeners();
   }
 

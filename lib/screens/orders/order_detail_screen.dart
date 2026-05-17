@@ -20,6 +20,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<OrderProvider>().loadOrderById(id: widget.orderId);
     });
   }

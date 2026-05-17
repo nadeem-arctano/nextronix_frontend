@@ -24,6 +24,7 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<SupportProvider>().loadContactMessages();
     });
   }

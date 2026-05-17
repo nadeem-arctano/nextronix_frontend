@@ -27,6 +27,7 @@ class _UsersScreenState extends State<UsersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<UserProvider>().loadUsers();
     });
   }

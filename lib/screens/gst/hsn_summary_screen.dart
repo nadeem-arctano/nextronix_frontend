@@ -20,6 +20,7 @@ class _HsnSummaryScreenState extends State<HsnSummaryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<GstProvider>().loadHsnSummary();
     });
   }

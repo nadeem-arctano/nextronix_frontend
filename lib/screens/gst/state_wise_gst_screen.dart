@@ -20,6 +20,7 @@ class _StateWiseGstScreenState extends State<StateWiseGstScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<GstProvider>().loadStateWise();
     });
   }

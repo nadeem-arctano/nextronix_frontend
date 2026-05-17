@@ -24,6 +24,7 @@ class _DailySalesScreenState extends State<DailySalesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReportProvider>().loadDailySales();
     });
   }

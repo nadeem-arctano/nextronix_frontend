@@ -23,6 +23,7 @@ class _MonthlySalesScreenState extends State<MonthlySalesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReportProvider>().loadMonthlySales();
     });
   }

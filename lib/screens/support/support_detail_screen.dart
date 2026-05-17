@@ -27,6 +27,7 @@ class _SupportDetailScreenState extends State<SupportDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<SupportProvider>().loadTicketById(widget.ticketId);
     });
   }

@@ -48,6 +48,7 @@ class _SectionScaffoldState extends State<SectionScaffold> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<BusinessSettingsProvider>().loadSection(widget.section);
     });
   }

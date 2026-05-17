@@ -24,6 +24,7 @@ class _GstReportScreenState extends State<GstReportScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<ReportProvider>().loadGstReport();
     });
   }
