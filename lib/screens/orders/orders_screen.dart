@@ -10,6 +10,7 @@ import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/skeletons.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -43,7 +44,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 8, columns: 6)
                     : provider.orders.isEmpty
                     ? const EmptyWidget(message: 'No orders found')
                     : AppListTable<OrderResult>(

@@ -5,8 +5,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../model/response/response.dart';
 import '../../provider/business_settings_provider.dart';
-import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class SettingsHubScreen extends StatefulWidget {
   const SettingsHubScreen({super.key});
@@ -41,7 +41,7 @@ class _SettingsHubScreenState extends State<SettingsHubScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: provider.isHubLoading && provider.hubSettings == null
-                    ? const LoadingWidget(message: 'Loading settings...')
+                    ? const Padding(padding: EdgeInsets.all(24), child: CardSkeleton(lines: 6))
                     : SingleChildScrollView(
                         child: _buildSectionGrid(context, provider),
                       ),

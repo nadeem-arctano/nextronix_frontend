@@ -7,10 +7,10 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../../provider/report_provider.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/loading_widget.dart';
 import 'widgets/date_range_filter.dart';
 import 'widgets/export_buttons.dart';
 import 'widgets/report_summary_card.dart';
+import '../../widgets/skeletons.dart';
 
 class GstReportScreen extends StatefulWidget {
   const GstReportScreen({super.key});
@@ -67,7 +67,7 @@ class _GstReportScreenState extends State<GstReportScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget(message: 'Loading report...')
+                    ? const ChartSkeleton(height: 280)
                     : provider.error != null
                     ? Center(child: Text(provider.error!))
                     : _buildContent(provider, theme),

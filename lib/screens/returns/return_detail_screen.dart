@@ -6,10 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/return_provider.dart';
-import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class ReturnDetailScreen extends StatefulWidget {
   final int returnId;
@@ -52,17 +53,11 @@ class _ReturnDetailScreenState extends State<ReturnDetailScreen> {
       refundMethod: _refundMethod,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          err == null ? 'Status updated to $status' : err.alertMessage,
-        ),
-        backgroundColor: err == null
-            ? AppTheme.successColor
-            : AppTheme.dangerColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (err == null) {
+      ToastService.success(context, 'Status updated to $status');
+    } else {
+      ToastService.fromError(context, err);
+    }
   }
 
   @override
@@ -91,7 +86,10 @@ class _ReturnDetailScreenState extends State<ReturnDetailScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading || r == null
-                    ? const LoadingWidget(message: 'Loading return...')
+                    ? const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CardSkeleton(lines: 8),
+                      )
                     : SingleChildScrollView(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

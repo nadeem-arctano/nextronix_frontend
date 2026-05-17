@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
+import '../../core/utils/validators.dart';
 import '../../provider/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,13 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     if (!mounted) return;
     if (err != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(err.alertMessage),
-          backgroundColor: AppTheme.dangerColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.fromError(context, err);
       return;
     }
     // Successful login → router refresh will redirect us into the app
@@ -173,13 +169,10 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) return 'Email required';
-            if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(value.trim())) {
-              return 'Enter a valid email';
-            }
-            return null;
-          },
+          validator: Validators.combine([
+            Validators.required('Email required'),
+            Validators.email(),
+          ]),
         ),
       ],
     );
@@ -218,10 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
           autofillHints: const [AutofillHints.password],
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => _submit(),
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'Password required';
-            return null;
-          },
+          validator: Validators.required('Password required'),
         ),
       ],
     );

@@ -11,6 +11,7 @@ import '../../widgets/page_header.dart';
 import '../../widgets/role_badge.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/skeletons.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -63,7 +64,7 @@ class _UsersScreenState extends State<UsersScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading && provider.users.isEmpty
-                    ? const LoadingWidget(message: 'Loading users...')
+                    ? const TableSkeleton(rows: 8, columns: 5)
                     : provider.error != null && provider.users.isEmpty
                     ? ErrorWidget2(
                         message: provider.error!,

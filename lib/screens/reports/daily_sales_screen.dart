@@ -8,9 +8,9 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../../provider/report_provider.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/loading_widget.dart';
 import 'widgets/date_range_filter.dart';
 import 'widgets/export_buttons.dart';
+import '../../widgets/skeletons.dart';
 
 class DailySalesScreen extends StatefulWidget {
   const DailySalesScreen({super.key});
@@ -70,7 +70,7 @@ class _DailySalesScreenState extends State<DailySalesScreen> {
               // Content
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget(message: 'Loading report...')
+                    ? const ChartSkeleton(height: 280)
                     : provider.error != null
                     ? Center(child: Text(provider.error!))
                     : _buildContent(provider, theme),

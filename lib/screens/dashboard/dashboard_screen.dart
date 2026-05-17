@@ -8,6 +8,7 @@ import '../../model/response/response.dart';
 import '../../provider/dashboard_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -54,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Consumer<DashboardProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.stats == null) {
-          return const LoadingWidget(message: 'Loading dashboard...');
+          return const DashboardSkeleton();
         }
 
         if (provider.error != null && provider.stats == null) {

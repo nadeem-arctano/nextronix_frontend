@@ -10,6 +10,7 @@ import '../../provider/gst_provider.dart';
 import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class InvoiceBreakupScreen extends StatefulWidget {
   const InvoiceBreakupScreen({super.key});
@@ -45,7 +46,7 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading && p.invoiceData.isEmpty
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 8, columns: 5)
                     : p.invoiceData.isEmpty
                     ? const EmptyWidget(message: 'No invoices')
                     : AppListTable<InvoiceBreakupItem>(

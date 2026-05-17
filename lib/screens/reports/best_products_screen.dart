@@ -8,9 +8,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../model/response/report_models.dart';
 import '../../provider/report_provider.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/loading_widget.dart';
 import 'widgets/date_range_filter.dart';
 import 'widgets/export_buttons.dart';
+import '../../widgets/skeletons.dart';
 
 class BestProductsScreen extends StatefulWidget {
   const BestProductsScreen({super.key});
@@ -67,7 +67,7 @@ class _BestProductsScreenState extends State<BestProductsScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget(message: 'Loading report...')
+                    ? const ChartSkeleton(height: 280)
                     : provider.error != null
                     ? Center(child: Text(provider.error!))
                     : provider.bestProducts.isEmpty

@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../provider/order_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/skeletons.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
@@ -31,7 +32,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Consumer<OrderProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.selectedOrder == null) {
-          return const LoadingWidget(message: 'Loading order...');
+          return const Padding(padding: EdgeInsets.all(24), child: CardSkeleton(lines: 8));
         }
 
         final order = provider.selectedOrder;

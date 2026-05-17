@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/product_provider.dart';
 import '../../provider/category_provider.dart';
 import '../../model/request/request.dart';
@@ -136,12 +137,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     setState(() => _isSubmitting = false);
 
     if (result == null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Product created successfully'),
-          backgroundColor: AppTheme.successColor,
-        ),
-      );
+      ToastService.success(context, 'Product created successfully');
       context.go('/admin/products');
     }
   }

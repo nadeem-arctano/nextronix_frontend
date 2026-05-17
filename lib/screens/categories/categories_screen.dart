@@ -11,6 +11,7 @@ import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -51,7 +52,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 6, columns: 4)
                     : provider.categories.isEmpty
                     ? const EmptyWidget(message: 'No categories found')
                     : AppListTable<CategoryResult>(

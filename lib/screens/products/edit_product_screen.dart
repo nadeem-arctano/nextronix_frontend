@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/product_provider.dart';
 import '../../provider/category_provider.dart';
-import '../../widgets/loading_widget.dart';
+import '../../widgets/skeletons.dart';
 
 class EditProductScreen extends StatefulWidget {
   final int productId;
@@ -128,12 +130,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     setState(() => _isSubmitting = false);
 
     if (result == null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Product updated successfully'),
-          backgroundColor: AppTheme.successColor,
-        ),
-      );
+      ToastService.success(context, 'Product updated successfully');
       context.go('/admin/products');
     }
   }
@@ -143,7 +140,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
     return Consumer<ProductProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.selectedProduct == null) {
-          return const LoadingWidget(message: 'Loading product...');
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: CardSkeleton(lines: 12),
+          );
         }
 
         if (provider.selectedProduct != null && !_isLoaded) {
@@ -172,6 +172,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const Spacer(),
+                    ShadButton.outline(
+                      leading: const Icon(LucideIcons.layers, size: 14),
+                      onPressed: () => context.push(
+                        '/admin/products/${widget.productId}/variants',
+                      ),
+                      child: const Text('Manage Variants'),
                     ),
                   ],
                 ),

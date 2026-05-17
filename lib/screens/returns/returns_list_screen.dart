@@ -12,6 +12,7 @@ import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class ReturnsListScreen extends StatefulWidget {
   const ReturnsListScreen({super.key});
@@ -71,7 +72,7 @@ class _ReturnsListScreenState extends State<ReturnsListScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: p.isLoading && p.returns.isEmpty
-                    ? const LoadingWidget(message: 'Loading returns...')
+                    ? const TableSkeleton(rows: 8, columns: 5)
                     : p.returns.isEmpty
                     ? const EmptyWidget(message: 'No return requests')
                     : AppListTable<ReturnRequest>(

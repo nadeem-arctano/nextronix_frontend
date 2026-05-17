@@ -8,6 +8,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../provider/gst_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class GstDashboardScreen extends StatefulWidget {
   const GstDashboardScreen({super.key});
@@ -43,7 +44,7 @@ class _GstDashboardScreenState extends State<GstDashboardScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading && p.dashboard == null
-                    ? const LoadingWidget(message: 'Loading...')
+                    ? const DashboardSkeleton()
                     : p.dashboard == null
                     ? const EmptyWidget(message: 'No GST data')
                     : SingleChildScrollView(child: _buildContent(p)),

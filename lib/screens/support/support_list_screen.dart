@@ -13,6 +13,7 @@ import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
 import 'widgets/priority_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class SupportListScreen extends StatefulWidget {
   const SupportListScreen({super.key});
@@ -80,7 +81,7 @@ class _SupportListScreenState extends State<SupportListScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: p.isLoading && p.tickets.isEmpty
-                    ? const LoadingWidget(message: 'Loading tickets...')
+                    ? const TableSkeleton(rows: 8, columns: 5)
                     : p.tickets.isEmpty
                     ? const EmptyWidget(message: 'No tickets found')
                     : AppListTable<Ticket>(

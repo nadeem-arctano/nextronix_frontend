@@ -7,6 +7,7 @@ import '../../provider/hsn_provider.dart';
 import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class HsnScreen extends StatefulWidget {
   const HsnScreen({super.key});
@@ -47,7 +48,7 @@ class _HsnScreenState extends State<HsnScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 6, columns: 4)
                     : provider.hsnCodes.isEmpty
                     ? const EmptyWidget(message: 'No HSN codes found')
                     : AppListTable<HsnResult>(

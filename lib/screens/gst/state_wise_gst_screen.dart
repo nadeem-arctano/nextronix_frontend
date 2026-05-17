@@ -7,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../provider/gst_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class StateWiseGstScreen extends StatefulWidget {
   const StateWiseGstScreen({super.key});
@@ -43,7 +44,7 @@ class _StateWiseGstScreenState extends State<StateWiseGstScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading && p.stateData.isEmpty
-                    ? const LoadingWidget(message: 'Loading...')
+                    ? const ChartSkeleton(height: 280)
                     : p.stateData.isEmpty
                     ? const EmptyWidget(message: 'No data available')
                     : ShadCard(

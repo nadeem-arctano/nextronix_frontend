@@ -6,11 +6,12 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/support_provider.dart';
-import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
 import 'widgets/priority_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class SupportDetailScreen extends StatefulWidget {
   final int ticketId;
@@ -45,19 +46,9 @@ class _SupportDetailScreenState extends State<SupportDetailScreen> {
     if (!mounted) return;
     if (err == null) {
       _replyController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Reply sent'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.success(context, 'Reply sent');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(err.alertMessage),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.fromError(context, err);
     }
   }
 
@@ -79,7 +70,10 @@ class _SupportDetailScreenState extends State<SupportDetailScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading || t == null
-                    ? const LoadingWidget(message: 'Loading ticket...')
+                    ? const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CardSkeleton(lines: 8),
+                      )
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

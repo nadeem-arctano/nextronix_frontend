@@ -7,10 +7,10 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../provider/report_provider.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/loading_widget.dart';
 import '../../widgets/user_avatar.dart';
 import 'widgets/date_range_filter.dart';
 import 'widgets/export_buttons.dart';
+import '../../widgets/skeletons.dart';
 
 class TopCustomersScreen extends StatefulWidget {
   const TopCustomersScreen({super.key});
@@ -68,7 +68,7 @@ class _TopCustomersScreenState extends State<TopCustomersScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget(message: 'Loading report...')
+                    ? const ChartSkeleton(height: 280)
                     : provider.error != null
                     ? Center(child: Text(provider.error!))
                     : provider.topCustomers.isEmpty

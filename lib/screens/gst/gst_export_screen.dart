@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/gst_provider.dart';
 import '../../widgets/page_header.dart';
 import 'widgets/month_year_picker.dart';
@@ -80,14 +81,11 @@ class GstExportScreen extends StatelessWidget {
     Future<void> doExport(String format) async {
       final ok = await p.exportMonthly(format);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(ok ? 'Exported successfully' : 'Export failed'),
-          backgroundColor: ok ? AppTheme.successColor : AppTheme.dangerColor,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      if (ok) {
+        ToastService.success(context, 'Exported successfully');
+      } else {
+        ToastService.error(context, 'Export failed');
+      }
     }
 
     return Wrap(

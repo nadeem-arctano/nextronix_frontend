@@ -8,6 +8,7 @@ import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class CouponsScreen extends StatefulWidget {
   const CouponsScreen({super.key});
@@ -48,7 +49,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 6, columns: 5)
                     : provider.coupons.isEmpty
                     ? const EmptyWidget(message: 'No coupons found')
                     : AppListTable<CouponResult>(

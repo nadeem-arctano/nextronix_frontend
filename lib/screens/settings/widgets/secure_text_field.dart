@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../../core/services/toast_service.dart';
 
 class SecureTextField extends StatefulWidget {
   final String label;
@@ -118,12 +119,7 @@ class _SecureTextFieldState extends State<SecureTextField> {
                       Clipboard.setData(
                         ClipboardData(text: widget.maskedValue!),
                       );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Copied to clipboard'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
+                      ToastService.info(context, 'Copied to clipboard');
                     },
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(

@@ -11,6 +11,7 @@ import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/skeletons.dart';
 
 class ContactMessagesScreen extends StatefulWidget {
   const ContactMessagesScreen({super.key});
@@ -46,7 +47,7 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoadingContact && p.contactMessages.isEmpty
-                    ? const LoadingWidget(message: 'Loading messages...')
+                    ? const TableSkeleton(rows: 8, columns: 4)
                     : p.contactMessages.isEmpty
                     ? const EmptyWidget(message: 'No contact messages')
                     : AppListTable<ContactMessage>(

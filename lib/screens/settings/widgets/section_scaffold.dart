@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/toast_service.dart';
 import '../../../provider/business_settings_provider.dart';
 import '../../../widgets/loading_widget.dart';
 import '../../../widgets/page_header.dart';
+import '../../../widgets/skeletons.dart';
 
 /// Common layout for every section detail screen.
 ///
@@ -57,16 +59,11 @@ class _SectionScaffoldState extends State<SectionScaffold> {
     final provider = context.read<BusinessSettingsProvider>();
     final err = await provider.saveSection(widget.section);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(err == null ? '${widget.title} saved' : err.alertMessage),
-        backgroundColor: err == null
-            ? AppTheme.successColor
-            : AppTheme.dangerColor,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    if (err == null) {
+      ToastService.success(context, '${widget.title} saved');
+    } else {
+      ToastService.fromError(context, err);
+    }
   }
 
   @override
@@ -95,7 +92,7 @@ class _SectionScaffoldState extends State<SectionScaffold> {
                     child:
                         isLoading &&
                             provider.sectionData(widget.section) == null
-                        ? const LoadingWidget(message: 'Loading...')
+                        ? const FormSkeleton(fields: 5)
                         : error != null &&
                               provider.sectionData(widget.section) == null
                         ? ErrorWidget2(

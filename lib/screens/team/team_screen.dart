@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/validators.dart';
 import '../../model/response/response.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/team_provider.dart';
@@ -11,6 +12,7 @@ import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/user_avatar.dart';
+import '../../core/services/toast_service.dart';
 
 class TeamScreen extends StatefulWidget {
   const TeamScreen({super.key});
@@ -85,15 +87,11 @@ class _TeamScreenState extends State<TeamScreen> {
 
     final err = await context.read<TeamProvider>().deleteManager(manager.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(err == null ? 'Manager removed' : err.alertMessage),
-        backgroundColor: err == null
-            ? AppTheme.successColor
-            : AppTheme.dangerColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (err == null) {
+      ToastService.success(context, 'Manager removed');
+    } else {
+      ToastService.fromError(context, err);
+    }
   }
 
   @override
@@ -404,13 +402,7 @@ class _ManagerFormDialogState extends State<_ManagerFormDialog> {
 
     if (!mounted) return;
     if (err != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(err.alertMessage),
-          backgroundColor: AppTheme.dangerColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.error(context, err.alertMessage);
       return;
     }
     Navigator.pop(context, true);
@@ -447,8 +439,7 @@ class _ManagerFormDialogState extends State<_ManagerFormDialog> {
                 TextFormField(
                   controller: _nameController,
                   decoration: _decoration(LucideIcons.user, 'Riya Sharma'),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Name required' : null,
+                  validator: Validators.required('Name required'),
                 ),
                 const SizedBox(height: 12),
                 _label('Email', theme),
@@ -457,15 +448,10 @@ class _ManagerFormDialogState extends State<_ManagerFormDialog> {
                   controller: _emailController,
                   decoration: _decoration(LucideIcons.mail, 'name@brand.com'),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Email required';
-                    if (!RegExp(
-                      r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
-                    ).hasMatch(v.trim())) {
-                      return 'Enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: Validators.combine([
+                    Validators.required('Email required'),
+                    Validators.email(),
+                  ]),
                 ),
                 const SizedBox(height: 12),
                 _label('Mobile (optional)', theme),

@@ -13,6 +13,7 @@ import '../../provider/category_provider.dart';
 import '../../widgets/app_list_table.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 import '../../widgets/status_badge.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -87,7 +88,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: provider.isLoading
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 8, columns: 6)
                     : provider.products.isEmpty
                     ? const EmptyWidget(message: 'No products found')
                     : AppListTable<ProductResult>(
@@ -612,6 +613,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 switch (value) {
                   case 'edit':
                     context.go('/admin/products/edit/${product.id}');
+                  case 'variants':
+                    context.push('/admin/products/${product.id}/variants');
                   case 'featured':
                     provider.toggleFeatured(id: product.id!);
                   case 'delete':
@@ -626,6 +629,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       Icon(LucideIcons.pencil, size: 16),
                       SizedBox(width: 8),
                       Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'variants',
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.layers, size: 16),
+                      SizedBox(width: 8),
+                      Text('Manage Variants'),
                     ],
                   ),
                 ),

@@ -8,6 +8,7 @@ import '../../provider/gst_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import 'widgets/month_year_picker.dart';
+import '../../widgets/skeletons.dart';
 
 class Gstr3bScreen extends StatefulWidget {
   const Gstr3bScreen({super.key});
@@ -57,7 +58,7 @@ class _Gstr3bScreenState extends State<Gstr3bScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading
-                    ? const LoadingWidget()
+                    ? const ChartSkeleton(height: 280)
                     : p.gstr3b == null
                     ? const EmptyWidget(message: 'No data')
                     : SingleChildScrollView(child: _buildContent(p)),

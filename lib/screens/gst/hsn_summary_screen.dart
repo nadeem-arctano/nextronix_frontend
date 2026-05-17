@@ -7,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../provider/gst_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
+import '../../widgets/skeletons.dart';
 
 class HsnSummaryScreen extends StatefulWidget {
   const HsnSummaryScreen({super.key});
@@ -43,7 +44,7 @@ class _HsnSummaryScreenState extends State<HsnSummaryScreen> {
               const SizedBox(height: 20),
               Expanded(
                 child: p.isLoading && p.hsnData.isEmpty
-                    ? const LoadingWidget()
+                    ? const TableSkeleton(rows: 6, columns: 5)
                     : p.hsnData.isEmpty
                     ? const EmptyWidget(message: 'No HSN data available')
                     : ShadCard(

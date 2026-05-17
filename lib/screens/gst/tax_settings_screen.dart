@@ -5,11 +5,12 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/services/toast_service.dart';
 import '../../provider/gst_provider.dart';
-import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../settings/widgets/responsive_field_grid.dart';
 import '../settings/widgets/settings_text_field.dart';
+import '../../widgets/skeletons.dart';
 
 class TaxSettingsScreen extends StatefulWidget {
   const TaxSettingsScreen({super.key});
@@ -31,15 +32,11 @@ class _TaxSettingsScreenState extends State<TaxSettingsScreen> {
   Future<void> _save(GstProvider p) async {
     final err = await p.saveTaxSettings();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(err == null ? 'Tax settings saved' : err.alertMessage),
-        backgroundColor: err == null
-            ? AppTheme.successColor
-            : AppTheme.dangerColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (err == null) {
+      ToastService.success(context, 'Tax settings saved');
+    } else {
+      ToastService.fromError(context, err);
+    }
   }
 
   @override
@@ -62,7 +59,7 @@ class _TaxSettingsScreenState extends State<TaxSettingsScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: p.isLoading && p.taxSettings == null
-                        ? const LoadingWidget()
+                        ? const FormSkeleton(fields: 5)
                         : SingleChildScrollView(
                             child: ShadCard(
                               padding: const EdgeInsets.all(24),
