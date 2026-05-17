@@ -5,7 +5,7 @@ import '../../provider/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/dashboard/dashboard_screen.dart';
 import '../../screens/products/products_screen.dart';
-import '../../screens/products/add_product_screen.dart';
+import '../../screens/products/add_product/add_product_screen.dart';
 import '../../screens/products/edit_product_screen.dart';
 import '../../screens/categories/categories_screen.dart';
 import '../../screens/hsn/hsn_screen.dart';
