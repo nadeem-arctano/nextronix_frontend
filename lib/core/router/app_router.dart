@@ -95,14 +95,6 @@ class AppRouter {
       // /admin/dashboard.
       refreshListenable: auth.authRoutingTick,
       redirect: (context, state) {
-        // ── DEBUG: trace every redirect call. Remove once stable.
-        // ignore: avoid_print
-        print(
-          '[router.redirect] uri=${state.uri} matched=${state.matchedLocation} '
-          'auth.isInitializing=${auth.isInitializing} '
-          'isAuthenticated=${auth.isAuthenticated}',
-        );
-
         // While bootstrapping (reading saved token) keep the current location.
         if (auth.isInitializing) return null;
 
