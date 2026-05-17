@@ -401,6 +401,23 @@ class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
     });
   }
 
+  void _applyThisYear() {
+    final now = DateTime.now();
+    setState(() {
+      _start = DateTime(now.year, 1, 1);
+      _end = DateTime(now.year, now.month, now.day);
+    });
+  }
+
+  void _applyLast12Months() {
+    final now = DateTime.now();
+    setState(() {
+      _end = DateTime(now.year, now.month, now.day);
+      // Shift back 12 months while preserving day-of-month where possible.
+      _start = DateTime(now.year - 1, now.month, now.day);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
@@ -469,6 +486,8 @@ class _CompactDateRangeDialogState extends State<_CompactDateRangeDialog> {
                   _buildPresetChip('Last 7d', () => _applyPreset(7), theme),
                   _buildPresetChip('Last 30d', () => _applyPreset(30), theme),
                   _buildPresetChip('This month', _applyThisMonth, theme),
+                  _buildPresetChip('This year', _applyThisYear, theme),
+                  _buildPresetChip('Last 12 months', _applyLast12Months, theme),
                 ],
               ),
 
