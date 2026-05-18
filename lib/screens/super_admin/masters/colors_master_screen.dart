@@ -19,6 +19,10 @@ class ColorsMasterScreen extends StatefulWidget {
 }
 
 class _ColorsMasterScreenState extends State<ColorsMasterScreen> {
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live in the page header actions alongside the Add Color button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +44,15 @@ class _ColorsMasterScreenState extends State<ColorsMasterScreen> {
               PageHeader(
                 title: 'Colors',
                 actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'color', label: 'Color'),
+                      AppTableColumn(key: 'hex', label: 'Hex Code'),
+                      AppTableColumn(key: 'status', label: 'Status'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showColorDialog(context, provider),
@@ -55,10 +68,19 @@ class _ColorsMasterScreenState extends State<ColorsMasterScreen> {
                     ? const EmptyWidget(message: 'No colors found')
                     : AppListTable<ColorResult>(
                         columns: const [
-                          AppTableColumn(label: 'Color', flex: 4),
-                          AppTableColumn(label: 'Hex Code', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
+                          AppTableColumn(key: 'color', label: 'Color', flex: 4),
+                          AppTableColumn(
+                            key: 'hex',
+                            label: 'Hex Code',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.colors,
                         currentPage: 1,
                         totalPages: 1,
@@ -105,34 +127,37 @@ class _ColorsMasterScreenState extends State<ColorsMasterScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 4,
-            child: Row(
-              children: [
-                _buildColorSwatch(color.hexCode),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    color.name ?? '',
-                    style: theme.textTheme.small,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'color'))
+            Expanded(
+              flex: 4,
+              child: Row(
+                children: [
+                  _buildColorSwatch(color.hexCode),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      color.name ?? '',
+                      style: theme.textTheme.small,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              color.hexCode ?? '—',
-              style: theme.textTheme.small.copyWith(fontFamily: 'monospace'),
+          if (!AppListTable.isColumnHidden(context, 'hex'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                color.hexCode ?? '—',
+                style: theme.textTheme.small.copyWith(fontFamily: 'monospace'),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: StatusBadge(status: color.status ?? 'active'),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 2,
+              child: StatusBadge(status: color.status ?? 'active'),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

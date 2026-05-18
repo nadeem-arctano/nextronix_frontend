@@ -20,6 +20,9 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -49,12 +52,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ? const EmptyWidget(message: 'No orders found')
                     : AppListTable<OrderResult>(
                         columns: const [
-                          AppTableColumn(label: 'Order', flex: 2),
-                          AppTableColumn(label: 'Customer', flex: 3),
-                          AppTableColumn(label: 'Status', flex: 2),
-                          AppTableColumn(label: 'Total', flex: 2),
-                          AppTableColumn(label: 'Date', flex: 2),
+                          AppTableColumn(key: 'order', label: 'Order', flex: 2),
+                          AppTableColumn(
+                            key: 'customer',
+                            label: 'Customer',
+                            flex: 3,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'total', label: 'Total', flex: 2),
+                          AppTableColumn(key: 'date', label: 'Date', flex: 2),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.orders,
                         currentPage: provider.currentPage,
                         totalPages: provider.totalPages,
@@ -92,6 +104,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
           _buildChip('Cancelled', 'cancelled', provider, theme),
           const SizedBox(width: 8),
           _buildChip('Returned', 'returned', provider, theme),
+          const SizedBox(width: 12),
+          AppListTableColumnMenu(
+            columns: const [
+              AppTableColumn(key: 'order', label: 'Order'),
+              AppTableColumn(key: 'customer', label: 'Customer'),
+              AppTableColumn(key: 'status', label: 'Status'),
+              AppTableColumn(key: 'total', label: 'Total'),
+              AppTableColumn(key: 'date', label: 'Date'),
+            ],
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -142,71 +166,78 @@ class _OrdersScreenState extends State<OrdersScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                '#${order.orderNumber ?? ''}',
-                style: theme.textTheme.small,
+            if (!AppListTable.isColumnHidden(context, 'order'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  '#${order.orderNumber ?? ''}',
+                  style: theme.textTheme.small,
+                ),
               ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Row(
-                children: [
-                  UserAvatar(name: order.customerName ?? 'N', radius: 15),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.customerName ?? 'N/A',
-                          style: theme.textTheme.small,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (order.customerEmail != null)
+            if (!AppListTable.isColumnHidden(context, 'customer'))
+              Expanded(
+                flex: 3,
+                child: Row(
+                  children: [
+                    UserAvatar(name: order.customerName ?? 'N', radius: 15),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            order.customerEmail!,
-                            style: theme.textTheme.muted.copyWith(fontSize: 11),
+                            order.customerName ?? 'N/A',
+                            style: theme.textTheme.small,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                      ],
+                          if (order.customerEmail != null)
+                            Text(
+                              order.customerEmail!,
+                              style: theme.textTheme.muted.copyWith(
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStatusDot(order.paymentStatus ?? 'pending'),
-                  const SizedBox(height: 2),
-                  _buildStatusDot(order.orderStatus ?? 'pending'),
-                ],
+            if (!AppListTable.isColumnHidden(context, 'status'))
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatusDot(order.paymentStatus ?? 'pending'),
+                    const SizedBox(height: 2),
+                    _buildStatusDot(order.orderStatus ?? 'pending'),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '₹${_formatAmount(order.totalAmount ?? 0)}',
-                style: theme.textTheme.small,
+            if (!AppListTable.isColumnHidden(context, 'total'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  '₹${_formatAmount(order.totalAmount ?? 0)}',
+                  style: theme.textTheme.small,
+                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                order.createdAt != null
-                    ? DateFormat(
-                        'MMM dd',
-                      ).format(DateTime.parse(order.createdAt!))
-                    : '-',
-                style: theme.textTheme.muted,
+            if (!AppListTable.isColumnHidden(context, 'date'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  order.createdAt != null
+                      ? DateFormat(
+                          'MMM dd',
+                        ).format(DateTime.parse(order.createdAt!))
+                      : '-',
+                  style: theme.textTheme.muted,
+                ),
               ),
-            ),
             SizedBox(
               width: 40,
               child: PopupMenuButton<String>(

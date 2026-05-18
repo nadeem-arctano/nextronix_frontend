@@ -21,6 +21,10 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live in the page header actions alongside the Add Category button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +46,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               PageHeader(
                 title: 'Categories',
                 actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'category', label: 'Category'),
+                      AppTableColumn(key: 'products', label: 'Products'),
+                      AppTableColumn(key: 'status', label: 'Status'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showCategoryDialog(context, provider),
@@ -57,10 +70,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ? const EmptyWidget(message: 'No categories found')
                     : AppListTable<CategoryResult>(
                         columns: const [
-                          AppTableColumn(label: 'Category', flex: 4),
-                          AppTableColumn(label: 'Products', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
+                          AppTableColumn(
+                            key: 'category',
+                            label: 'Category',
+                            flex: 4,
+                          ),
+                          AppTableColumn(
+                            key: 'products',
+                            label: 'Products',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.categories,
                         currentPage: 1,
                         totalPages: 1,
@@ -84,66 +110,69 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 4,
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    color: theme.colorScheme.muted,
-                    child: category.image != null
-                        ? Image.network(
-                            ApiConstants.getImageUrl(category.image),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(LucideIcons.layers, size: 16),
-                          )
-                        : Icon(
-                            LucideIcons.layers,
-                            size: 16,
-                            color: theme.colorScheme.mutedForeground,
-                          ),
+          if (!AppListTable.isColumnHidden(context, 'category'))
+            Expanded(
+              flex: 4,
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      color: theme.colorScheme.muted,
+                      child: category.image != null
+                          ? Image.network(
+                              ApiConstants.getImageUrl(category.image),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(LucideIcons.layers, size: 16),
+                            )
+                          : Icon(
+                              LucideIcons.layers,
+                              size: 16,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        category.name ?? '',
-                        style: theme.textTheme.small,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (category.description != null &&
-                          category.description!.isNotEmpty)
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          category.description!,
-                          style: theme.textTheme.muted.copyWith(fontSize: 11),
+                          category.name ?? '',
+                          style: theme.textTheme.small,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        if (category.description != null &&
+                            category.description!.isNotEmpty)
+                          Text(
+                            category.description!,
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${category.productCount ?? 0}',
-              style: theme.textTheme.small,
+          if (!AppListTable.isColumnHidden(context, 'products'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${category.productCount ?? 0}',
+                style: theme.textTheme.small,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: StatusBadge(status: category.status ?? 'active'),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 2,
+              child: StatusBadge(status: category.status ?? 'active'),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

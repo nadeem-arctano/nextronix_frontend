@@ -24,6 +24,11 @@ class AuditLogsScreen extends StatefulWidget {
 class _AuditLogsScreenState extends State<AuditLogsScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live inside the filter row (alongside search and dropdowns) instead
+  /// of inside the table's own toolbar — matches the admins screen.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -131,6 +136,15 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
               ),
             ),
           ],
+
+          const SizedBox(width: 12),
+          // Column-visibility toggle, same icon as the table's built-in
+          // toolbar but rendered here so it sits alongside the filters.
+          ColumnVisibilityMenu<AuditLog>(
+            columns: _columnsFor(),
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -138,83 +152,10 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
 
   Widget _buildTable(AuditProvider p) {
     return AdvancedDataTable<AuditLog>(
-      columns: [
-        AdvancedTableColumn<AuditLog>(
-          key: 'when',
-          label: 'When',
-          flex: 2,
-          cellBuilder: (a, _) => Text(
-            a.createdAt != null
-                ? DateFormat(
-                    'MMM dd, HH:mm',
-                  ).format(DateTime.parse(a.createdAt!).toLocal())
-                : '-',
-            style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<AuditLog>(
-          key: 'user',
-          label: 'User',
-          flex: 3,
-          cellBuilder: (a, _) {
-            final theme = ShadTheme.of(context);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(a.userName ?? '-', style: theme.textTheme.small),
-                if (a.userEmail != null)
-                  Text(
-                    a.userEmail!,
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            );
-          },
-        ),
-        AdvancedTableColumn<AuditLog>(
-          key: 'module',
-          label: 'Module',
-          flex: 2,
-          cellBuilder: (a, _) => _Tag(text: a.module),
-        ),
-        AdvancedTableColumn<AuditLog>(
-          key: 'action',
-          label: 'Action',
-          flex: 2,
-          cellBuilder: (a, _) => _Tag(text: a.action, color: AppTheme.brand),
-        ),
-        AdvancedTableColumn<AuditLog>(
-          key: 'entity',
-          label: 'Entity',
-          flex: 3,
-          cellBuilder: (a, _) {
-            final theme = ShadTheme.of(context);
-            final type = a.entityType ?? '-';
-            final id = a.entityId != null ? '#${a.entityId}' : '';
-            return Text(
-              '$type $id'.trim(),
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            );
-          },
-        ),
-        AdvancedTableColumn<AuditLog>(
-          key: 'actions',
-          label: '',
-          flex: 1,
-          align: TextAlign.right,
-          hideable: false,
-          cellBuilder: (a, _) => IconButton(
-            icon: const Icon(LucideIcons.eye, size: 14),
-            tooltip: 'View',
-            onPressed: () => _openDetail(a),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-          ),
-        ),
-      ],
+      columns: _columnsFor(),
+      hiddenColumns: _hiddenColumns,
+      onHiddenColumnsChanged: (next) => setState(() => _hiddenColumns = next),
+      showColumnToggle: false,
       items: p.items,
       idOf: (a) => a.id,
       currentPage: p.pagination?.currentPage ?? p.currentPage,
@@ -223,6 +164,89 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
       itemLabel: 'logs',
       onPageChanged: (page) => p.load(page: page),
     );
+  }
+
+  /// Column definitions shared between [_buildTable] and the standalone
+  /// [ColumnVisibilityMenu] in the filter row, so toggling a column in
+  /// either place stays in sync.
+  List<AdvancedTableColumn<AuditLog>> _columnsFor() {
+    return [
+      AdvancedTableColumn<AuditLog>(
+        key: 'when',
+        label: 'When',
+        flex: 2,
+        cellBuilder: (a, _) => Text(
+          a.createdAt != null
+              ? DateFormat(
+                  'MMM dd, HH:mm',
+                ).format(DateTime.parse(a.createdAt!).toLocal())
+              : '-',
+          style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<AuditLog>(
+        key: 'user',
+        label: 'User',
+        flex: 3,
+        cellBuilder: (a, _) {
+          final theme = ShadTheme.of(context);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(a.userName ?? '-', style: theme.textTheme.small),
+              if (a.userEmail != null)
+                Text(
+                  a.userEmail!,
+                  style: theme.textTheme.muted.copyWith(fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          );
+        },
+      ),
+      AdvancedTableColumn<AuditLog>(
+        key: 'module',
+        label: 'Module',
+        flex: 2,
+        cellBuilder: (a, _) => _Tag(text: a.module),
+      ),
+      AdvancedTableColumn<AuditLog>(
+        key: 'action',
+        label: 'Action',
+        flex: 2,
+        cellBuilder: (a, _) => _Tag(text: a.action, color: AppTheme.brand),
+      ),
+      AdvancedTableColumn<AuditLog>(
+        key: 'entity',
+        label: 'Entity',
+        flex: 3,
+        cellBuilder: (a, _) {
+          final theme = ShadTheme.of(context);
+          final type = a.entityType ?? '-';
+          final id = a.entityId != null ? '#${a.entityId}' : '';
+          return Text(
+            '$type $id'.trim(),
+            style: theme.textTheme.muted.copyWith(fontSize: 12),
+          );
+        },
+      ),
+      AdvancedTableColumn<AuditLog>(
+        key: 'actions',
+        label: '',
+        flex: 1,
+        align: TextAlign.right,
+        hideable: false,
+        cellBuilder: (a, _) => IconButton(
+          icon: const Icon(LucideIcons.eye, size: 14),
+          tooltip: 'View',
+          onPressed: () => _openDetail(a),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        ),
+      ),
+    ];
   }
 
   Future<void> _openDetail(AuditLog a) async {

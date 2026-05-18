@@ -17,6 +17,10 @@ class HsnScreen extends StatefulWidget {
 }
 
 class _HsnScreenState extends State<HsnScreen> {
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live in the page header actions alongside the Add HSN Code button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,16 @@ class _HsnScreenState extends State<HsnScreen> {
               PageHeader(
                 title: 'HSN Codes',
                 actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'hsn_code', label: 'HSN Code'),
+                      AppTableColumn(key: 'gst', label: 'GST %'),
+                      AppTableColumn(key: 'products', label: 'Products'),
+                      AppTableColumn(key: 'description', label: 'Description'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showHsnDialog(context, provider),
@@ -53,11 +67,24 @@ class _HsnScreenState extends State<HsnScreen> {
                     ? const EmptyWidget(message: 'No HSN codes found')
                     : AppListTable<HsnResult>(
                         columns: const [
-                          AppTableColumn(label: 'HSN Code', flex: 3),
-                          AppTableColumn(label: 'GST %', flex: 2),
-                          AppTableColumn(label: 'Products', flex: 2),
-                          AppTableColumn(label: 'Description', flex: 5),
+                          AppTableColumn(
+                            key: 'hsn_code',
+                            label: 'HSN Code',
+                            flex: 3,
+                          ),
+                          AppTableColumn(key: 'gst', label: 'GST %', flex: 2),
+                          AppTableColumn(
+                            key: 'products',
+                            label: 'Products',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'description',
+                            label: 'Description',
+                            flex: 5,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.hsnCodes,
                         currentPage: 1,
                         totalPages: 1,
@@ -80,33 +107,37 @@ class _HsnScreenState extends State<HsnScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(hsn.hsnCode ?? '-', style: theme.textTheme.small),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${hsn.gstPercent?.toStringAsFixed(0) ?? '0'}%',
-              style: theme.textTheme.small,
+          if (!AppListTable.isColumnHidden(context, 'hsn_code'))
+            Expanded(
+              flex: 3,
+              child: Text(hsn.hsnCode ?? '-', style: theme.textTheme.small),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${hsn.productCount ?? 0}',
-              style: theme.textTheme.small,
+          if (!AppListTable.isColumnHidden(context, 'gst'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${hsn.gstPercent?.toStringAsFixed(0) ?? '0'}%',
+                style: theme.textTheme.small,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Text(
-              hsn.description ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'products'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${hsn.productCount ?? 0}',
+                style: theme.textTheme.small,
+              ),
             ),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'description'))
+            Expanded(
+              flex: 5,
+              child: Text(
+                hsn.description ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

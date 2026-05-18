@@ -24,6 +24,9 @@ class SupportListScreen extends StatefulWidget {
 class _SupportListScreenState extends State<SupportListScreen> {
   final _searchController = TextEditingController();
 
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -74,13 +77,38 @@ class _SupportListScreenState extends State<SupportListScreen> {
                     ? const EmptyWidget(message: 'No tickets found')
                     : AppListTable<Ticket>(
                         columns: const [
-                          AppTableColumn(label: 'Ticket', flex: 2),
-                          AppTableColumn(label: 'Subject', flex: 4),
-                          AppTableColumn(label: 'Customer', flex: 3),
-                          AppTableColumn(label: 'Priority', flex: 1),
-                          AppTableColumn(label: 'Status', flex: 2),
-                          AppTableColumn(label: 'Created', flex: 2),
+                          AppTableColumn(
+                            key: 'ticket',
+                            label: 'Ticket',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'subject',
+                            label: 'Subject',
+                            flex: 4,
+                          ),
+                          AppTableColumn(
+                            key: 'customer',
+                            label: 'Customer',
+                            flex: 3,
+                          ),
+                          AppTableColumn(
+                            key: 'priority',
+                            label: 'Priority',
+                            flex: 1,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'created',
+                            label: 'Created',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: p.tickets,
                         currentPage: p.currentPage,
                         totalPages: p.pagination?.totalPages ?? 1,
@@ -208,6 +236,19 @@ class _SupportListScreenState extends State<SupportListScreen> {
           _chip('Urgent', 'urgent', p.priorityFilter, p.setPriorityFilter),
           const SizedBox(width: 6),
           _chip('High', 'high', p.priorityFilter, p.setPriorityFilter),
+          const SizedBox(width: 12),
+          AppListTableColumnMenu(
+            columns: const [
+              AppTableColumn(key: 'ticket', label: 'Ticket'),
+              AppTableColumn(key: 'subject', label: 'Subject'),
+              AppTableColumn(key: 'customer', label: 'Customer'),
+              AppTableColumn(key: 'priority', label: 'Priority'),
+              AppTableColumn(key: 'status', label: 'Status'),
+              AppTableColumn(key: 'created', label: 'Created'),
+            ],
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -256,60 +297,66 @@ class _SupportListScreenState extends State<SupportListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                t.ticketNumber,
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'monospace',
+            if (!AppListTable.isColumnHidden(context, 'ticket'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  t.ticketNumber,
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Text(
-                t.subject,
-                style: theme.textTheme.small,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            if (!AppListTable.isColumnHidden(context, 'subject'))
+              Expanded(
+                flex: 4,
+                child: Text(
+                  t.subject,
+                  style: theme.textTheme.small,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    t.customerName ?? '-',
-                    style: theme.textTheme.small.copyWith(fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    t.customerEmail ?? '',
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+            if (!AppListTable.isColumnHidden(context, 'customer'))
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.customerName ?? '-',
+                      style: theme.textTheme.small.copyWith(fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      t.customerEmail ?? '',
+                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(flex: 1, child: PriorityBadge(priority: t.priority)),
-            Expanded(flex: 2, child: StatusBadge(status: t.status)),
-            Expanded(
-              flex: 2,
-              child: Text(
-                t.createdAt != null
-                    ? DateFormat(
-                        'MMM dd, yyyy',
-                      ).format(DateTime.parse(t.createdAt!))
-                    : '-',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
+            if (!AppListTable.isColumnHidden(context, 'priority'))
+              Expanded(flex: 1, child: PriorityBadge(priority: t.priority)),
+            if (!AppListTable.isColumnHidden(context, 'status'))
+              Expanded(flex: 2, child: StatusBadge(status: t.status)),
+            if (!AppListTable.isColumnHidden(context, 'created'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  t.createdAt != null
+                      ? DateFormat(
+                          'MMM dd, yyyy',
+                        ).format(DateTime.parse(t.createdAt!))
+                      : '-',
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
+                ),
               ),
-            ),
             const SizedBox(width: 40),
           ],
         ),

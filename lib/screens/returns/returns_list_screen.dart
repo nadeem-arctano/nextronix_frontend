@@ -23,6 +23,9 @@ class ReturnsListScreen extends StatefulWidget {
 class _ReturnsListScreenState extends State<ReturnsListScreen> {
   final _searchController = TextEditingController();
 
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -65,14 +68,35 @@ class _ReturnsListScreenState extends State<ReturnsListScreen> {
                     ? const EmptyWidget(message: 'No return requests')
                     : AppListTable<ReturnRequest>(
                         columns: const [
-                          AppTableColumn(label: 'Return #', flex: 2),
-                          AppTableColumn(label: 'Order', flex: 2),
-                          AppTableColumn(label: 'Customer', flex: 3),
-                          AppTableColumn(label: 'Reason', flex: 3),
-                          AppTableColumn(label: 'Refund', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
-                          AppTableColumn(label: 'Date', flex: 2),
+                          AppTableColumn(
+                            key: 'return_number',
+                            label: 'Return #',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'order', label: 'Order', flex: 2),
+                          AppTableColumn(
+                            key: 'customer',
+                            label: 'Customer',
+                            flex: 3,
+                          ),
+                          AppTableColumn(
+                            key: 'reason',
+                            label: 'Reason',
+                            flex: 3,
+                          ),
+                          AppTableColumn(
+                            key: 'refund',
+                            label: 'Refund',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'date', label: 'Date', flex: 2),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: p.returns,
                         currentPage: p.currentPage,
                         totalPages: p.pagination?.totalPages ?? 1,
@@ -201,6 +225,20 @@ class _ReturnsListScreenState extends State<ReturnsListScreen> {
           _chip('Refunded', 'refunded', p.statusFilter, p.setStatusFilter),
           const SizedBox(width: 6),
           _chip('Completed', 'completed', p.statusFilter, p.setStatusFilter),
+          const SizedBox(width: 12),
+          AppListTableColumnMenu(
+            columns: const [
+              AppTableColumn(key: 'return_number', label: 'Return #'),
+              AppTableColumn(key: 'order', label: 'Order'),
+              AppTableColumn(key: 'customer', label: 'Customer'),
+              AppTableColumn(key: 'reason', label: 'Reason'),
+              AppTableColumn(key: 'refund', label: 'Refund'),
+              AppTableColumn(key: 'status', label: 'Status'),
+              AppTableColumn(key: 'date', label: 'Date'),
+            ],
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -249,75 +287,84 @@ class _ReturnsListScreenState extends State<ReturnsListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                r.returnNumber,
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'monospace',
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                r.orderNumber ?? '-',
-                style: theme.textTheme.small.copyWith(fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    r.customerName ?? '-',
-                    style: theme.textTheme.small.copyWith(fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            if (!AppListTable.isColumnHidden(context, 'return_number'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  r.returnNumber,
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
                   ),
-                  Text(
-                    r.customerEmail ?? '',
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Text(
-                r.reason ?? '-',
-                style: theme.textTheme.small.copyWith(fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                r.refundAmount > 0
-                    ? '₹${r.refundAmount.toStringAsFixed(0)}'
-                    : '-',
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
-            Expanded(flex: 2, child: StatusBadge(status: r.status)),
-            Expanded(
-              flex: 2,
-              child: Text(
-                r.createdAt != null
-                    ? DateFormat('MMM dd').format(DateTime.parse(r.createdAt!))
-                    : '-',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
+            if (!AppListTable.isColumnHidden(context, 'order'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  r.orderNumber ?? '-',
+                  style: theme.textTheme.small.copyWith(fontSize: 12),
+                ),
               ),
-            ),
+            if (!AppListTable.isColumnHidden(context, 'customer'))
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.customerName ?? '-',
+                      style: theme.textTheme.small.copyWith(fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      r.customerEmail ?? '',
+                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'reason'))
+              Expanded(
+                flex: 3,
+                child: Text(
+                  r.reason ?? '-',
+                  style: theme.textTheme.small.copyWith(fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'refund'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  r.refundAmount > 0
+                      ? '₹${r.refundAmount.toStringAsFixed(0)}'
+                      : '-',
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'status'))
+              Expanded(flex: 2, child: StatusBadge(status: r.status)),
+            if (!AppListTable.isColumnHidden(context, 'date'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  r.createdAt != null
+                      ? DateFormat(
+                          'MMM dd',
+                        ).format(DateTime.parse(r.createdAt!))
+                      : '-',
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
+                ),
+              ),
             const SizedBox(width: 40),
           ],
         ),

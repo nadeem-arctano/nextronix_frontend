@@ -19,6 +19,10 @@ class MaterialsMasterScreen extends StatefulWidget {
 }
 
 class _MaterialsMasterScreenState extends State<MaterialsMasterScreen> {
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live in the page header actions alongside the Add Material button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +44,15 @@ class _MaterialsMasterScreenState extends State<MaterialsMasterScreen> {
               PageHeader(
                 title: 'Materials',
                 actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'name', label: 'Name'),
+                      AppTableColumn(key: 'description', label: 'Description'),
+                      AppTableColumn(key: 'status', label: 'Status'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showMaterialDialog(context, provider),
@@ -55,10 +68,19 @@ class _MaterialsMasterScreenState extends State<MaterialsMasterScreen> {
                     ? const EmptyWidget(message: 'No materials found')
                     : AppListTable<MaterialMasterItem>(
                         columns: const [
-                          AppTableColumn(label: 'Name', flex: 3),
-                          AppTableColumn(label: 'Description', flex: 5),
-                          AppTableColumn(label: 'Status', flex: 2),
+                          AppTableColumn(key: 'name', label: 'Name', flex: 3),
+                          AppTableColumn(
+                            key: 'description',
+                            label: 'Description',
+                            flex: 5,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.materials,
                         currentPage: 1,
                         totalPages: 1,
@@ -85,20 +107,23 @@ class _MaterialsMasterScreenState extends State<MaterialsMasterScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(material.name, style: theme.textTheme.small),
-          ),
-          Expanded(
-            flex: 5,
-            child: Text(
-              material.description ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'name'))
+            Expanded(
+              flex: 3,
+              child: Text(material.name, style: theme.textTheme.small),
             ),
-          ),
-          Expanded(flex: 2, child: StatusBadge(status: material.status)),
+          if (!AppListTable.isColumnHidden(context, 'description'))
+            Expanded(
+              flex: 5,
+              child: Text(
+                material.description ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(flex: 2, child: StatusBadge(status: material.status)),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

@@ -20,6 +20,9 @@ class InvoiceBreakupScreen extends StatefulWidget {
 }
 
 class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +45,23 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
                 title: 'Invoice GST Breakup',
                 subtitle: 'Per-invoice tax breakdown',
                 onBack: () => smartBack(context, '/admin/gst'),
+                actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'invoice', label: 'Invoice'),
+                      AppTableColumn(key: 'date', label: 'Date'),
+                      AppTableColumn(key: 'customer', label: 'Customer'),
+                      AppTableColumn(key: 'state', label: 'State'),
+                      AppTableColumn(key: 'taxable', label: 'Taxable'),
+                      AppTableColumn(key: 'cgst', label: 'CGST'),
+                      AppTableColumn(key: 'sgst', label: 'SGST'),
+                      AppTableColumn(key: 'total_gst', label: 'Total GST'),
+                      AppTableColumn(key: 'total', label: 'Total'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -51,16 +71,33 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
                     ? const EmptyWidget(message: 'No invoices')
                     : AppListTable<InvoiceBreakupItem>(
                         columns: const [
-                          AppTableColumn(label: 'Invoice', flex: 2),
-                          AppTableColumn(label: 'Date', flex: 2),
-                          AppTableColumn(label: 'Customer', flex: 3),
-                          AppTableColumn(label: 'State', flex: 2),
-                          AppTableColumn(label: 'Taxable', flex: 2),
-                          AppTableColumn(label: 'CGST', flex: 1),
-                          AppTableColumn(label: 'SGST', flex: 1),
-                          AppTableColumn(label: 'Total GST', flex: 2),
-                          AppTableColumn(label: 'Total', flex: 2),
+                          AppTableColumn(
+                            key: 'invoice',
+                            label: 'Invoice',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'date', label: 'Date', flex: 2),
+                          AppTableColumn(
+                            key: 'customer',
+                            label: 'Customer',
+                            flex: 3,
+                          ),
+                          AppTableColumn(key: 'state', label: 'State', flex: 2),
+                          AppTableColumn(
+                            key: 'taxable',
+                            label: 'Taxable',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'cgst', label: 'CGST', flex: 1),
+                          AppTableColumn(key: 'sgst', label: 'SGST', flex: 1),
+                          AppTableColumn(
+                            key: 'total_gst',
+                            label: 'Total GST',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'total', label: 'Total', flex: 2),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: p.invoiceData,
                         currentPage: p.invoicePagination?.currentPage ?? 1,
                         totalPages: p.invoicePagination?.totalPages ?? 1,
@@ -86,84 +123,93 @@ class _InvoiceBreakupScreenState extends State<InvoiceBreakupScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                item.invoiceNumber,
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'monospace',
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                item.invoiceDate != null
-                    ? DateFormat(
-                        'MMM dd, yyyy',
-                      ).format(DateTime.parse(item.invoiceDate!))
-                    : '-',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Text(
-                item.customerName ?? '-',
-                style: theme.textTheme.small.copyWith(fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                item.state ?? '-',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '₹${item.taxableAmount.toStringAsFixed(0)}',
-                style: theme.textTheme.small,
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                '₹${item.cgst.toStringAsFixed(0)}',
-                style: theme.textTheme.small.copyWith(fontSize: 11),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                '₹${item.sgst.toStringAsFixed(0)}',
-                style: theme.textTheme.small.copyWith(fontSize: 11),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '₹${item.totalGst.toStringAsFixed(0)}',
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
+            if (!AppListTable.isColumnHidden(context, 'invoice'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  item.invoiceNumber,
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '₹${item.invoiceTotal.toStringAsFixed(0)}',
-                style: theme.textTheme.small.copyWith(
-                  fontWeight: FontWeight.w600,
+            if (!AppListTable.isColumnHidden(context, 'date'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  item.invoiceDate != null
+                      ? DateFormat(
+                          'MMM dd, yyyy',
+                        ).format(DateTime.parse(item.invoiceDate!))
+                      : '-',
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
                 ),
               ),
-            ),
+            if (!AppListTable.isColumnHidden(context, 'customer'))
+              Expanded(
+                flex: 3,
+                child: Text(
+                  item.customerName ?? '-',
+                  style: theme.textTheme.small.copyWith(fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'state'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  item.state ?? '-',
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'taxable'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  '₹${item.taxableAmount.toStringAsFixed(0)}',
+                  style: theme.textTheme.small,
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'cgst'))
+              Expanded(
+                flex: 1,
+                child: Text(
+                  '₹${item.cgst.toStringAsFixed(0)}',
+                  style: theme.textTheme.small.copyWith(fontSize: 11),
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'sgst'))
+              Expanded(
+                flex: 1,
+                child: Text(
+                  '₹${item.sgst.toStringAsFixed(0)}',
+                  style: theme.textTheme.small.copyWith(fontSize: 11),
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'total_gst'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  '₹${item.totalGst.toStringAsFixed(0)}',
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            if (!AppListTable.isColumnHidden(context, 'total'))
+              Expanded(
+                flex: 2,
+                child: Text(
+                  '₹${item.invoiceTotal.toStringAsFixed(0)}',
+                  style: theme.textTheme.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             const SizedBox(width: 40),
           ],
         ),

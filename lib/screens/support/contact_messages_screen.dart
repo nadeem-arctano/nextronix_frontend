@@ -21,6 +21,9 @@ class ContactMessagesScreen extends StatefulWidget {
 }
 
 class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +46,20 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
                 title: 'Contact Messages',
                 subtitle: 'Messages submitted via the contact form',
                 onBack: () => smartBack(context, '/admin/support'),
+                actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'name', label: 'Name'),
+                      AppTableColumn(key: 'email', label: 'Email'),
+                      AppTableColumn(key: 'subject', label: 'Subject'),
+                      AppTableColumn(key: 'message', label: 'Message'),
+                      AppTableColumn(key: 'status', label: 'Status'),
+                      AppTableColumn(key: 'date', label: 'Date'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -52,13 +69,26 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
                     ? const EmptyWidget(message: 'No contact messages')
                     : AppListTable<ContactMessage>(
                         columns: const [
-                          AppTableColumn(label: 'Name', flex: 2),
-                          AppTableColumn(label: 'Email', flex: 3),
-                          AppTableColumn(label: 'Subject', flex: 3),
-                          AppTableColumn(label: 'Message', flex: 4),
-                          AppTableColumn(label: 'Status', flex: 1),
-                          AppTableColumn(label: 'Date', flex: 2),
+                          AppTableColumn(key: 'name', label: 'Name', flex: 2),
+                          AppTableColumn(key: 'email', label: 'Email', flex: 3),
+                          AppTableColumn(
+                            key: 'subject',
+                            label: 'Subject',
+                            flex: 3,
+                          ),
+                          AppTableColumn(
+                            key: 'message',
+                            label: 'Message',
+                            flex: 4,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 1,
+                          ),
+                          AppTableColumn(key: 'date', label: 'Date', flex: 2),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: p.contactMessages,
                         currentPage: p.contactPagination?.currentPage ?? 1,
                         totalPages: p.contactPagination?.totalPages ?? 1,
@@ -82,50 +112,56 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              m.name,
-              style: theme.textTheme.small.copyWith(
-                fontWeight: FontWeight.w500,
+          if (!AppListTable.isColumnHidden(context, 'name'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                m.name,
+                style: theme.textTheme.small.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              m.email,
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+          if (!AppListTable.isColumnHidden(context, 'email'))
+            Expanded(
+              flex: 3,
+              child: Text(
+                m.email,
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              m.subject ?? '-',
-              style: theme.textTheme.small,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'subject'))
+            Expanded(
+              flex: 3,
+              child: Text(
+                m.subject ?? '-',
+                style: theme.textTheme.small,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 4,
-            child: Text(
-              m.message,
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'message'))
+            Expanded(
+              flex: 4,
+              child: Text(
+                m.message,
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Expanded(flex: 1, child: StatusBadge(status: m.status)),
-          Expanded(
-            flex: 2,
-            child: Text(
-              m.createdAt != null
-                  ? DateFormat('MMM dd').format(DateTime.parse(m.createdAt!))
-                  : '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(flex: 1, child: StatusBadge(status: m.status)),
+          if (!AppListTable.isColumnHidden(context, 'date'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                m.createdAt != null
+                    ? DateFormat('MMM dd').format(DateTime.parse(m.createdAt!))
+                    : '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
             ),
-          ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

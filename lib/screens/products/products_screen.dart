@@ -30,6 +30,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final _maxPriceController = TextEditingController();
   bool _showPriceApply = false;
 
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live inside the filter row alongside search and filters.
+  Set<String> _hiddenColumns = <String>{};
+
   // Variant-group expansion state. Tracked per parent product id so the user
   // can drill into a parent's variations inline without navigating away.
   final Set<int> _expandedParents = <int>{};
@@ -149,14 +153,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ? const EmptyWidget(message: 'No products found')
                     : AppListTable<ProductResult>(
                         columns: const [
-                          AppTableColumn(label: 'Product', flex: 6),
-                          AppTableColumn(label: 'SKU', flex: 2),
-                          AppTableColumn(label: 'Category', flex: 2),
-                          AppTableColumn(label: 'HSN', flex: 2),
-                          AppTableColumn(label: 'Color', flex: 2),
-                          AppTableColumn(label: 'Price', flex: 2),
-                          AppTableColumn(label: 'Stock', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 1),
+                          AppTableColumn(
+                            key: 'product',
+                            label: 'Product',
+                            flex: 6,
+                          ),
+                          AppTableColumn(key: 'sku', label: 'SKU', flex: 2),
+                          AppTableColumn(
+                            key: 'category',
+                            label: 'Category',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'hsn', label: 'HSN', flex: 2),
+                          AppTableColumn(key: 'color', label: 'Color', flex: 2),
+                          AppTableColumn(key: 'price', label: 'Price', flex: 2),
+                          AppTableColumn(key: 'stock', label: 'Stock', flex: 2),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 1,
+                          ),
                         ],
                         trailingWidth: 70,
                         items: provider.products,
@@ -418,6 +434,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   ),
                 ],
               ],
+              const SizedBox(width: 12),
+              // Column-visibility toggle, same icon as the table's built-in
+              // toolbar but rendered here so it sits alongside the filters.
+              AppListTableColumnMenu(
+                columns: const [
+                  AppTableColumn(key: 'product', label: 'Product'),
+                  AppTableColumn(key: 'sku', label: 'SKU'),
+                  AppTableColumn(key: 'category', label: 'Category'),
+                  AppTableColumn(key: 'hsn', label: 'HSN'),
+                  AppTableColumn(key: 'color', label: 'Color'),
+                  AppTableColumn(key: 'price', label: 'Price'),
+                  AppTableColumn(key: 'stock', label: 'Stock'),
+                  AppTableColumn(key: 'status', label: 'Status'),
+                ],
+                hiddenColumns: _hiddenColumns,
+                onChanged: (next) => setState(() => _hiddenColumns = next),
+              ),
             ],
           ),
         ),
@@ -486,259 +519,269 @@ class _ProductsScreenState extends State<ProductsScreen> {
       child: Row(
         children: [
           // Product (image + name + brand)
-          Expanded(
-            flex: 6,
-            child: Row(
-              children: [
-                // Chevron occupies a fixed slot on every row so the image and
-                // names line up regardless of whether the row is a parent.
-                SizedBox(
-                  width: 22,
-                  child: isParent
-                      ? GestureDetector(
-                          onTap: () => _toggleParentExpansion(product.id!),
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: AnimatedRotation(
-                              turns: isExpanded ? 0.25 : 0,
-                              duration: const Duration(milliseconds: 150),
-                              child: Icon(
-                                LucideIcons.chevronRight,
-                                size: 16,
-                                color: theme.colorScheme.mutedForeground,
+          if (!AppListTable.isColumnHidden(context, 'product'))
+            Expanded(
+              flex: 6,
+              child: Row(
+                children: [
+                  // Chevron occupies a fixed slot on every row so the image and
+                  // names line up regardless of whether the row is a parent.
+                  SizedBox(
+                    width: 22,
+                    child: isParent
+                        ? GestureDetector(
+                            onTap: () => _toggleParentExpansion(product.id!),
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: AnimatedRotation(
+                                turns: isExpanded ? 0.25 : 0,
+                                duration: const Duration(milliseconds: 150),
+                                child: Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 16,
+                                  color: theme.colorScheme.mutedForeground,
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                      : null,
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    color: theme.colorScheme.muted,
-                    child: product.thumbnailImage != null
-                        ? Image.network(
-                            ApiConstants.getImageUrl(product.thumbnailImage),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(LucideIcons.image, size: 16),
                           )
-                        : Icon(
-                            LucideIcons.image,
-                            size: 16,
-                            color: theme.colorScheme.mutedForeground,
-                          ),
+                        : null,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              product.name ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.small,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      color: theme.colorScheme.muted,
+                      child: product.thumbnailImage != null
+                          ? Image.network(
+                              ApiConstants.getImageUrl(product.thumbnailImage),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(LucideIcons.image, size: 16),
+                            )
+                          : Icon(
+                              LucideIcons.image,
+                              size: 16,
+                              color: theme.colorScheme.mutedForeground,
                             ),
-                          ),
-                          if (product.groupRole == 'parent') ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.brand.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
                               child: Text(
-                                'VARIATION',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.brand,
-                                  letterSpacing: 0.6,
-                                ),
+                                product.name ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.small,
                               ),
                             ),
-                          ] else if (product.groupRole == 'child') ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.textSecondary.withValues(
-                                  alpha: 0.12,
+                            if (product.groupRole == 'parent') ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
                                 ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                'VARIATION',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textSecondary,
-                                  letterSpacing: 0.6,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brand.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'VARIATION',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.brand,
+                                    letterSpacing: 0.6,
+                                  ),
                                 ),
                               ),
-                            ),
+                            ] else if (product.groupRole == 'child') ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.textSecondary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'VARIATION',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textSecondary,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                      if (product.shortDescription != null &&
-                          product.shortDescription!.trim().isNotEmpty)
-                        Text(
-                          product.shortDescription!,
-                          style: theme.textTheme.muted.copyWith(fontSize: 11),
+                        ),
+                        if (product.shortDescription != null &&
+                            product.shortDescription!.trim().isNotEmpty)
+                          Text(
+                            product.shortDescription!,
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // SKU
+          if (!AppListTable.isColumnHidden(context, 'sku'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                product.sku ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ),
+
+          // Category
+          if (!AppListTable.isColumnHidden(context, 'category'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                product.categoryName ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ),
+
+          // HSN
+          if (!AppListTable.isColumnHidden(context, 'hsn'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                product.hsnCode ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ),
+
+          // Color (variant-specific label preferred over the base color field)
+          if (!AppListTable.isColumnHidden(context, 'color'))
+            Expanded(
+              flex: 2,
+              child: Builder(
+                builder: (_) {
+                  final label =
+                      (product.variantOptionColor?.trim().isNotEmpty ?? false)
+                      ? product.variantOptionColor!
+                      : (product.color?.trim().isNotEmpty ?? false)
+                      ? product.color!
+                      : null;
+                  if (label == null) {
+                    return Text(
+                      '-',
+                      style: theme.textTheme.muted.copyWith(fontSize: 12),
+                    );
+                  }
+                  return Row(
+                    children: [
+                      _ColorSwatch(label: label),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.muted.copyWith(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
+          // Price
+          if (!AppListTable.isColumnHidden(context, 'price'))
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
+                        style: theme.textTheme.small.copyWith(fontSize: 12),
+                      ),
+                      if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
+                        Text(
+                          '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
+                          style: theme.textTheme.muted.copyWith(
+                            fontSize: 10,
+                            decoration: TextDecoration.lineThrough,
+                          ),
                         ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // SKU
-          Expanded(
-            flex: 2,
-            child: Text(
-              product.sku ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            ),
-          ),
-
-          // Category
-          Expanded(
-            flex: 2,
-            child: Text(
-              product.categoryName ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            ),
-          ),
-
-          // HSN
-          Expanded(
-            flex: 2,
-            child: Text(
-              product.hsnCode ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            ),
-          ),
-
-          // Color (variant-specific label preferred over the base color field)
-          Expanded(
-            flex: 2,
-            child: Builder(
-              builder: (_) {
-                final label =
-                    (product.variantOptionColor?.trim().isNotEmpty ?? false)
-                    ? product.variantOptionColor!
-                    : (product.color?.trim().isNotEmpty ?? false)
-                    ? product.color!
-                    : null;
-                if (label == null) {
-                  return Text(
-                    '-',
-                    style: theme.textTheme.muted.copyWith(fontSize: 12),
-                  );
-                }
-                return Row(
-                  children: [
-                    _ColorSwatch(label: label),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.muted.copyWith(fontSize: 12),
-                      ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () =>
+                        _showPriceEditDialog(context, product, provider),
+                    child: Icon(
+                      LucideIcons.pencil,
+                      size: 12,
+                      color: theme.colorScheme.mutedForeground,
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
-
-          // Price
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '₹${(product.sellingPrice ?? 0).toStringAsFixed(0)}',
-                      style: theme.textTheme.small.copyWith(fontSize: 12),
-                    ),
-                    if ((product.mrpPrice ?? 0) > (product.sellingPrice ?? 0))
-                      Text(
-                        '₹${(product.mrpPrice ?? 0).toStringAsFixed(0)}',
-                        style: theme.textTheme.muted.copyWith(
-                          fontSize: 10,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: () => _showPriceEditDialog(context, product, provider),
-                  child: Icon(
-                    LucideIcons.pencil,
-                    size: 12,
-                    color: theme.colorScheme.mutedForeground,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           // Stock
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                Text(
-                  '${product.stockQuantity ?? 0}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: product.isLowStock
-                        ? AppTheme.dangerColor
-                        : theme.colorScheme.foreground,
+          if (!AppListTable.isColumnHidden(context, 'stock'))
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Text(
+                    '${product.stockQuantity ?? 0}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: product.isLowStock
+                          ? AppTheme.dangerColor
+                          : theme.colorScheme.foreground,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: () => _showStockEditDialog(context, product, provider),
-                  child: Icon(
-                    LucideIcons.pencil,
-                    size: 12,
-                    color: theme.colorScheme.mutedForeground,
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () =>
+                        _showStockEditDialog(context, product, provider),
+                    child: Icon(
+                      LucideIcons.pencil,
+                      size: 12,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           // Status
-          Expanded(
-            flex: 1,
-            child: StatusBadge(status: product.status ?? 'active'),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 1,
+              child: StatusBadge(status: product.status ?? 'active'),
+            ),
 
           // Featured indicator + View button
           SizedBox(

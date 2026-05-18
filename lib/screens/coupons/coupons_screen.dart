@@ -18,6 +18,9 @@ class CouponsScreen extends StatefulWidget {
 }
 
 class _CouponsScreenState extends State<CouponsScreen> {
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,18 @@ class _CouponsScreenState extends State<CouponsScreen> {
               PageHeader(
                 title: 'Coupons',
                 actions: [
+                  AppListTableColumnMenu(
+                    columns: const [
+                      AppTableColumn(key: 'code', label: 'Code'),
+                      AppTableColumn(key: 'discount', label: 'Discount'),
+                      AppTableColumn(key: 'min_order', label: 'Min Order'),
+                      AppTableColumn(key: 'usage', label: 'Usage'),
+                      AppTableColumn(key: 'expiry', label: 'Expiry'),
+                      AppTableColumn(key: 'status', label: 'Status'),
+                    ],
+                    hiddenColumns: _hiddenColumns,
+                    onChanged: (next) => setState(() => _hiddenColumns = next),
+                  ),
                   ShadButton(
                     leading: const Icon(LucideIcons.plus, size: 16),
                     onPressed: () => _showCouponDialog(context, provider),
@@ -54,13 +69,30 @@ class _CouponsScreenState extends State<CouponsScreen> {
                     ? const EmptyWidget(message: 'No coupons found')
                     : AppListTable<CouponResult>(
                         columns: const [
-                          AppTableColumn(label: 'Code', flex: 3),
-                          AppTableColumn(label: 'Discount', flex: 2),
-                          AppTableColumn(label: 'Min Order', flex: 2),
-                          AppTableColumn(label: 'Usage', flex: 2),
-                          AppTableColumn(label: 'Expiry', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
+                          AppTableColumn(key: 'code', label: 'Code', flex: 3),
+                          AppTableColumn(
+                            key: 'discount',
+                            label: 'Discount',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'min_order',
+                            label: 'Min Order',
+                            flex: 2,
+                          ),
+                          AppTableColumn(key: 'usage', label: 'Usage', flex: 2),
+                          AppTableColumn(
+                            key: 'expiry',
+                            label: 'Expiry',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.coupons,
                         currentPage: 1,
                         totalPages: 1,
@@ -84,49 +116,55 @@ class _CouponsScreenState extends State<CouponsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              coupon.code ?? '-',
-              style: theme.textTheme.small.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+          if (!AppListTable.isColumnHidden(context, 'code'))
+            Expanded(
+              flex: 3,
+              child: Text(
+                coupon.code ?? '-',
+                style: theme.textTheme.small.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(coupon.discountDisplay, style: theme.textTheme.small),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '₹${coupon.minOrderAmount?.toStringAsFixed(0) ?? '0'}',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+          if (!AppListTable.isColumnHidden(context, 'discount'))
+            Expanded(
+              flex: 2,
+              child: Text(coupon.discountDisplay, style: theme.textTheme.small),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${coupon.usedCount ?? 0}/${coupon.usageLimit == 0 ? '∞' : coupon.usageLimit}',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+          if (!AppListTable.isColumnHidden(context, 'min_order'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                '₹${coupon.minOrderAmount?.toStringAsFixed(0) ?? '0'}',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              coupon.expiryDate != null
-                  ? DateFormat(
-                      'dd MMM yyyy',
-                    ).format(DateTime.parse(coupon.expiryDate!))
-                  : 'No expiry',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+          if (!AppListTable.isColumnHidden(context, 'usage'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${coupon.usedCount ?? 0}/${coupon.usageLimit == 0 ? '∞' : coupon.usageLimit}',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: StatusBadge(status: coupon.status ?? 'active'),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'expiry'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                coupon.expiryDate != null
+                    ? DateFormat(
+                        'dd MMM yyyy',
+                      ).format(DateTime.parse(coupon.expiryDate!))
+                    : 'No expiry',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 2,
+              child: StatusBadge(status: coupon.status ?? 'active'),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

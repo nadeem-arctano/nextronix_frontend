@@ -24,6 +24,11 @@ class InventoryLogsScreen extends StatefulWidget {
 class _InventoryLogsScreenState extends State<InventoryLogsScreen> {
   final _searchCtrl = TextEditingController();
 
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live inside the filter row alongside search and dropdowns — matches
+  /// the admins screen behaviour.
+  Set<String> _hiddenColumns = <String>{};
+
   static const _reasonLabels = <String, String>{
     'order_deduction': 'Order',
     'return_restock': 'Return',
@@ -123,6 +128,15 @@ class _InventoryLogsScreenState extends State<InventoryLogsScreen> {
               ),
             ),
           ],
+
+          const SizedBox(width: 12),
+          // Column-visibility toggle, same icon as the table's built-in
+          // toolbar but rendered here so it sits alongside the filters.
+          ColumnVisibilityMenu<InventoryLog>(
+            columns: _columnsFor(),
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -130,89 +144,10 @@ class _InventoryLogsScreenState extends State<InventoryLogsScreen> {
 
   Widget _buildTable(InventoryProvider p) {
     return AdvancedDataTable<InventoryLog>(
-      columns: [
-        AdvancedTableColumn<InventoryLog>(
-          key: 'when',
-          label: 'When',
-          flex: 2,
-          cellBuilder: (l, _) => Text(
-            l.createdAt != null
-                ? DateFormat(
-                    'MMM dd, HH:mm',
-                  ).format(DateTime.parse(l.createdAt!).toLocal())
-                : '-',
-            style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<InventoryLog>(
-          key: 'product',
-          label: 'Product',
-          flex: 4,
-          cellBuilder: (l, _) {
-            final theme = ShadTheme.of(context);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  l.productName ?? '-',
-                  style: theme.textTheme.small,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (l.productSku != null || l.variantSku != null)
-                  Text(
-                    [
-                      l.productSku,
-                      l.variantSku,
-                    ].whereType<String>().join(' / '),
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
-                  ),
-              ],
-            );
-          },
-        ),
-        AdvancedTableColumn<InventoryLog>(
-          key: 'reason',
-          label: 'Reason',
-          flex: 2,
-          cellBuilder: (l, _) => _ReasonBadge(reason: l.reason),
-        ),
-        AdvancedTableColumn<InventoryLog>(
-          key: 'change',
-          label: 'Change',
-          flex: 2,
-          cellBuilder: (l, _) => _StockChange(log: l),
-        ),
-        AdvancedTableColumn<InventoryLog>(
-          key: 'actor',
-          label: 'By',
-          flex: 2,
-          cellBuilder: (l, _) {
-            final theme = ShadTheme.of(context);
-            return Text(
-              l.userName ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            );
-          },
-        ),
-        AdvancedTableColumn<InventoryLog>(
-          key: 'note',
-          label: 'Note',
-          flex: 3,
-          cellBuilder: (l, _) {
-            final theme = ShadTheme.of(context);
-            return Text(
-              l.note ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            );
-          },
-        ),
-      ],
+      columns: _columnsFor(),
+      hiddenColumns: _hiddenColumns,
+      onHiddenColumnsChanged: (next) => setState(() => _hiddenColumns = next),
+      showColumnToggle: false,
       items: p.items,
       idOf: (l) => l.id,
       currentPage: p.pagination?.currentPage ?? p.currentPage,
@@ -221,6 +156,92 @@ class _InventoryLogsScreenState extends State<InventoryLogsScreen> {
       itemLabel: 'movements',
       onPageChanged: (page) => p.load(page: page),
     );
+  }
+
+  /// Column definitions shared between [_buildTable] and the standalone
+  /// [ColumnVisibilityMenu] in the filter row, so toggling a column in
+  /// either place stays in sync.
+  List<AdvancedTableColumn<InventoryLog>> _columnsFor() {
+    return [
+      AdvancedTableColumn<InventoryLog>(
+        key: 'when',
+        label: 'When',
+        flex: 2,
+        cellBuilder: (l, _) => Text(
+          l.createdAt != null
+              ? DateFormat(
+                  'MMM dd, HH:mm',
+                ).format(DateTime.parse(l.createdAt!).toLocal())
+              : '-',
+          style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<InventoryLog>(
+        key: 'product',
+        label: 'Product',
+        flex: 4,
+        cellBuilder: (l, _) {
+          final theme = ShadTheme.of(context);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                l.productName ?? '-',
+                style: theme.textTheme.small,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (l.productSku != null || l.variantSku != null)
+                Text(
+                  [l.productSku, l.variantSku].whereType<String>().join(' / '),
+                  style: theme.textTheme.muted.copyWith(fontSize: 11),
+                ),
+            ],
+          );
+        },
+      ),
+      AdvancedTableColumn<InventoryLog>(
+        key: 'reason',
+        label: 'Reason',
+        flex: 2,
+        cellBuilder: (l, _) => _ReasonBadge(reason: l.reason),
+      ),
+      AdvancedTableColumn<InventoryLog>(
+        key: 'change',
+        label: 'Change',
+        flex: 2,
+        cellBuilder: (l, _) => _StockChange(log: l),
+      ),
+      AdvancedTableColumn<InventoryLog>(
+        key: 'actor',
+        label: 'By',
+        flex: 2,
+        cellBuilder: (l, _) {
+          final theme = ShadTheme.of(context);
+          return Text(
+            l.userName ?? '-',
+            style: theme.textTheme.muted.copyWith(fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        },
+      ),
+      AdvancedTableColumn<InventoryLog>(
+        key: 'note',
+        label: 'Note',
+        flex: 3,
+        cellBuilder: (l, _) {
+          final theme = ShadTheme.of(context);
+          return Text(
+            l.note ?? '-',
+            style: theme.textTheme.muted.copyWith(fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        },
+      ),
+    ];
   }
 }
 

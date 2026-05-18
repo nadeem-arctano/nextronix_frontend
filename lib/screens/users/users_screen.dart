@@ -23,6 +23,10 @@ class UsersScreen extends StatefulWidget {
 class _UsersScreenState extends State<UsersScreen> {
   final _searchController = TextEditingController();
 
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live inside the filter row alongside search and filters.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -80,12 +84,29 @@ class _UsersScreenState extends State<UsersScreen> {
                     ? const EmptyWidget(message: 'No customers found')
                     : AppListTable<UserListResult>(
                         columns: const [
-                          AppTableColumn(label: 'Customer Name', flex: 3),
-                          AppTableColumn(label: 'Email', flex: 3),
-                          AppTableColumn(label: 'Mobile', flex: 2),
-                          AppTableColumn(label: 'Status', flex: 2),
-                          AppTableColumn(label: 'Joined', flex: 2),
+                          AppTableColumn(
+                            key: 'name',
+                            label: 'Customer Name',
+                            flex: 3,
+                          ),
+                          AppTableColumn(key: 'email', label: 'Email', flex: 3),
+                          AppTableColumn(
+                            key: 'mobile',
+                            label: 'Mobile',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'status',
+                            label: 'Status',
+                            flex: 2,
+                          ),
+                          AppTableColumn(
+                            key: 'joined',
+                            label: 'Joined',
+                            flex: 2,
+                          ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         items: provider.users,
                         currentPage: provider.currentPage,
                         totalPages: provider.pagination?.totalPages ?? 1,
@@ -202,6 +223,20 @@ class _UsersScreenState extends State<UsersScreen> {
               ),
             ),
           ),
+          const SizedBox(width: 12),
+          // Column-visibility toggle, same icon as the table's built-in
+          // toolbar but rendered here so it sits alongside the filters.
+          AppListTableColumnMenu(
+            columns: const [
+              AppTableColumn(key: 'name', label: 'Customer Name'),
+              AppTableColumn(key: 'email', label: 'Email'),
+              AppTableColumn(key: 'mobile', label: 'Mobile'),
+              AppTableColumn(key: 'status', label: 'Status'),
+              AppTableColumn(key: 'joined', label: 'Joined'),
+            ],
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
@@ -249,51 +284,56 @@ class _UsersScreenState extends State<UsersScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                UserAvatar(name: user.name ?? 'U', radius: 15),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    user.name ?? 'N/A',
-                    style: theme.textTheme.small,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'name'))
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  UserAvatar(name: user.name ?? 'U', radius: 15),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      user.name ?? 'N/A',
+                      style: theme.textTheme.small,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              user.email ?? '-',
-              style: theme.textTheme.p.copyWith(fontSize: 13),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'email'))
+            Expanded(
+              flex: 3,
+              child: Text(
+                user.email ?? '-',
+                style: theme.textTheme.p.copyWith(fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(user.mobile ?? '-', style: theme.textTheme.muted),
-          ),
-          Expanded(
-            flex: 2,
-            child: StatusBadge(status: user.status ?? 'active'),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              user.createdAt != null
-                  ? DateFormat(
-                      'MMM dd, yyyy',
-                    ).format(DateTime.parse(user.createdAt!))
-                  : '-',
-              style: theme.textTheme.muted,
+          if (!AppListTable.isColumnHidden(context, 'mobile'))
+            Expanded(
+              flex: 2,
+              child: Text(user.mobile ?? '-', style: theme.textTheme.muted),
             ),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 2,
+              child: StatusBadge(status: user.status ?? 'active'),
+            ),
+          if (!AppListTable.isColumnHidden(context, 'joined'))
+            Expanded(
+              flex: 2,
+              child: Text(
+                user.createdAt != null
+                    ? DateFormat(
+                        'MMM dd, yyyy',
+                      ).format(DateTime.parse(user.createdAt!))
+                    : '-',
+                style: theme.textTheme.muted,
+              ),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(

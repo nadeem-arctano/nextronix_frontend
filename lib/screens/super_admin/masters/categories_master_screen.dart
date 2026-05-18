@@ -33,6 +33,9 @@ class _CategoriesMasterScreenState extends State<CategoriesMasterScreen> {
   bool _isLoading = false;
   String? _error;
 
+  /// Locally-managed hidden-columns set for the column-toggle button.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +87,15 @@ class _CategoriesMasterScreenState extends State<CategoriesMasterScreen> {
           PageHeader(
             title: 'Categories',
             actions: [
+              AppListTableColumnMenu(
+                columns: const [
+                  AppTableColumn(key: 'category', label: 'Category'),
+                  AppTableColumn(key: 'slug', label: 'Slug'),
+                  AppTableColumn(key: 'status', label: 'Status'),
+                ],
+                hiddenColumns: _hiddenColumns,
+                onChanged: (next) => setState(() => _hiddenColumns = next),
+              ),
               ShadButton(
                 leading: const Icon(LucideIcons.plus, size: 16),
                 onPressed: () => _showCategoryDialog(context),
@@ -104,10 +116,15 @@ class _CategoriesMasterScreenState extends State<CategoriesMasterScreen> {
                 ? const EmptyWidget(message: 'No categories found')
                 : AppListTable<_CategoryMasterItem>(
                     columns: const [
-                      AppTableColumn(label: 'Category', flex: 4),
-                      AppTableColumn(label: 'Slug', flex: 3),
-                      AppTableColumn(label: 'Status', flex: 2),
+                      AppTableColumn(
+                        key: 'category',
+                        label: 'Category',
+                        flex: 4,
+                      ),
+                      AppTableColumn(key: 'slug', label: 'Slug', flex: 3),
+                      AppTableColumn(key: 'status', label: 'Status', flex: 2),
                     ],
+                    hiddenColumns: _hiddenColumns,
                     items: _categories,
                     currentPage: 1,
                     totalPages: 1,
@@ -128,41 +145,44 @@ class _CategoriesMasterScreenState extends State<CategoriesMasterScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category.name ?? '-',
-                  style: theme.textTheme.small,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (category.description != null &&
-                    category.description!.isNotEmpty)
+          if (!AppListTable.isColumnHidden(context, 'category'))
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    category.description!,
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
+                    category.name ?? '-',
+                    style: theme.textTheme.small,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-              ],
+                  if (category.description != null &&
+                      category.description!.isNotEmpty)
+                    Text(
+                      category.description!,
+                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              category.slug ?? '-',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (!AppListTable.isColumnHidden(context, 'slug'))
+            Expanded(
+              flex: 3,
+              child: Text(
+                category.slug ?? '-',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: StatusBadge(status: category.status ?? 'active'),
-          ),
+          if (!AppListTable.isColumnHidden(context, 'status'))
+            Expanded(
+              flex: 2,
+              child: StatusBadge(status: category.status ?? 'active'),
+            ),
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(
