@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
@@ -12,6 +11,7 @@ import '../../provider/product_provider.dart';
 import '../../provider/category_provider.dart';
 import '../../repository/nextronix_repository.dart';
 import '../../widgets/app_list_table.dart';
+import '../../widgets/debounced_search_input.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/skeletons.dart';
@@ -28,7 +28,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
   final _minPriceController = TextEditingController();
   final _maxPriceController = TextEditingController();
-  Timer? _debounceTimer;
   bool _showPriceApply = false;
 
   // Variant-group expansion state. Tracked per parent product id so the user
@@ -51,20 +50,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     _minPriceController.dispose();
     _maxPriceController.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      context.read<ProductProvider>().setSearch(
-        value.trim().isEmpty ? null : value.trim(),
-      );
-    });
   }
 
   /// Toggles the expanded state for a parent row and lazily fetches its
@@ -198,19 +187,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              // Search
-              SizedBox(
-                width: 260,
-                child: ShadInput(
-                  controller: _searchController,
-                  placeholder: const Text('Search products...'),
-                  style: const TextStyle(fontSize: 12),
-                  onSubmitted: (value) => provider.setSearch(value),
-                  onChanged: (value) {
-                    setState(() {});
-                    _onSearchChanged(value);
-                  },
-                ),
+              // Search (auto-debounced via shared widget).
+              DebouncedSearchInput(
+                controller: _searchController,
+                placeholder: 'Search products...',
+                initialValue: provider.searchQuery,
+                onSearch: provider.setSearch,
               ),
               const SizedBox(width: 12),
 

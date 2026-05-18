@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../model/response/response.dart';
 import '../../provider/support_provider.dart';
 import '../../widgets/app_list_table.dart';
+import '../../widgets/debounced_search_input.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
@@ -24,7 +23,6 @@ class SupportListScreen extends StatefulWidget {
 
 class _SupportListScreenState extends State<SupportListScreen> {
   final _searchController = TextEditingController();
-  Timer? _debounce;
 
   @override
   void initState() {
@@ -39,18 +37,8 @@ class _SupportListScreenState extends State<SupportListScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      context.read<SupportProvider>().setSearch(
-        value.trim().isEmpty ? null : value.trim(),
-      );
-    });
   }
 
   @override
@@ -198,14 +186,11 @@ class _SupportListScreenState extends State<SupportListScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          SizedBox(
-            width: 260,
-            child: ShadInput(
-              controller: _searchController,
-              placeholder: const Text('Search tickets...'),
-              style: const TextStyle(fontSize: 12),
-              onChanged: _onSearchChanged,
-            ),
+          DebouncedSearchInput(
+            controller: _searchController,
+            placeholder: 'Search tickets...',
+            initialValue: p.search,
+            onSearch: p.setSearch,
           ),
           const SizedBox(width: 12),
           _chip('All', null, p.statusFilter, p.setStatusFilter),

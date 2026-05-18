@@ -50,11 +50,6 @@ class _SuperAdminLayoutState extends State<SuperAdminLayout> {
       label: 'Materials',
       path: '/super-admin/masters/materials',
     ),
-    _NavItem(
-      icon: LucideIcons.settings,
-      label: 'Settings',
-      path: '/super-admin/settings',
-    ),
   ];
 
   @override

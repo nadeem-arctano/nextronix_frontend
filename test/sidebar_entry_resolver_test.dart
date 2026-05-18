@@ -8,18 +8,18 @@ import 'package:nextronix_frontend/utils/sidebar_entry_resolver.dart';
 /// For any user role in {super_admin, admin, manager}, the set of sidebar
 /// entries computed by the resolver equals the canonical entry set defined
 /// in the spec table for that role:
-/// - super_admin sees Dashboard/Admins/Categories/HSN/Colors/Materials/Settings
+/// - super_admin sees Dashboard/Admins/Categories/HSN/Colors/Materials
 /// - admin and manager see brand-management entries with Categories, HSN,
 ///   Colors, Materials, and Admins absent.
 void main() {
   group('Property 4: Sidebar entry resolver', () {
     // --- Requirement 11.1 ---
     // WHEN the Sidebar renders for a user with role='super_admin', THE Frontend
-    // SHALL show: Dashboard, Admins, Categories, HSN, Colors, Materials, Settings.
+    // SHALL show: Dashboard, Admins, Categories, HSN, Colors, Materials.
 
     group('super_admin sidebar entries (Req 11.1)', () {
       test(
-        'super_admin sees exactly the canonical 7 entries in correct order',
+        'super_admin sees exactly the canonical 6 entries in correct order',
         () {
           final entries = resolveSidebarEntries(role: 'super_admin');
           final labels = entries.map((e) => e.label).toList();
@@ -31,7 +31,6 @@ void main() {
             'HSN',
             'Colors',
             'Materials',
-            'Settings',
           ]);
         },
       );
@@ -47,7 +46,7 @@ void main() {
         }
       });
 
-      test('super_admin entry count is exactly 7 for all permission sets', () {
+      test('super_admin entry count is exactly 6 for all permission sets', () {
         // Property: regardless of permissions argument, super_admin always
         // gets the same fixed set.
         final permSets = <List<String>>[
@@ -64,9 +63,9 @@ void main() {
           );
           expect(
             entries.length,
-            7,
+            6,
             reason:
-                'super_admin should always have 7 entries regardless of permissions=$perms',
+                'super_admin should always have 6 entries regardless of permissions=$perms',
           );
         }
       });
@@ -172,7 +171,7 @@ void main() {
 
     // --- Cross-role invariant property ---
     group('Cross-role invariants', () {
-      test('every role gets at least Dashboard and Settings', () {
+      test('every role gets at least Dashboard', () {
         for (final role in ['super_admin', 'admin', 'manager']) {
           final labels = resolveEntryLabels(role: role);
           expect(
@@ -180,10 +179,20 @@ void main() {
             isTrue,
             reason: '$role must have Dashboard',
           );
+        }
+      });
+
+      test('only admin and manager get Settings (super_admin does not)', () {
+        expect(
+          resolveEntryLabels(role: 'super_admin').contains('Settings'),
+          isFalse,
+          reason: 'super_admin sidebar should not include Settings',
+        );
+        for (final role in ['admin', 'manager']) {
           expect(
-            labels.contains('Settings'),
+            resolveEntryLabels(role: role).contains('Settings'),
             isTrue,
-            reason: '$role must have Settings',
+            reason: '$role should have Settings',
           );
         }
       });

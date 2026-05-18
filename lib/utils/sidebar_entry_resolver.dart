@@ -36,7 +36,6 @@ const List<SidebarEntry> superAdminEntries = [
   SidebarEntry(label: 'HSN', path: '/super-admin/masters/hsn'),
   SidebarEntry(label: 'Colors', path: '/super-admin/masters/colors'),
   SidebarEntry(label: 'Materials', path: '/super-admin/masters/materials'),
-  SidebarEntry(label: 'Settings', path: '/super-admin/settings'),
 ];
 
 /// Entries that are hidden from admin/manager sidebars (Requirement 11.2).

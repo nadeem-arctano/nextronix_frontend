@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
 import '../../provider/user_provider.dart';
 import '../../widgets/app_list_table.dart';
+import '../../widgets/debounced_search_input.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/status_badge.dart';
@@ -22,7 +22,6 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
   final _searchController = TextEditingController();
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -37,18 +36,8 @@ class _UsersScreenState extends State<UsersScreen> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      context.read<UserProvider>().setSearch(
-        value.trim().isEmpty ? null : value.trim(),
-      );
-    });
   }
 
   Future<void> _pickDateRange(UserProvider provider) async {
@@ -125,19 +114,12 @@ class _UsersScreenState extends State<UsersScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          // Search
-          SizedBox(
-            width: 260,
-            child: ShadInput(
-              controller: _searchController,
-              placeholder: const Text('Search name, email...'),
-              style: const TextStyle(fontSize: 12),
-              onSubmitted: (value) => provider.setSearch(value),
-              onChanged: (value) {
-                setState(() {});
-                _onSearchChanged(value);
-              },
-            ),
+          // Search (auto-debounced via shared widget).
+          DebouncedSearchInput(
+            controller: _searchController,
+            placeholder: 'Search name, email...',
+            initialValue: provider.search,
+            onSearch: provider.setSearch,
           ),
           const SizedBox(width: 12),
 

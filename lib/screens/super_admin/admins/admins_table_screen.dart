@@ -6,6 +6,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../provider/admins_table_provider.dart';
 import '../../../static_values/static_values.dart';
 import '../../../widgets/advanced_data_table.dart';
+import '../../../widgets/debounced_search_input.dart';
+import '../../../widgets/filter_dropdown.dart';
 import '../../../widgets/page_header.dart';
 import '../../../widgets/skeletons.dart';
 
@@ -15,6 +17,10 @@ import '../../../widgets/skeletons.dart';
 /// usersCount, managersCount, productsCount, todayOrdersCount,
 /// todaySalesAmount. Includes search, status filter, and action buttons
 /// (edit, suspend, delete).
+///
+/// Uses the shared [DebouncedSearchInput] and [FilterDropdown] widgets so
+/// the search/filter UX matches the products screen (auto-debounced search,
+/// ShadSelect-based dropdowns).
 ///
 /// Validates Requirements 10.1, 10.2, 10.3, 10.4, 10.5.
 class AdminsTableScreen extends StatefulWidget {
@@ -72,7 +78,7 @@ class _AdminsTableScreenState extends State<AdminsTableScreen> {
               ),
               const SizedBox(height: 20),
               _buildFilters(provider),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               if (provider.isLoading && provider.rows.isEmpty)
                 const Expanded(child: TableSkeleton(rows: 8, columns: 7))
               else
@@ -86,74 +92,57 @@ class _AdminsTableScreenState extends State<AdminsTableScreen> {
 
   Widget _buildFilters(AdminsTableProvider provider) {
     final theme = ShadTheme.of(context);
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        // Search bar
-        SizedBox(
-          width: 280,
-          child: TextField(
+    final hasFilters =
+        (provider.search != null && provider.search!.isNotEmpty) ||
+        (provider.statusFilter != null && provider.statusFilter!.isNotEmpty);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Auto-debounced search (matches products screen behaviour).
+          DebouncedSearchInput(
             controller: _searchCtrl,
-            onSubmitted: provider.setSearch,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(LucideIcons.search, size: 16),
-              hintText: 'Search by name or email',
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.colorScheme.border),
-              ),
-              suffixIcon: _searchCtrl.text.isEmpty
-                  ? null
-                  : IconButton(
-                      iconSize: 14,
-                      icon: const Icon(LucideIcons.x),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        provider.setSearch(null);
-                      },
-                    ),
-            ),
+            placeholder: 'Search by name or email',
+            initialValue: provider.search,
+            onSearch: provider.setSearch,
           ),
-        ),
-        // Status filter
-        SizedBox(
-          width: 160,
-          child: DropdownButtonFormField<String>(
-            value: provider.statusFilter,
-            isDense: true,
-            decoration: InputDecoration(
-              labelText: 'Status',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-            ),
-            items: const [
-              DropdownMenuItem<String>(value: null, child: Text('All')),
-              DropdownMenuItem<String>(value: 'active', child: Text('Active')),
-              DropdownMenuItem<String>(
-                value: 'blocked',
-                child: Text('Blocked'),
-              ),
+          const SizedBox(width: 12),
+
+          // Status filter dropdown using the shared widget.
+          FilterDropdown<String>(
+            placeholder: 'Status',
+            width: 140,
+            value: provider.statusFilter ?? '',
+            options: const [
+              FilterOption(value: '', label: 'All'),
+              FilterOption(value: 'active', label: 'Active'),
+              FilterOption(value: 'blocked', label: 'Blocked'),
             ],
-            onChanged: provider.setStatusFilter,
+            onChanged: (value) => provider.setStatusFilter(
+              value == null || value.isEmpty ? null : value,
+            ),
           ),
-        ),
-        // Reset filters
-        ShadButton.outline(
-          leading: const Icon(LucideIcons.x, size: 14),
-          onPressed: () {
-            _searchCtrl.clear();
-            provider.clearFilters();
-          },
-          child: const Text('Reset'),
-        ),
-      ],
+
+          if (hasFilters) ...[
+            const SizedBox(width: 12),
+            ShadButton.ghost(
+              size: ShadButtonSize.sm,
+              onPressed: () {
+                _searchCtrl.clear();
+                provider.clearFilters();
+              },
+              child: Text(
+                'Clear All',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
