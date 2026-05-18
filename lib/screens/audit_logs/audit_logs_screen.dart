@@ -7,6 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
 import '../../provider/audit_provider.dart';
 import '../../widgets/advanced_data_table.dart';
+import '../../widgets/debounced_search_input.dart';
+import '../../widgets/filter_dropdown.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/skeletons.dart';
 
@@ -68,81 +70,68 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
 
   Widget _buildFilters(AuditProvider p) {
     final theme = ShadTheme.of(context);
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        SizedBox(
-          width: 240,
-          child: TextField(
-            controller: _searchCtrl,
-            onSubmitted: p.setSearch,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(LucideIcons.search, size: 16),
-              hintText: 'Search by module / action / user',
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.colorScheme.border),
-              ),
-              suffixIcon: _searchCtrl.text.isEmpty
-                  ? null
-                  : IconButton(
-                      iconSize: 14,
-                      icon: const Icon(LucideIcons.x),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        p.setSearch(null);
-                      },
-                    ),
-            ),
-          ),
-        ),
-        _buildDropdown(
-          label: 'Module',
-          value: p.moduleFilter,
-          items: p.knownModules,
-          onChanged: p.setModule,
-        ),
-        _buildDropdown(
-          label: 'Action',
-          value: p.actionFilter,
-          items: p.knownActions,
-          onChanged: p.setAction,
-        ),
-        ShadButton.outline(
-          leading: const Icon(LucideIcons.x, size: 14),
-          onPressed: p.clearFilters,
-          child: const Text('Reset'),
-        ),
-      ],
-    );
-  }
+    final hasFilters =
+        (p.searchTerm != null && p.searchTerm!.isNotEmpty) ||
+        p.moduleFilter != null ||
+        p.actionFilter != null;
 
-  Widget _buildDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return SizedBox(
-      width: 180,
-      child: DropdownButtonFormField<String>(
-        initialValue: value,
-        isDense: true,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 10,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Auto-debounced search using the shared widget.
+          DebouncedSearchInput(
+            controller: _searchCtrl,
+            placeholder: 'Search by module / action / user',
+            width: 240,
+            initialValue: p.searchTerm,
+            onSearch: p.setSearch,
           ),
-        ),
-        items: [
-          const DropdownMenuItem<String>(value: null, child: Text('All')),
-          ...items.map((m) => DropdownMenuItem(value: m, child: Text(m))),
+          const SizedBox(width: 12),
+
+          // Module filter — list comes from the provider's discovered values.
+          FilterDropdown<String>(
+            placeholder: 'Module',
+            width: 160,
+            value: p.moduleFilter ?? '',
+            options: [
+              const FilterOption(value: '', label: 'All Modules'),
+              ...p.knownModules.map((m) => FilterOption(value: m, label: m)),
+            ],
+            onChanged: (v) => p.setModule(v == null || v.isEmpty ? null : v),
+          ),
+          const SizedBox(width: 8),
+
+          // Action filter
+          FilterDropdown<String>(
+            placeholder: 'Action',
+            width: 160,
+            value: p.actionFilter ?? '',
+            options: [
+              const FilterOption(value: '', label: 'All Actions'),
+              ...p.knownActions.map((a) => FilterOption(value: a, label: a)),
+            ],
+            onChanged: (v) => p.setAction(v == null || v.isEmpty ? null : v),
+          ),
+
+          if (hasFilters) ...[
+            const SizedBox(width: 12),
+            ShadButton.ghost(
+              size: ShadButtonSize.sm,
+              onPressed: () {
+                _searchCtrl.clear();
+                p.clearFilters();
+              },
+              child: Text(
+                'Clear All',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
         ],
-        onChanged: onChanged,
       ),
     );
   }

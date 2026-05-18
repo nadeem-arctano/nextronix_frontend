@@ -77,6 +77,23 @@ class AdvancedDataTable<T> extends StatefulWidget {
   // Bulk-actions bar
   final List<BulkAction>? bulkActions;
 
+  /// Optional externally-controlled hidden-columns set.
+  ///
+  /// When provided alongside [onHiddenColumnsChanged], the parent owns the
+  /// column-visibility state. This lets a screen render its own column
+  /// toggle button (via [ColumnVisibilityMenu]) inside an external filter
+  /// row while still keeping the table in sync.
+  ///
+  /// When `null`, the table manages its own internal state and renders a
+  /// built-in toggle button in the toolbar.
+  final Set<String>? hiddenColumns;
+  final ValueChanged<Set<String>>? onHiddenColumnsChanged;
+
+  /// When `true`, suppresses the built-in column-toggle button inside the
+  /// table toolbar. Use this when you've placed a [ColumnVisibilityMenu]
+  /// elsewhere (e.g. in a filter row) so the icon doesn't appear twice.
+  final bool showColumnToggle;
+
   final EdgeInsetsGeometry rowPadding;
 
   const AdvancedDataTable({
@@ -95,6 +112,9 @@ class AdvancedDataTable<T> extends StatefulWidget {
     this.selectedIds,
     this.onSelectionChanged,
     this.bulkActions,
+    this.hiddenColumns,
+    this.onHiddenColumnsChanged,
+    this.showColumnToggle = true,
     this.rowPadding = const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
   });
 
@@ -103,25 +123,34 @@ class AdvancedDataTable<T> extends StatefulWidget {
 }
 
 class _AdvancedDataTableState<T> extends State<AdvancedDataTable<T>> {
-  late Set<String> _hiddenColumns;
+  late Set<String> _internalHiddenColumns;
 
   @override
   void initState() {
     super.initState();
-    _hiddenColumns = <String>{};
+    _internalHiddenColumns = <String>{};
   }
+
+  /// Effective hidden-columns set: prefers the externally-controlled value
+  /// when the parent provides one, otherwise falls back to internal state.
+  Set<String> get _hiddenColumns =>
+      widget.hiddenColumns ?? _internalHiddenColumns;
 
   bool _isVisible(AdvancedTableColumn<T> col) =>
       !_hiddenColumns.contains(col.key);
 
   void _toggleColumn(String key) {
-    setState(() {
-      if (_hiddenColumns.contains(key)) {
-        _hiddenColumns.remove(key);
-      } else {
-        _hiddenColumns.add(key);
-      }
-    });
+    final next = Set<String>.from(_hiddenColumns);
+    if (next.contains(key)) {
+      next.remove(key);
+    } else {
+      next.add(key);
+    }
+    if (widget.onHiddenColumnsChanged != null) {
+      widget.onHiddenColumnsChanged!(next);
+    } else {
+      setState(() => _internalHiddenColumns = next);
+    }
   }
 
   Set<Object> _selected() => widget.selectedIds ?? <Object>{};
@@ -176,6 +205,7 @@ class _AdvancedDataTableState<T> extends State<AdvancedDataTable<T>> {
             allColumns: widget.columns,
             hiddenColumns: _hiddenColumns,
             onToggleColumn: _toggleColumn,
+            showColumnToggle: widget.showColumnToggle,
           ),
 
           // Header row (sticky inside the card)
@@ -373,6 +403,7 @@ class _Toolbar<T> extends StatelessWidget {
   final List<AdvancedTableColumn<T>> allColumns;
   final Set<String> hiddenColumns;
   final ValueChanged<String> onToggleColumn;
+  final bool showColumnToggle;
 
   const _Toolbar({
     required this.selectedCount,
@@ -381,13 +412,15 @@ class _Toolbar<T> extends StatelessWidget {
     required this.allColumns,
     required this.hiddenColumns,
     required this.onToggleColumn,
+    required this.showColumnToggle,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final hasSelection = selectedCount > 0;
-    if (!hasSelection && !_anyHideable()) return const SizedBox.shrink();
+    final showToggle = showColumnToggle && _anyHideable();
+    if (!hasSelection && !showToggle) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -433,7 +466,7 @@ class _Toolbar<T> extends StatelessWidget {
               ],
           ] else
             const Spacer(),
-          if (_anyHideable()) _columnsMenu(context),
+          if (showToggle) _columnsMenu(context),
         ],
       ),
     );
@@ -512,6 +545,69 @@ class _EmptyRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Standalone column-visibility toggle button.
+///
+/// Renders the same `LucideIcons.columns3` popup menu used inside
+/// [AdvancedDataTable]'s built-in toolbar. Use this when you want the
+/// toggle to live in your own filter row alongside search/filter widgets.
+///
+/// The parent owns the [hiddenColumns] set and is notified via
+/// [onChanged] when the user toggles a column. Pair it with
+/// `AdvancedDataTable(hiddenColumns: …, onHiddenColumnsChanged: …,
+/// showColumnToggle: false)` so the icon doesn't appear twice.
+///
+/// Example:
+/// ```dart
+/// ColumnVisibilityMenu<AdminRow>(
+///   columns: _columns,
+///   hiddenColumns: _hidden,
+///   onChanged: (next) => setState(() => _hidden = next),
+/// )
+/// ```
+class ColumnVisibilityMenu<T> extends StatelessWidget {
+  final List<AdvancedTableColumn<T>> columns;
+  final Set<String> hiddenColumns;
+  final ValueChanged<Set<String>> onChanged;
+  final String tooltip;
+
+  const ColumnVisibilityMenu({
+    super.key,
+    required this.columns,
+    required this.hiddenColumns,
+    required this.onChanged,
+    this.tooltip = 'Toggle columns',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hideable = columns.where((c) => c.hideable).toList();
+    if (hideable.isEmpty) return const SizedBox.shrink();
+
+    return PopupMenuButton<String>(
+      tooltip: tooltip,
+      icon: const Icon(LucideIcons.columns3, size: 16),
+      onSelected: (key) {
+        final next = Set<String>.from(hiddenColumns);
+        if (next.contains(key)) {
+          next.remove(key);
+        } else {
+          next.add(key);
+        }
+        onChanged(next);
+      },
+      itemBuilder: (ctx) => hideable
+          .map(
+            (c) => CheckedPopupMenuItem<String>(
+              value: c.key,
+              checked: !hiddenColumns.contains(c.key),
+              child: Text(c.label),
+            ),
+          )
+          .toList(),
     );
   }
 }

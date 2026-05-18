@@ -7,6 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../../model/response/response.dart';
 import '../../provider/inventory_provider.dart';
 import '../../widgets/advanced_data_table.dart';
+import '../../widgets/debounced_search_input.dart';
+import '../../widgets/filter_dropdown.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/skeletons.dart';
 
@@ -75,56 +77,54 @@ class _InventoryLogsScreenState extends State<InventoryLogsScreen> {
 
   Widget _buildFilters(InventoryProvider p) {
     final theme = ShadTheme.of(context);
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        SizedBox(
-          width: 240,
-          child: TextField(
+    final hasFilters = p.reasonFilter != null;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Auto-debounced search using the shared widget.
+          DebouncedSearchInput(
             controller: _searchCtrl,
-            onSubmitted: p.setSearch,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(LucideIcons.search, size: 16),
-              hintText: 'Search product / SKU / note',
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.colorScheme.border),
-              ),
-            ),
+            placeholder: 'Search product / SKU / note',
+            width: 240,
+            onSearch: p.setSearch,
           ),
-        ),
-        SizedBox(
-          width: 200,
-          child: DropdownButtonFormField<String>(
-            initialValue: p.reasonFilter,
-            isDense: true,
-            decoration: InputDecoration(
-              labelText: 'Reason',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-            ),
-            items: [
-              const DropdownMenuItem<String>(value: null, child: Text('All')),
+          const SizedBox(width: 12),
+
+          // Reason filter — values mapped to friendly labels via _reasonLabels.
+          FilterDropdown<String>(
+            placeholder: 'Reason',
+            width: 180,
+            value: p.reasonFilter ?? '',
+            options: [
+              const FilterOption(value: '', label: 'All Reasons'),
               ..._reasonLabels.entries.map(
-                (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
+                (e) => FilterOption(value: e.key, label: e.value),
               ),
             ],
-            onChanged: p.setReason,
+            onChanged: (v) => p.setReason(v == null || v.isEmpty ? null : v),
           ),
-        ),
-        ShadButton.outline(
-          leading: const Icon(LucideIcons.x, size: 14),
-          onPressed: p.clearFilters,
-          child: const Text('Reset'),
-        ),
-      ],
+
+          if (hasFilters) ...[
+            const SizedBox(width: 12),
+            ShadButton.ghost(
+              size: ShadButtonSize.sm,
+              onPressed: () {
+                _searchCtrl.clear();
+                p.clearFilters();
+              },
+              child: Text(
+                'Clear All',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

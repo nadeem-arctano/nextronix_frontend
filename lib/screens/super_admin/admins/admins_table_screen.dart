@@ -33,6 +33,11 @@ class AdminsTableScreen extends StatefulWidget {
 class _AdminsTableScreenState extends State<AdminsTableScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
+  /// Locally-managed hidden-columns set so the column-toggle button can
+  /// live inside the filter row (alongside search and status filter)
+  /// instead of inside the table's own toolbar.
+  Set<String> _hiddenColumns = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -141,9 +146,121 @@ class _AdminsTableScreenState extends State<AdminsTableScreen> {
               ),
             ),
           ],
+
+          const SizedBox(width: 12),
+          // Column-visibility toggle — same icon/menu as the table toolbar,
+          // but rendered here so it sits next to the other filters.
+          ColumnVisibilityMenu<AdminRow>(
+            columns: _columnsFor(provider),
+            hiddenColumns: _hiddenColumns,
+            onChanged: (next) => setState(() => _hiddenColumns = next),
+          ),
         ],
       ),
     );
+  }
+
+  /// Column definitions shared between [_buildTable] and the standalone
+  /// [ColumnVisibilityMenu] in the filter row, so toggling a column in
+  /// either place stays in sync.
+  List<AdvancedTableColumn<AdminRow>> _columnsFor(
+    AdminsTableProvider provider,
+  ) {
+    final theme = ShadTheme.of(context);
+    return [
+      AdvancedTableColumn<AdminRow>(
+        key: 'name',
+        label: 'Name',
+        flex: 3,
+        cellBuilder: (admin, _) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(admin.name, style: theme.textTheme.small),
+              Text(
+                admin.email,
+                style: theme.textTheme.muted.copyWith(fontSize: 11),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          );
+        },
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'status',
+        label: 'Status',
+        flex: 2,
+        cellBuilder: (admin, _) => _StatusBadge(status: admin.status),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'usersCount',
+        label: 'Users',
+        flex: 1,
+        align: TextAlign.right,
+        cellBuilder: (admin, _) => Text(
+          admin.usersCount.toString(),
+          style: theme.textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'managersCount',
+        label: 'Managers',
+        flex: 1,
+        align: TextAlign.right,
+        cellBuilder: (admin, _) => Text(
+          admin.managersCount.toString(),
+          style: theme.textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'productsCount',
+        label: 'Products',
+        flex: 1,
+        align: TextAlign.right,
+        cellBuilder: (admin, _) => Text(
+          admin.productsCount.toString(),
+          style: theme.textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'todayOrdersCount',
+        label: "Today's Orders",
+        flex: 2,
+        align: TextAlign.right,
+        cellBuilder: (admin, _) => Text(
+          admin.todayOrdersCount.toString(),
+          style: theme.textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'todaySalesAmount',
+        label: "Today's Sales",
+        flex: 2,
+        align: TextAlign.right,
+        cellBuilder: (admin, _) => Text(
+          '₹${admin.todaySalesAmount.toStringAsFixed(2)}',
+          style: theme.textTheme.muted.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      AdvancedTableColumn<AdminRow>(
+        key: 'actions',
+        label: '',
+        flex: 2,
+        align: TextAlign.right,
+        hideable: false,
+        cellBuilder: (admin, _) => _ActionButtons(
+          admin: admin,
+          onEdit: () => _onEdit(admin),
+          onSuspend: () => _onSuspend(admin),
+          onDelete: () => _onDelete(admin),
+        ),
+      ),
+    ];
   }
 
   Widget _buildTable(AdminsTableProvider provider) {
@@ -171,100 +288,10 @@ class _AdminsTableScreenState extends State<AdminsTableScreen> {
     }
 
     return AdvancedDataTable<AdminRow>(
-      columns: [
-        AdvancedTableColumn<AdminRow>(
-          key: 'name',
-          label: 'Name',
-          flex: 3,
-          cellBuilder: (admin, _) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(admin.name, style: theme.textTheme.small),
-                Text(
-                  admin.email,
-                  style: theme.textTheme.muted.copyWith(fontSize: 11),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            );
-          },
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'status',
-          label: 'Status',
-          flex: 2,
-          cellBuilder: (admin, _) => _StatusBadge(status: admin.status),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'usersCount',
-          label: 'Users',
-          flex: 1,
-          align: TextAlign.right,
-          cellBuilder: (admin, _) => Text(
-            admin.usersCount.toString(),
-            style: theme.textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'managersCount',
-          label: 'Managers',
-          flex: 1,
-          align: TextAlign.right,
-          cellBuilder: (admin, _) => Text(
-            admin.managersCount.toString(),
-            style: theme.textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'productsCount',
-          label: 'Products',
-          flex: 1,
-          align: TextAlign.right,
-          cellBuilder: (admin, _) => Text(
-            admin.productsCount.toString(),
-            style: theme.textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'todayOrdersCount',
-          label: "Today's Orders",
-          flex: 2,
-          align: TextAlign.right,
-          cellBuilder: (admin, _) => Text(
-            admin.todayOrdersCount.toString(),
-            style: theme.textTheme.muted.copyWith(fontSize: 12),
-          ),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'todaySalesAmount',
-          label: "Today's Sales",
-          flex: 2,
-          align: TextAlign.right,
-          cellBuilder: (admin, _) => Text(
-            '₹${admin.todaySalesAmount.toStringAsFixed(2)}',
-            style: theme.textTheme.muted.copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        AdvancedTableColumn<AdminRow>(
-          key: 'actions',
-          label: '',
-          flex: 2,
-          align: TextAlign.right,
-          hideable: false,
-          cellBuilder: (admin, _) => _ActionButtons(
-            admin: admin,
-            onEdit: () => _onEdit(admin),
-            onSuspend: () => _onSuspend(admin),
-            onDelete: () => _onDelete(admin),
-          ),
-        ),
-      ],
+      columns: _columnsFor(provider),
+      hiddenColumns: _hiddenColumns,
+      onHiddenColumnsChanged: (next) => setState(() => _hiddenColumns = next),
+      showColumnToggle: false,
       items: provider.rows,
       idOf: (admin) => admin.id,
       currentPage: provider.page,
