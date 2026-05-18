@@ -120,41 +120,63 @@ class _StepInfoState extends State<StepInfo> {
                   FormFieldBlock(
                     label: 'Category',
                     required: true,
-                    child: DropdownButtonFormField<int>(
-                      initialValue: form.categoryId,
-                      decoration: _decoration('Select category'),
-                      items: categories
-                          .map(
-                            (c) => DropdownMenuItem<int>(
-                              value: c.id,
-                              child: Text(c.name ?? '-'),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setState(() => form.categoryId = v),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DropdownButtonFormField<int>(
+                          initialValue: form.categoryId,
+                          decoration: _decoration('Select category').copyWith(
+                            errorText: form.getFieldError('categoryId'),
+                          ),
+                          items: categories
+                              .map(
+                                (c) => DropdownMenuItem<int>(
+                                  value: c.id,
+                                  child: Text(c.name ?? '-'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            form.clearFieldError('categoryId');
+                            setState(() => form.categoryId = v);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   FormFieldBlock(
                     label: 'HSN code',
-                    child: DropdownButtonFormField<int>(
-                      initialValue: form.hsnId,
-                      decoration: _decoration('Select HSN'),
-                      items: hsn
-                          .map(
-                            (h) => DropdownMenuItem<int>(
-                              value: h.id,
-                              child: Text(h.displayLabel),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() => form.hsnId = v);
-                        // Auto-fill GST from the picked HSN row.
-                        final match = hsn.where((h) => h.id == v).firstOrNull;
-                        if (match != null && match.gstPercent != null) {
-                          form.gst.text = match.gstPercent!.toStringAsFixed(0);
-                        }
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DropdownButtonFormField<int>(
+                          initialValue: form.hsnId,
+                          decoration: _decoration(
+                            'Select HSN',
+                          ).copyWith(errorText: form.getFieldError('hsnId')),
+                          items: hsn
+                              .map(
+                                (h) => DropdownMenuItem<int>(
+                                  value: h.id,
+                                  child: Text(h.displayLabel),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            form.clearFieldError('hsnId');
+                            setState(() => form.hsnId = v);
+                            // Auto-fill GST from the picked HSN row.
+                            final match = hsn
+                                .where((h) => h.id == v)
+                                .firstOrNull;
+                            if (match != null && match.gstPercent != null) {
+                              form.gst.text = match.gstPercent!.toStringAsFixed(
+                                0,
+                              );
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],

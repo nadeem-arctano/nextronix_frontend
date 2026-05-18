@@ -5,22 +5,57 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
 import '../provider/auth_provider.dart';
-import '../provider/notification_provider.dart';
-import '../static_values/static_values.dart';
-import 'notification_panel.dart';
 
-class AdminLayout extends StatefulWidget {
+/// Shell layout for the Super Admin route subtree with a left sidebar.
+class SuperAdminLayout extends StatefulWidget {
   final Widget child;
-  const AdminLayout({super.key, required this.child});
+  const SuperAdminLayout({super.key, required this.child});
 
   @override
-  State<AdminLayout> createState() => _AdminLayoutState();
+  State<SuperAdminLayout> createState() => _SuperAdminLayoutState();
 }
 
-class _AdminLayoutState extends State<AdminLayout>
-    with SingleTickerProviderStateMixin {
+class _SuperAdminLayoutState extends State<SuperAdminLayout> {
   bool _isSidebarCollapsed = false;
   int _hoveredIndex = -1;
+
+  static const _navItems = [
+    _NavItem(
+      icon: LucideIcons.layoutDashboard,
+      label: 'Dashboard',
+      path: '/super-admin/dashboard',
+    ),
+    _NavItem(
+      icon: LucideIcons.building2,
+      label: 'Admins',
+      path: '/super-admin/admins',
+    ),
+    _NavItem(
+      icon: LucideIcons.layers,
+      label: 'Categories',
+      path: '/super-admin/masters/categories',
+    ),
+    _NavItem(
+      icon: LucideIcons.fileText,
+      label: 'HSN Codes',
+      path: '/super-admin/masters/hsn',
+    ),
+    _NavItem(
+      icon: LucideIcons.palette,
+      label: 'Colors',
+      path: '/super-admin/masters/colors',
+    ),
+    _NavItem(
+      icon: LucideIcons.box,
+      label: 'Materials',
+      path: '/super-admin/masters/materials',
+    ),
+    _NavItem(
+      icon: LucideIcons.settings,
+      label: 'Settings',
+      path: '/super-admin/settings',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +69,7 @@ class _AdminLayoutState extends State<AdminLayout>
         drawer: _buildDrawer(context),
         body: Column(
           children: [
-            _buildMobileHeader(context, theme),
+            _buildMobileHeader(context),
             Expanded(child: widget.child),
           ],
         ),
@@ -56,7 +91,7 @@ class _AdminLayoutState extends State<AdminLayout>
     );
   }
 
-  Widget _buildMobileHeader(BuildContext context, ShadThemeData theme) {
+  Widget _buildMobileHeader(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     return Container(
       height: 56,
@@ -145,10 +180,7 @@ class _AdminLayoutState extends State<AdminLayout>
             mainAxisAlignment: collapsed
                 ? MainAxisAlignment.center
                 : MainAxisAlignment.start,
-            children: [
-              _buildLogo(collapsed),
-              if (!collapsed) ...[const Spacer(), _NotificationBell()],
-            ],
+            children: [_buildLogo(collapsed)],
           ),
         ),
 
@@ -161,14 +193,46 @@ class _AdminLayoutState extends State<AdminLayout>
           ),
         ),
 
+        const SizedBox(height: 12),
+
+        // Super Admin badge
+        if (!collapsed)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.brand.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppTheme.brand.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.shield, color: AppTheme.brand, size: 14),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Super Admin',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
         const SizedBox(height: 16),
 
         // Navigation
         Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: collapsed ? 8 : 12),
-            // Sidebar item count grows with new modules; let it scroll
-            // independently when the viewport can't fit everything.
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -178,7 +242,7 @@ class _AdminLayoutState extends State<AdminLayout>
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'MENU',
+                          'PLATFORM',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.3),
                             fontSize: 10,
@@ -188,165 +252,11 @@ class _AdminLayoutState extends State<AdminLayout>
                         ),
                       ),
                     ),
-                  _buildNavItem(
-                    context,
-                    0,
-                    LucideIcons.layoutDashboard,
-                    'Dashboard',
-                    '/admin/dashboard',
-                    currentPath,
-                    collapsed,
-                  ),
-                  if (hasPermission('canViewProducts'))
+                  for (var i = 0; i < _navItems.length; i++)
                     _buildNavItem(
                       context,
-                      1,
-                      LucideIcons.package,
-                      'Products',
-                      '/admin/products',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewOrders'))
-                    _buildNavItem(
-                      context,
-                      2,
-                      LucideIcons.shoppingBag,
-                      'Orders',
-                      '/admin/orders',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewUsers'))
-                    _buildNavItem(
-                      context,
-                      3,
-                      LucideIcons.users,
-                      'Customers',
-                      '/admin/users',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewCategories') &&
-                      context.watch<AuthProvider>().isSuperAdmin)
-                    _buildNavItem(
-                      context,
-                      4,
-                      LucideIcons.layers,
-                      'Categories',
-                      '/admin/categories',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewHsn') &&
-                      context.watch<AuthProvider>().isSuperAdmin)
-                    _buildNavItem(
-                      context,
-                      5,
-                      LucideIcons.fileText,
-                      'HSN Codes',
-                      '/admin/hsn-codes',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewCoupons'))
-                    _buildNavItem(
-                      context,
-                      6,
-                      LucideIcons.ticket,
-                      'Coupons',
-                      '/admin/coupons',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewSupport'))
-                    _buildNavItem(
-                      context,
-                      7,
-                      LucideIcons.lifeBuoy,
-                      'Support',
-                      '/admin/support',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewReturns'))
-                    _buildNavItem(
-                      context,
-                      8,
-                      LucideIcons.refreshCw,
-                      'Returns',
-                      '/admin/returns',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewReports'))
-                    _buildNavItem(
-                      context,
-                      11,
-                      LucideIcons.chartBarBig,
-                      'Reports',
-                      '/admin/reports',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewGst'))
-                    _buildNavItem(
-                      context,
-                      17,
-                      LucideIcons.receipt,
-                      'GST',
-                      '/admin/gst',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewInventory'))
-                    _buildNavItem(
-                      context,
-                      14,
-                      LucideIcons.boxes,
-                      'Inventory',
-                      '/admin/inventory-logs',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewAuditLogs'))
-                    _buildNavItem(
-                      context,
-                      15,
-                      LucideIcons.scrollText,
-                      'Audit Logs',
-                      '/admin/audit-logs',
-                      currentPath,
-                      collapsed,
-                    ),
-                  // Admin-only: Team management
-                  if (context.watch<AuthProvider>().isAdmin)
-                    _buildNavItem(
-                      context,
-                      13,
-                      LucideIcons.users,
-                      'Team',
-                      '/admin/team',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (context.watch<AuthProvider>().isAdmin)
-                    _buildNavItem(
-                      context,
-                      16,
-                      LucideIcons.shieldCheck,
-                      'Permissions',
-                      '/admin/permissions',
-                      currentPath,
-                      collapsed,
-                    ),
-                  if (hasPermission('canViewSettings'))
-                    _buildNavItem(
-                      context,
-                      12,
-                      LucideIcons.settings,
-                      'Settings',
-                      '/admin/settings',
+                      i,
+                      _navItems[i],
                       currentPath,
                       collapsed,
                     ),
@@ -413,7 +323,7 @@ class _AdminLayoutState extends State<AdminLayout>
           ),
         ),
 
-        // Profile
+        // Profile section
         _buildProfileSection(collapsed),
       ],
     );
@@ -504,10 +414,10 @@ class _AdminLayoutState extends State<AdminLayout>
               ),
               child: const Center(
                 child: Text(
-                  'A',
+                  'SA',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -542,10 +452,10 @@ class _AdminLayoutState extends State<AdminLayout>
             ),
             child: const Center(
               child: Text(
-                'A',
+                'SA',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -555,9 +465,8 @@ class _AdminLayoutState extends State<AdminLayout>
           Expanded(
             child: Consumer<AuthProvider>(
               builder: (context, auth, _) {
-                final name = auth.user?.name ?? 'Admin';
+                final name = auth.user?.name ?? 'Super Admin';
                 final email = auth.user?.email ?? '';
-                final brandName = auth.profile?.brand?.businessName;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -572,9 +481,7 @@ class _AdminLayoutState extends State<AdminLayout>
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      brandName != null && brandName.isNotEmpty
-                          ? brandName
-                          : email,
+                      email,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 11,
@@ -607,13 +514,12 @@ class _AdminLayoutState extends State<AdminLayout>
   Widget _buildNavItem(
     BuildContext context,
     int index,
-    IconData icon,
-    String label,
-    String path,
+    _NavItem item,
     String currentPath,
     bool collapsed,
   ) {
-    final isActive = currentPath.startsWith(path);
+    final isActive =
+        currentPath == item.path || currentPath.startsWith('${item.path}/');
     final isHovered = _hoveredIndex == index;
 
     return Padding(
@@ -623,7 +529,7 @@ class _AdminLayoutState extends State<AdminLayout>
         onExit: (_) => setState(() => _hoveredIndex = -1),
         child: GestureDetector(
           onTap: () {
-            context.go(path);
+            context.go(item.path);
             if (MediaQuery.of(context).size.width < 768) {
               Navigator.pop(context);
             }
@@ -655,7 +561,7 @@ class _AdminLayoutState extends State<AdminLayout>
                   : MainAxisAlignment.start,
               children: [
                 Icon(
-                  icon,
+                  item.icon,
                   color: isActive
                       ? AppTheme.brand
                       : isHovered
@@ -667,7 +573,7 @@ class _AdminLayoutState extends State<AdminLayout>
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      label,
+                      item.label,
                       style: TextStyle(
                         color: isActive
                             ? Colors.white
@@ -700,99 +606,9 @@ class _AdminLayoutState extends State<AdminLayout>
   }
 }
 
-/// Sidebar header notification bell with live unread badge.
-/// Tapping opens the floating notification panel anchored to the bell.
-class _NotificationBell extends StatefulWidget {
-  const _NotificationBell();
-
-  @override
-  State<_NotificationBell> createState() => _NotificationBellState();
-}
-
-class _NotificationBellState extends State<_NotificationBell> {
-  bool _hovered = false;
-  final GlobalKey _bellKey = GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Bell can be unmounted before the post-frame fires (hot reload,
-      // route swap). Guard against accessing `context` after dispose.
-      if (!mounted) return;
-      context.read<NotificationProvider>().loadStats();
-    });
-  }
-
-  void _openPanel() {
-    NotificationPanel.show(context, anchorKey: _bellKey);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: _openPanel,
-        child: Selector<NotificationProvider, int>(
-          selector: (_, p) => p.unreadCount,
-          builder: (_, unread, __) {
-            return Stack(
-              key: _bellKey,
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: _hovered
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    LucideIcons.bell,
-                    color: _hovered ? Colors.white : Colors.white70,
-                    size: 16,
-                  ),
-                ),
-                if (unread > 0)
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1,
-                      ),
-                      constraints: const BoxConstraints(minWidth: 16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.dangerColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppTheme.sidebarBg,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Text(
-                        unread > 99 ? '99+' : '$unread',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
+class _NavItem {
+  final IconData icon;
+  final String label;
+  final String path;
+  const _NavItem({required this.icon, required this.label, required this.path});
 }

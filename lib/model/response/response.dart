@@ -30,3 +30,5 @@ export 'inventory_models.dart';
 export 'variant_models.dart';
 export 'permission_models.dart';
 export 'variant_group_models.dart';
+export 'color_list_response.dart';
+export 'material_list_response.dart';

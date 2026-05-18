@@ -8,8 +8,9 @@ import '../static_values/static_values.dart';
 /// Manages the authenticated session for the admin panel:
 /// - Login / logout
 /// - Token persistence (via AuthStorage) — access + refresh
-/// - Current user info (admin or manager) + brand context
+/// - Current user info (admin, manager, or super_admin) + brand context
 /// - Permission set (resolved from server, cached globally)
+/// - Role and parentAdminId from JWT for routing decisions
 class AuthProvider extends ChangeNotifier {
   bool _isInitializing = true;
   bool _isLoading = false;
@@ -34,6 +35,11 @@ class AuthProvider extends ChangeNotifier {
   final ValueNotifier<int> authRoutingTick = ValueNotifier<int>(0);
   void _bumpRoutingTick() => authRoutingTick.value++;
 
+  /// Bumped on logout so widgets caching sidebar entries (or any role-dependent
+  /// selector list) know to recompute on the next login.
+  final ValueNotifier<int> sidebarVersion = ValueNotifier<int>(0);
+  void _bumpSidebarVersion() => sidebarVersion.value++;
+
   bool get isInitializing => _isInitializing;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -43,6 +49,26 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => globalAccessToken != null && _user != null;
   bool get isAdmin => _user?.role == 'admin';
   bool get isManager => _user?.role == 'manager';
+  bool get isSuperAdmin => _user?.role == 'super_admin';
+
+  /// The current user's role (null when not authenticated).
+  String? get role => _user?.role;
+
+  /// The current user's parentAdminId (null for super_admin and admin).
+  int? get parentAdminId => _user?.parentAdminId;
+
+  /// Returns the default dashboard path for the current user's role.
+  String get defaultDashboardPath {
+    switch (_user?.role) {
+      case 'super_admin':
+        return '/super-admin/dashboard';
+      case 'admin':
+      case 'manager':
+        return '/admin/dashboard';
+      default:
+        return '/login';
+    }
+  }
 
   /// Reactive permission helper for the UI (sidebar gating, action buttons).
   bool can(String key) => hasPermission(key);
@@ -61,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
   void dispose() {
     _sessionSub?.cancel();
     authRoutingTick.dispose();
+    sidebarVersion.dispose();
     super.dispose();
   }
 
@@ -179,5 +206,8 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _profile = null;
     await AuthStorage.clear();
+    // Bump sidebar version so any widget caching role-dependent sidebar entries
+    // (or master selectors) will recompute on next login (Requirement 11.5).
+    _bumpSidebarVersion();
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../provider/color_master_provider.dart';
+import '../../../../provider/material_master_provider.dart';
 import '../../../../widgets/forms/forms.dart';
 import '../controller/add_product_form.dart';
 
@@ -108,8 +111,26 @@ class _StepReviewState extends State<StepReview> {
               icon: LucideIcons.boxes,
               title: 'Specs',
               rows: [
-                ('Color', form.color.text),
-                ('Material', form.material.text),
+                (
+                  'Color',
+                  context
+                          .read<ColorMasterProvider>()
+                          .colors
+                          .where((c) => c.id == form.colorId)
+                          .firstOrNull
+                          ?.name ??
+                      '',
+                ),
+                (
+                  'Material',
+                  context
+                          .read<MaterialMasterProvider>()
+                          .materials
+                          .where((m) => m.id == form.materialTypeId)
+                          .firstOrNull
+                          ?.name ??
+                      '',
+                ),
                 ('Weight', form.weight.text),
                 ('Dimensions', form.dimensions.text),
                 ('Origin', form.country.text),

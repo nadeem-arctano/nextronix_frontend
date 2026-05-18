@@ -25,7 +25,7 @@ abstract class ApiProvider {
   Future<ProfileResponse> getProfile();
 
   // ─── Categories ─────────────────────────────────────────────────────────────
-  @GET("categories")
+  @GET("masters/categories")
   Future<CategoryListResponse> getCategories();
 
   @POST("categories")
@@ -193,7 +193,7 @@ abstract class ApiProvider {
   );
 
   // ─── HSN Codes ─────────────────────────────────────────────────────────────
-  @GET("hsn")
+  @GET("masters/hsn")
   Future<HsnListResponse> getHsnCodes();
 
   @POST("hsn")
@@ -513,6 +513,49 @@ abstract class ApiProvider {
     @Path('userId') int userId,
     @Body() PermissionKeyRequest body,
   );
+
+  // ─── Super Admin: Colors Master ──────────────────────────────────────────────
+  @GET("super-admin/masters/colors")
+  Future<ColorListResponse> getSuperAdminColors();
+
+  @POST("super-admin/masters/colors")
+  Future<CommonResponse> createSuperAdminColor(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @PUT("super-admin/masters/colors/{id}")
+  Future<CommonResponse> updateSuperAdminColor(
+    @Path('id') int id,
+    @Body() Map<String, dynamic> body,
+  );
+
+  @DELETE("super-admin/masters/colors/{id}")
+  Future<CommonResponse> deleteSuperAdminColor(@Path('id') int id);
+
+  // ─── Super Admin: Materials Master ─────────────────────────────────────────
+  @GET("super-admin/masters/materials")
+  Future<MaterialListResponse> getSuperAdminMaterials();
+
+  @POST("super-admin/masters/materials")
+  Future<CommonResponse> createSuperAdminMaterial(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @PUT("super-admin/masters/materials/{id}")
+  Future<CommonResponse> updateSuperAdminMaterial(
+    @Path('id') int id,
+    @Body() Map<String, dynamic> body,
+  );
+
+  @DELETE("super-admin/masters/materials/{id}")
+  Future<CommonResponse> deleteSuperAdminMaterial(@Path('id') int id);
+
+  // ─── Masters (read-only for brand users) ───────────────────────────────────
+  @GET("masters/colors")
+  Future<ColorListResponse> getMasterColors();
+
+  @GET("masters/materials")
+  Future<MaterialListResponse> getMasterMaterials();
 
   // ─── Variant Groups ────────────────────────────────────────────────────────
   @POST("products/groups")

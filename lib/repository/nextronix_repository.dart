@@ -1173,4 +1173,79 @@ class NextronixRepository {
       VariantGroupOption(color: color, size: size),
     );
   }
+
+  // ─── Super Admin: Colors Master ──────────────────────────────────────────────
+  Future<ColorListResponse> getSuperAdminColors() async {
+    return await _apiProvider.getSuperAdminColors();
+  }
+
+  Future<CommonResponse> createSuperAdminColor({
+    required String name,
+    String? hexCode,
+    String? status,
+  }) async {
+    final body = <String, dynamic>{'name': name};
+    if (hexCode != null) body['hexCode'] = hexCode;
+    if (status != null) body['status'] = status;
+    return await _apiProvider.createSuperAdminColor(body);
+  }
+
+  Future<CommonResponse> updateSuperAdminColor({
+    required int id,
+    String? name,
+    String? hexCode,
+    String? status,
+  }) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (hexCode != null) body['hexCode'] = hexCode;
+    if (status != null) body['status'] = status;
+    return await _apiProvider.updateSuperAdminColor(id, body);
+  }
+
+  Future<CommonResponse> deleteSuperAdminColor({required int id}) async {
+    return await _apiProvider.deleteSuperAdminColor(id);
+  }
+
+  // ─── Super Admin: Materials Master ─────────────────────────────────────────
+  Future<MaterialListResponse> getSuperAdminMaterials() async {
+    return await _apiProvider.getSuperAdminMaterials();
+  }
+
+  Future<CommonResponse> createSuperAdminMaterial({
+    required String name,
+    String? description,
+    String? status,
+  }) async {
+    final body = <String, dynamic>{'name': name};
+    if (description != null) body['description'] = description;
+    if (status != null) body['status'] = status;
+    return await _apiProvider.createSuperAdminMaterial(body);
+  }
+
+  Future<CommonResponse> updateSuperAdminMaterial({
+    required int id,
+    String? name,
+    String? description,
+    String? status,
+  }) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (description != null) body['description'] = description;
+    if (status != null) body['status'] = status;
+    return await _apiProvider.updateSuperAdminMaterial(id, body);
+  }
+
+  Future<CommonResponse> deleteSuperAdminMaterial({required int id}) async {
+    return await _apiProvider.deleteSuperAdminMaterial(id);
+  }
+
+  // ─── Masters (read-only for brand users) ───────────────────────────────────
+  Future<ColorListResponse> getMasterColors() async {
+    return await _apiProvider.getMasterColors();
+  }
+
+  Future<MaterialListResponse> getMasterMaterials() async {
+    return await _apiProvider.getMasterMaterials();
+  }
 }

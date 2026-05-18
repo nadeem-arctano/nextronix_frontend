@@ -40,8 +40,8 @@ class AddProductForm {
   final minStock = TextEditingController(text: '5');
 
   // ─── Step 4: Specs / compliance ───────────────────────────────────────────
-  final color = TextEditingController();
-  final material = TextEditingController();
+  int? colorId;
+  int? materialTypeId;
   final weight = TextEditingController();
   final dimensions = TextEditingController();
   final country = TextEditingController(text: 'India');
@@ -59,6 +59,43 @@ class AddProductForm {
   // ─── Step 6: Listing settings ─────────────────────────────────────────────
   String status = 'active';
   bool isFeatured = false;
+
+  // ─── Inline master validation errors ──────────────────────────────────────
+  /// Stores server-side validation errors keyed by field name
+  /// (e.g. `categoryId`, `colorId`, `materialTypeId`, `hsnId`).
+  final Map<String, String> _fieldErrors = {};
+
+  /// Set a validation error for a specific field.
+  void setFieldError(String field, String message) {
+    _fieldErrors[field] = message;
+  }
+
+  /// Clear a specific field error (e.g. when the user changes the value).
+  void clearFieldError(String field) {
+    _fieldErrors.remove(field);
+  }
+
+  /// Clear all field errors.
+  void clearAllFieldErrors() {
+    _fieldErrors.clear();
+  }
+
+  /// Get the current error for a field, or null if none.
+  String? getFieldError(String field) => _fieldErrors[field];
+
+  /// Maps a field name to the wizard step it belongs to.
+  static AddProductStep? stepForField(String field) {
+    switch (field) {
+      case 'categoryId':
+      case 'hsnId':
+        return AddProductStep.info;
+      case 'colorId':
+      case 'materialTypeId':
+        return AddProductStep.specs;
+      default:
+        return null;
+    }
+  }
 
   /// Returns the value buyers'd see as a discount percentage. Used by the
   /// review block + the live banner under the price fields.
@@ -88,8 +125,6 @@ class AddProductForm {
       gst,
       stock,
       minStock,
-      color,
-      material,
       weight,
       dimensions,
       country,

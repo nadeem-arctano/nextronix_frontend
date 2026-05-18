@@ -45,6 +45,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
   bool _isLoaded = false;
   PlatformFile? _thumbnailFile;
 
+  /// Inline master validation errors keyed by field name.
+  final Map<String, String> _fieldErrors = {};
+
   @override
   void initState() {
     super.initState();
@@ -85,7 +88,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _fieldErrors.clear();
+    });
 
     final formData = FormData.fromMap({
       'name': _nameController.text,
@@ -132,6 +138,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (result == null && mounted) {
       ToastService.success(context, 'Product updated successfully');
       context.go('/admin/products');
+    } else if (result != null && mounted) {
+      // Surface master validation errors inline on the corresponding field.
+      if (result.isMasterValidationError && result.field != null) {
+        setState(() {
+          _fieldErrors[result.field!] = result.alertMessage;
+        });
+      } else {
+        ToastService.fromError(context, result);
+      }
     }
   }
 
@@ -262,14 +277,20 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _selectedCategory,
-                    decoration: const InputDecoration(labelText: 'Category *'),
+                    decoration: InputDecoration(
+                      labelText: 'Category *',
+                      errorText: _fieldErrors['categoryId'],
+                    ),
                     items: categories.map<DropdownMenuItem<int>>((c) {
                       return DropdownMenuItem(
                         value: c.id,
                         child: Text(c.name ?? ''),
                       );
                     }).toList(),
-                    onChanged: (v) => setState(() => _selectedCategory = v),
+                    onChanged: (v) {
+                      _fieldErrors.remove('categoryId');
+                      setState(() => _selectedCategory = v);
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),

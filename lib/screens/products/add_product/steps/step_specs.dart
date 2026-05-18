@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../provider/color_master_provider.dart';
+import '../../../../provider/material_master_provider.dart';
 import '../../../../widgets/forms/forms.dart';
 import '../controller/add_product_form.dart';
 
 /// Step 4: physical attributes + Indian e-commerce compliance fields.
-class StepSpecs extends StatelessWidget {
+class StepSpecs extends StatefulWidget {
   final AddProductForm form;
   const StepSpecs({super.key, required this.form});
 
   @override
+  State<StepSpecs> createState() => _StepSpecsState();
+}
+
+class _StepSpecsState extends State<StepSpecs> {
+  InputDecoration _decoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      border: const OutlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final form = widget.form;
+    final colors = context.watch<ColorMasterProvider>().colors;
+    final materials = context.watch<MaterialMasterProvider>().materials;
+
     return Column(
       children: [
         SectionCard(
@@ -20,16 +40,44 @@ class StepSpecs extends StatelessWidget {
               children: [
                 FormFieldBlock(
                   label: 'Color',
-                  child: ShadTextInput(
-                    controller: form.color,
-                    hint: 'Crimson red',
+                  child: DropdownButtonFormField<int>(
+                    initialValue: form.colorId,
+                    decoration: _decoration(
+                      'Select color',
+                    ).copyWith(errorText: form.getFieldError('colorId')),
+                    items: colors
+                        .map(
+                          (c) => DropdownMenuItem<int>(
+                            value: c.id,
+                            child: Text(c.name ?? '-'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      form.clearFieldError('colorId');
+                      setState(() => form.colorId = v);
+                    },
                   ),
                 ),
                 FormFieldBlock(
                   label: 'Material',
-                  child: ShadTextInput(
-                    controller: form.material,
-                    hint: '100% combed cotton',
+                  child: DropdownButtonFormField<int>(
+                    initialValue: form.materialTypeId,
+                    decoration: _decoration(
+                      'Select material',
+                    ).copyWith(errorText: form.getFieldError('materialTypeId')),
+                    items: materials
+                        .map(
+                          (m) => DropdownMenuItem<int>(
+                            value: m.id,
+                            child: Text(m.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) {
+                      form.clearFieldError('materialTypeId');
+                      setState(() => form.materialTypeId = v);
+                    },
                   ),
                 ),
               ],

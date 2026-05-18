@@ -17,8 +17,8 @@ class ProductRequest {
   final int? minStockAlert;
   final String? weight;
   final String? dimensions;
-  final String? color;
-  final String? material;
+  final int? colorId;
+  final int? materialTypeId;
   final String? warranty;
   final String status;
   final bool isFeatured;
@@ -41,8 +41,8 @@ class ProductRequest {
     this.minStockAlert,
     this.weight,
     this.dimensions,
-    this.color,
-    this.material,
+    this.colorId,
+    this.materialTypeId,
     this.warranty,
     this.status = 'active',
     this.isFeatured = false,
@@ -77,8 +77,8 @@ class ProductRequest {
     if (dimensions != null && dimensions!.isNotEmpty) {
       map['dimensions'] = dimensions;
     }
-    if (color != null && color!.isNotEmpty) map['color'] = color;
-    if (material != null && material!.isNotEmpty) map['material'] = material;
+    if (colorId != null) map['colorId'] = colorId;
+    if (materialTypeId != null) map['materialTypeId'] = materialTypeId;
     if (warranty != null && warranty!.isNotEmpty) map['warranty'] = warranty;
 
     final formData = FormData.fromMap(map);

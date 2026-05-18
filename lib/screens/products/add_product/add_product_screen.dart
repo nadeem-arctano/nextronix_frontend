@@ -10,6 +10,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../core/services/toast_service.dart';
 import '../../../model/request/request.dart';
 import '../../../provider/category_provider.dart';
+import '../../../provider/color_master_provider.dart';
+import '../../../provider/material_master_provider.dart';
 import '../../../provider/product_provider.dart';
 import '../../../widgets/forms/forms.dart';
 import 'controller/add_product_form.dart';
@@ -66,13 +68,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
     ),
   ];
 
-  @override 
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<ProductProvider>().loadHsnCodes();
       context.read<CategoryProvider>().loadCategories();
+      context.read<ColorMasterProvider>().loadColors();
+      context.read<MaterialMasterProvider>().loadMaterials();
     });
   }
 
@@ -175,6 +179,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   /// Shared persistence path used by both `Submit` and `Save as draft`.
   /// Returns `null` on success, otherwise the AlertErrorResponse.
   Future<dynamic> _persist() async {
+    // Clear any previous field errors before a new submission.
+    _form.clearAllFieldErrors();
+
     final ordered = _form.images.orderedForSubmit();
     final request = ProductRequest(
       name: _form.name.text.trim(),
@@ -192,8 +199,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       minStockAlert: int.tryParse(_form.minStock.text),
       weight: _form.weight.text.trim(),
       dimensions: _form.dimensions.text.trim(),
-      color: _form.color.text.trim(),
-      material: _form.material.text.trim(),
+      colorId: _form.colorId,
+      materialTypeId: _form.materialTypeId,
       warranty: _form.buildWarrantyBlob(),
       status: _form.status,
       isFeatured: _form.isFeatured,
@@ -210,7 +217,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
         .createProductReturningId(formData: formData);
 
     if (result.error != null) {
-      if (mounted) ToastService.fromError(context, result.error!);
+      if (mounted) {
+        final err = result.error!;
+        // Surface master validation errors inline on the corresponding field.
+        if (err.isMasterValidationError && err.field != null) {
+          _form.setFieldError(err.field!, err.alertMessage);
+          final targetStep = AddProductForm.stepForField(err.field!);
+          if (targetStep != null) {
+            setState(() => _step = targetStep);
+          } else {
+            setState(() {});
+          }
+        } else {
+          ToastService.fromError(context, err);
+        }
+      }
       return result.error;
     }
     return null;

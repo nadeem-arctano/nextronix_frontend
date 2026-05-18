@@ -4,7 +4,26 @@ class AlertErrorResponse {
   final String alertHeading;
   final String alertMessage;
 
-  AlertErrorResponse({required this.alertHeading, required this.alertMessage});
+  /// The structured error code returned by the API (e.g.
+  /// `MISSING_FIELD`, `INVALID_MASTER_REFERENCE`, `INACTIVE_MASTER_REFERENCE`).
+  final String? code;
+
+  /// The field name the error relates to (e.g. `categoryId`, `colorId`).
+  final String? field;
+
+  AlertErrorResponse({
+    required this.alertHeading,
+    required this.alertMessage,
+    this.code,
+    this.field,
+  });
+
+  /// Whether this error is a master validation error that should be surfaced
+  /// inline next to a form field.
+  bool get isMasterValidationError =>
+      code == 'MISSING_FIELD' ||
+      code == 'INVALID_MASTER_REFERENCE' ||
+      code == 'INACTIVE_MASTER_REFERENCE';
 
   /// Extracts a user-friendly error from a caught exception
   static AlertErrorResponse getErrorResponse(dynamic e) {
@@ -15,6 +34,8 @@ class AlertErrorResponse {
           alertHeading: "Error!",
           alertMessage:
               responseData["message"]?.toString() ?? "Something went wrong",
+          code: responseData["code"]?.toString(),
+          field: responseData["field"]?.toString(),
         );
       }
       switch (e.type) {

@@ -1,4 +1,6 @@
 export 'category_provider.dart';
+export 'color_master_provider.dart';
+export 'material_master_provider.dart';
 export 'product_provider.dart';
 export 'order_provider.dart';
 export 'dashboard_provider.dart';
@@ -16,3 +18,5 @@ export 'inventory_provider.dart';
 export 'variant_provider.dart';
 export 'variant_group_provider.dart';
 export 'permission_provider.dart';
+export 'super_admin_dashboard_provider.dart';
+export 'admins_table_provider.dart';

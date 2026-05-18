@@ -48,7 +48,15 @@ import '../../screens/inventory_logs/inventory_logs_screen.dart';
 import '../../screens/permissions/permissions_screen.dart';
 import '../../screens/products/variants/variants_screen.dart';
 import '../../screens/products/variations/variations_screen.dart';
+import '../../screens/super_admin/dashboard/super_admin_dashboard_screen.dart';
+import '../../screens/super_admin/admins/admins_table_screen.dart';
+import '../../screens/super_admin/admins/admin_detail_screen.dart';
+import '../../screens/super_admin/masters/categories_master_screen.dart';
+import '../../screens/super_admin/masters/hsn_master_screen.dart';
+import '../../screens/super_admin/masters/colors_master_screen.dart';
+import '../../screens/super_admin/masters/materials_master_screen.dart';
 import '../../widgets/admin_layout.dart';
+import '../../widgets/super_admin_layout.dart';
 
 /// Instant page transition — no slide, just a quick fade
 CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
@@ -64,10 +72,23 @@ CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
 }
 
 class AppRouter {
+  /// Returns the default dashboard path for a given role.
+  static String _defaultDashboardForRole(String? role) {
+    switch (role) {
+      case 'super_admin':
+        return '/super-admin/dashboard';
+      case 'admin':
+      case 'manager':
+        return '/admin/dashboard';
+      default:
+        return '/login';
+    }
+  }
+
   /// Reads the actual browser URL at app start, ignoring `/` (which may be
   /// a transient default before the URL strategy reads the real location).
-  /// Returns `/admin/dashboard` for an actual root visit so logged-in users
-  /// land somewhere useful.
+  /// Returns the role-appropriate dashboard for an actual root visit so
+  /// logged-in users land somewhere useful.
   static String _readInitialPath() {
     final p = html.window.location.pathname ?? '/';
     if (p.isEmpty || p == '/') return '/admin/dashboard';
@@ -116,7 +137,21 @@ class AppRouter {
           return loggingIn ? null : '/login';
         }
         // Already authenticated → never let them sit on /login
-        if (loggingIn) return '/admin/dashboard';
+        if (loggingIn) return _defaultDashboardForRole(auth.role);
+
+        final uri = state.uri.toString();
+        final role = auth.role;
+
+        // Cross-role redirect: non-super_admin trying to access /super-admin/*
+        if (uri.startsWith('/super-admin') && role != 'super_admin') {
+          return _defaultDashboardForRole(role);
+        }
+
+        // Cross-role redirect: super_admin trying to access /admin/*
+        if (uri.startsWith('/admin') && role == 'super_admin') {
+          return '/super-admin/dashboard';
+        }
+
         return null;
       },
       routes: [
@@ -145,6 +180,65 @@ class AppRouter {
             state,
           ),
         ),
+        // ─── Super Admin Shell ─────────────────────────────────────────────
+        ShellRoute(
+          builder: (context, state, child) => SuperAdminLayout(child: child),
+          routes: [
+            GoRoute(
+              path: '/super-admin/dashboard',
+              name: 'sa-dashboard',
+              pageBuilder: (context, state) =>
+                  _fadePage(const SuperAdminDashboardScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/admins',
+              name: 'sa-admins',
+              pageBuilder: (context, state) =>
+                  _fadePage(const AdminsTableScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/admins/:id',
+              name: 'sa-admin-detail',
+              pageBuilder: (context, state) => _fadePage(
+                AdminDetailScreen(
+                  adminId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            GoRoute(
+              path: '/super-admin/masters/categories',
+              name: 'sa-categories',
+              pageBuilder: (context, state) =>
+                  _fadePage(const CategoriesMasterScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/masters/hsn',
+              name: 'sa-hsn',
+              pageBuilder: (context, state) =>
+                  _fadePage(const HsnMasterScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/masters/colors',
+              name: 'sa-colors',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ColorsMasterScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/masters/materials',
+              name: 'sa-materials',
+              pageBuilder: (context, state) =>
+                  _fadePage(const MaterialsMasterScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/settings',
+              name: 'sa-settings',
+              pageBuilder: (context, state) =>
+                  _fadePage(const SettingsHubScreen(), state),
+            ),
+          ],
+        ),
+        // ─── Admin Shell ───────────────────────────────────────────────────
         ShellRoute(
           builder: (context, state, child) => AdminLayout(child: child),
           routes: [
