@@ -174,6 +174,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             flex: 1,
                           ),
                         ],
+                        hiddenColumns: _hiddenColumns,
                         trailingWidth: 70,
                         items: provider.products,
                         currentPage: provider.currentPage,
