@@ -52,13 +52,6 @@ class BusinessInfoSectionScreen extends StatelessWidget {
             onChanged: (v) =>
                 p.setValue(_section, 'panNumber', v.toUpperCase()),
           ),
-          SettingsTextField(
-            label: 'Website URL',
-            hint: 'https://example.com',
-            icon: LucideIcons.globe,
-            value: p.getValue(_section, 'websiteUrl'),
-            onChanged: (v) => p.setValue(_section, 'websiteUrl', v),
-          ),
         ],
       ),
     );

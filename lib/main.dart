@@ -77,3 +77,19 @@ class NextronixAdmin extends StatelessWidget {
     );
   }
 }
+
+
+// Super Admin → superadmin@nextronix.com / SuperAdmin@123
+
+//    Tronix Electronics:
+//      Admin    → admin@tronix.com / admin123
+//      Manager  → manager@tronix.com / manager123
+//      Customer → customer1@tronix.com ... customer10@tronix.com / customer123
+//    Lumora Lights:
+//      Admin    → admin@lumora.com / admin123
+//      Manager  → manager@lumora.com / manager123
+//      Customer → customer1@lumora.com ... customer10@lumora.com / customer123
+//    Volta Power:
+//      Admin    → admin@volta.com / admin123
+//      Manager  → manager@volta.com / manager123
+    //  Customer → customer1@volta.com ... customer10@volta.com / customer123
