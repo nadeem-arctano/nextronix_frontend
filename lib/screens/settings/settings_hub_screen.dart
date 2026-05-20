@@ -41,7 +41,10 @@ class _SettingsHubScreenState extends State<SettingsHubScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: provider.isHubLoading && provider.hubSettings == null
-                    ? const Padding(padding: EdgeInsets.all(24), child: CardSkeleton(lines: 6))
+                    ? const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CardSkeleton(lines: 6),
+                      )
                     : SingleChildScrollView(
                         child: _buildSectionGrid(context, provider),
                       ),
@@ -178,6 +181,15 @@ class _SettingsHubScreenState extends State<SettingsHubScreen> {
             (s?.facebookUrl?.isNotEmpty ?? false) ||
             (s?.youtubeUrl?.isNotEmpty ?? false) ||
             (s?.twitterUrl?.isNotEmpty ?? false),
+      ),
+      _SectionItem(
+        title: 'Theme',
+        description: 'Panel look & feel',
+        icon: LucideIcons.palette,
+        color: const Color(0xFF8B5CF6),
+        route: '/admin/settings/theme',
+        preview: 'Customize appearance',
+        isSet: false,
       ),
     ];
   }

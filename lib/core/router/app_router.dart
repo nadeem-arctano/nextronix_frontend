@@ -55,6 +55,10 @@ import '../../screens/super_admin/masters/categories_master_screen.dart';
 import '../../screens/super_admin/masters/hsn_master_screen.dart';
 import '../../screens/super_admin/masters/colors_master_screen.dart';
 import '../../screens/super_admin/masters/materials_master_screen.dart';
+import '../../screens/super_admin/themes/themes_list_screen.dart';
+import '../../screens/super_admin/themes/theme_form_screen.dart';
+import '../../screens/super_admin/themes/theme_preview_screen.dart';
+import '../../screens/settings/sections/theme_section.dart';
 import '../../widgets/admin_layout.dart';
 import '../../widgets/super_admin_layout.dart';
 
@@ -230,6 +234,39 @@ class AppRouter {
               pageBuilder: (context, state) =>
                   _fadePage(const MaterialsMasterScreen(), state),
             ),
+            // ─── Themes ────────────────────────────────────────────────────────
+            GoRoute(
+              path: '/super-admin/themes',
+              name: 'sa-themes',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ThemesListScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/themes/new',
+              name: 'sa-theme-create',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ThemeFormScreen(), state),
+            ),
+            GoRoute(
+              path: '/super-admin/themes/:id',
+              name: 'sa-theme-edit',
+              pageBuilder: (context, state) => _fadePage(
+                ThemeFormScreen(
+                  themeId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
+            GoRoute(
+              path: '/super-admin/themes/:id/preview',
+              name: 'sa-theme-preview',
+              pageBuilder: (context, state) => _fadePage(
+                ThemePreviewScreen(
+                  themeId: int.parse(state.pathParameters['id']!),
+                ),
+                state,
+              ),
+            ),
             GoRoute(
               path: '/super-admin/settings',
               name: 'sa-settings',
@@ -389,6 +426,12 @@ class AppRouter {
               name: 'settings-social',
               pageBuilder: (context, state) =>
                   _fadePage(const SocialSectionScreen(), state),
+            ),
+            GoRoute(
+              path: '/admin/settings/theme',
+              name: 'settings-theme',
+              pageBuilder: (context, state) =>
+                  _fadePage(const ThemeSectionScreen(), state),
             ),
             // ─── Support ───────────────────────────────────────────────────────
             GoRoute(

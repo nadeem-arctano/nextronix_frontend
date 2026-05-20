@@ -4,7 +4,6 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'core/router/app_router.dart';
-import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'provider/auth_provider.dart';
 import 'provider/provider.dart';
@@ -47,13 +46,14 @@ class NextronixAdmin extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MaterialMasterProvider()),
         ChangeNotifierProvider(create: (_) => SuperAdminDashboardProvider()),
         ChangeNotifierProvider(create: (_) => AdminsTableProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeCatalogProvider()),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(
         builder: (context, themeProvider, auth, _) {
           return ShadApp.custom(
             themeMode: themeProvider.themeMode,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            theme: themeProvider.compiledLightTheme,
+            darkTheme: themeProvider.compiledDarkTheme,
             appBuilder: (context) {
               return MaterialApp.router(
                 title: 'Nextronix Admin',

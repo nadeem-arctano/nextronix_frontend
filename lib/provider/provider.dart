@@ -20,3 +20,4 @@ export 'variant_group_provider.dart';
 export 'permission_provider.dart';
 export 'super_admin_dashboard_provider.dart';
 export 'admins_table_provider.dart';
+export 'theme_catalog_provider.dart';

@@ -20,3 +20,7 @@ export 'inventory_requests.dart';
 export 'variant_requests.dart';
 export 'permission_requests.dart';
 export 'variant_group_requests.dart';
+export 'theme_create_request.dart';
+export 'theme_update_request.dart';
+export 'theme_select_request.dart';
+export 'theme_preview_section_request.dart';

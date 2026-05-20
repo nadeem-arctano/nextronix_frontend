@@ -1248,4 +1248,87 @@ class NextronixRepository {
   Future<MaterialListResponse> getMasterMaterials() async {
     return await _apiProvider.getMasterMaterials();
   }
+
+  // ─── Super Admin: Themes ──────────────────────────────────────────────────
+  Future<CommonResponse> createTheme({required FormData formData}) async {
+    return await _apiProvider.createTheme(formData);
+  }
+
+  Future<ThemeListResponse> listThemes({
+    int page = 1,
+    int limit = 10,
+    String? search,
+    String? mode,
+    String? status,
+  }) async {
+    final queries = <String, dynamic>{'page': page, 'limit': limit};
+    if (search != null && search.isNotEmpty) queries['search'] = search;
+    if (mode != null) queries['mode'] = mode;
+    if (status != null) queries['status'] = status;
+    return await _apiProvider.listThemes(queries);
+  }
+
+  Future<ThemeDetailResponse> getTheme({required int id}) async {
+    return await _apiProvider.getTheme(id);
+  }
+
+  Future<CommonResponse> updateTheme({
+    required int id,
+    required FormData formData,
+  }) async {
+    return await _apiProvider.updateTheme(id, formData);
+  }
+
+  Future<CommonResponse> deleteTheme({required int id}) async {
+    return await _apiProvider.deleteTheme(id);
+  }
+
+  Future<CommonResponse> setDefaultTheme({required int id}) async {
+    return await _apiProvider.setDefaultTheme(id);
+  }
+
+  Future<CommonResponse> toggleThemeStatus({required int id}) async {
+    return await _apiProvider.toggleThemeStatus(id);
+  }
+
+  // ─── Super Admin: Theme Preview Sections ──────────────────────────────────
+  Future<CommonResponse> createPreviewSection({
+    required int themeId,
+    required ThemePreviewSectionRequest body,
+  }) async {
+    return await _apiProvider.createPreviewSection(themeId, body);
+  }
+
+  Future<ThemeListResponse> listPreviewSections({required int themeId}) async {
+    return await _apiProvider.listPreviewSections(themeId);
+  }
+
+  Future<CommonResponse> updatePreviewSection({
+    required int themeId,
+    required int id,
+    required ThemePreviewSectionRequest body,
+  }) async {
+    return await _apiProvider.updatePreviewSection(themeId, id, body);
+  }
+
+  Future<CommonResponse> deletePreviewSection({
+    required int themeId,
+    required int id,
+  }) async {
+    return await _apiProvider.deletePreviewSection(themeId, id);
+  }
+
+  // ─── Masters: Themes ──────────────────────────────────────────────────────
+  Future<ThemeListResponse> listActiveThemes() async {
+    return await _apiProvider.listActiveThemes();
+  }
+
+  // ─── Admin Theme ──────────────────────────────────────────────────────────
+  Future<CommonResponse> selectTheme({required ThemeSelectRequest body}) async {
+    return await _apiProvider.selectTheme(body);
+  }
+
+  Future<CurrentThemeResponse> getCurrentTheme() async {
+    return await _apiProvider.getCurrentTheme();
+  }
 }

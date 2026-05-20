@@ -588,4 +588,65 @@ abstract class ApiProvider {
     @Path('id') int id,
     @Body() VariantGroupOption body,
   );
+
+  // ─── Super Admin: Themes ───────────────────────────────────────────────────
+  @POST("super-admin/themes")
+  @MultiPart()
+  Future<CommonResponse> createTheme(@Body() FormData formData);
+
+  @GET("super-admin/themes")
+  Future<ThemeListResponse> listThemes(@Queries() Map<String, dynamic> queries);
+
+  @GET("super-admin/themes/{id}")
+  Future<ThemeDetailResponse> getTheme(@Path('id') int id);
+
+  @PUT("super-admin/themes/{id}")
+  @MultiPart()
+  Future<CommonResponse> updateTheme(
+    @Path('id') int id,
+    @Body() FormData formData,
+  );
+
+  @DELETE("super-admin/themes/{id}")
+  Future<CommonResponse> deleteTheme(@Path('id') int id);
+
+  @POST("super-admin/themes/{id}/set-default")
+  Future<CommonResponse> setDefaultTheme(@Path('id') int id);
+
+  @POST("super-admin/themes/{id}/toggle-status")
+  Future<CommonResponse> toggleThemeStatus(@Path('id') int id);
+
+  // ─── Super Admin: Theme Preview Sections ───────────────────────────────────
+  @POST("super-admin/themes/{themeId}/preview-sections")
+  Future<CommonResponse> createPreviewSection(
+    @Path('themeId') int themeId,
+    @Body() ThemePreviewSectionRequest body,
+  );
+
+  @GET("super-admin/themes/{themeId}/preview-sections")
+  Future<ThemeListResponse> listPreviewSections(@Path('themeId') int themeId);
+
+  @PUT("super-admin/themes/{themeId}/preview-sections/{id}")
+  Future<CommonResponse> updatePreviewSection(
+    @Path('themeId') int themeId,
+    @Path('id') int id,
+    @Body() ThemePreviewSectionRequest body,
+  );
+
+  @DELETE("super-admin/themes/{themeId}/preview-sections/{id}")
+  Future<CommonResponse> deletePreviewSection(
+    @Path('themeId') int themeId,
+    @Path('id') int id,
+  );
+
+  // ─── Masters: Themes ───────────────────────────────────────────────────────
+  @GET("masters/themes")
+  Future<ThemeListResponse> listActiveThemes();
+
+  // ─── Admin Theme ───────────────────────────────────────────────────────────
+  @POST("admin-theme/select")
+  Future<CommonResponse> selectTheme(@Body() ThemeSelectRequest body);
+
+  @GET("admin-theme/current")
+  Future<CurrentThemeResponse> getCurrentTheme();
 }
