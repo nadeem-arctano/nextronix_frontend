@@ -1,3 +1,5 @@
+import 'dart:html' as html;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -378,7 +380,9 @@ class _ThemesListScreenState extends State<ThemesListScreen> {
       case 'edit':
         context.go('/super-admin/themes/${themeItem.id}');
       case 'preview':
-        context.go('/super-admin/themes/${themeItem.id}/preview');
+        // Open preview in a new browser tab
+        final url = '/super-admin/themes/${themeItem.id}/preview';
+        html.window.open(url, '_blank');
       case 'set_default':
         _confirmSetDefault(themeItem, provider);
       case 'toggle_status':
