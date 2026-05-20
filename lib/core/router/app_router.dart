@@ -184,6 +184,15 @@ class AppRouter {
             state,
           ),
         ),
+        // Theme preview — standalone full page (no sidebar)
+        GoRoute(
+          path: '/super-admin/themes/:id/preview',
+          name: 'sa-theme-preview',
+          pageBuilder: (context, state) => _fadePage(
+            ThemePreviewScreen(themeId: int.parse(state.pathParameters['id']!)),
+            state,
+          ),
+        ),
         // ─── Super Admin Shell ─────────────────────────────────────────────
         ShellRoute(
           builder: (context, state, child) => SuperAdminLayout(child: child),
@@ -252,16 +261,6 @@ class AppRouter {
               name: 'sa-theme-edit',
               pageBuilder: (context, state) => _fadePage(
                 ThemeFormScreen(
-                  themeId: int.parse(state.pathParameters['id']!),
-                ),
-                state,
-              ),
-            ),
-            GoRoute(
-              path: '/super-admin/themes/:id/preview',
-              name: 'sa-theme-preview',
-              pageBuilder: (context, state) => _fadePage(
-                ThemePreviewScreen(
                   themeId: int.parse(state.pathParameters['id']!),
                 ),
                 state,
