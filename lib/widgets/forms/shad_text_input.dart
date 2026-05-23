@@ -36,6 +36,21 @@ class ShadTextInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderColor = const Color(0xFFE5E7EB);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final defaultBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: borderColor),
+    );
+    final focusedDefault = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: borderColor),
+    );
+    final errorBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: errorColor),
+    );
+
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -47,7 +62,11 @@ class ShadTextInput extends StatelessWidget {
           horizontal: 12,
           vertical: 12,
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: defaultBorder,
+        enabledBorder: defaultBorder,
+        focusedBorder: focusedDefault,
+        errorBorder: errorBorder,
+        focusedErrorBorder: errorBorder,
       ),
       maxLines: maxLines,
       keyboardType: keyboardType,

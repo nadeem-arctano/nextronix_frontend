@@ -37,21 +37,34 @@ class AppTheme {
     brightness: Brightness.light,
     colorScheme: const ShadZincColorScheme.light(),
     textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
-    disableSecondaryBorder: true,
     inputTheme: ShadInputTheme(
       decoration: ShadDecoration(
-        secondaryFocusedBorder: ShadBorder.none,
-        secondaryBorder: ShadBorder.none,
-        focusedBorder: ShadBorder.all(
-          color: Colors.black,
+        border: ShadBorder.all(
+          color: Color(0xFFE5E7EB),
           width: 1,
           radius: BorderRadius.circular(8),
         ),
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: Color(0xFFE5E7EB),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+        errorBorder: ShadBorder.all(
+          color: dangerColor,
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+        secondaryErrorBorder: ShadBorder.none,
       ),
     ),
     selectTheme: ShadSelectTheme(
       decoration: ShadDecoration(
-        secondaryFocusedBorder: ShadBorder.none,
+        border: ShadBorder.all(
+          color: Color(0xFFE5E7EB),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
         secondaryBorder: ShadBorder.none,
         focusedBorder: ShadBorder.all(
           color: Color(0xffe4e4e7),
@@ -67,21 +80,34 @@ class AppTheme {
     brightness: Brightness.dark,
     colorScheme: const ShadZincColorScheme.dark(),
     textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.poppins),
-    disableSecondaryBorder: true,
     inputTheme: ShadInputTheme(
       decoration: ShadDecoration(
-        secondaryFocusedBorder: ShadBorder.none,
-        secondaryBorder: ShadBorder.none,
-        focusedBorder: ShadBorder.all(
-          color: const Color(0xFF818CF8).withValues(alpha: 0.5),
+        border: ShadBorder.all(
+          color: const Color(0xFF374151),
           width: 1,
           radius: BorderRadius.circular(8),
         ),
+        secondaryBorder: ShadBorder.none,
+        focusedBorder: ShadBorder.all(
+          color: const Color(0xFF374151),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+        errorBorder: ShadBorder.all(
+          color: dangerColor,
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
+        secondaryErrorBorder: ShadBorder.none,
       ),
     ),
     selectTheme: ShadSelectTheme(
       decoration: ShadDecoration(
-        secondaryFocusedBorder: ShadBorder.none,
+        border: ShadBorder.all(
+          color: const Color(0xFF374151),
+          width: 1,
+          radius: BorderRadius.circular(8),
+        ),
         secondaryBorder: ShadBorder.none,
         focusedBorder: ShadBorder.all(
           color: const Color(0xFF818CF8).withValues(alpha: 0.4),

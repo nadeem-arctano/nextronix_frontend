@@ -288,7 +288,7 @@ class _StepInfoState extends State<StepInfo> {
               FormFieldBlock(
                 label: 'Highlights',
                 required: true,
-                hint: 'Key bullet points. Up to 6. Shows in product header.',
+                hint: 'Key bullet . Up to 6. Shows in product header.',
                 child: _HighlightsField(form: form),
               ),
               FormFieldBlock(
