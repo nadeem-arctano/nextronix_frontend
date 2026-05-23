@@ -38,20 +38,29 @@ class FormFieldBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.small.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+          // Fixed-height label row so required/optional fields stay aligned
+          // when used side-by-side in a grid.
+          SizedBox(
+            height: 18,
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.small.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
                 ),
-              ),
-              if (required) ...[
-                const SizedBox(width: 4),
-                const Text('*', style: TextStyle(color: AppTheme.dangerColor)),
+                if (required) ...[
+                  const SizedBox(width: 4),
+                  const Text(
+                    '*',
+                    style: TextStyle(color: AppTheme.dangerColor, height: 1.2),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
           const SizedBox(height: 6),
           child,

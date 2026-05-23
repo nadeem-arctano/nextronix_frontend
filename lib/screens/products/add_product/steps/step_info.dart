@@ -61,29 +61,28 @@ class _StepInfoState extends State<StepInfo> {
                       validator: Validators.required('Name is required'),
                     ),
                   ),
-                  FormFieldBlock(
-                    label: 'Brand',
-                    child: ShadTextInput(
-                      controller: form.brand,
-                      hint: 'Tronix',
-                    ),
-                  ),
                 ],
               ),
               FormFieldGrid(
                 children: [
                   FormFieldBlock(
                     label: 'Model name',
+                    required: true,
                     child: ShadTextInput(
                       controller: form.modelName,
                       hint: 'Aurora Lite',
+                      validator: Validators.required('Model name is required'),
                     ),
                   ),
                   FormFieldBlock(
                     label: 'Model number',
+                    required: true,
                     child: ShadTextInput(
                       controller: form.modelNumber,
                       hint: 'TR-12-RED',
+                      validator: Validators.required(
+                        'Model number is required',
+                      ),
                     ),
                   ),
                 ],
@@ -92,12 +91,16 @@ class _StepInfoState extends State<StepInfo> {
                 children: [
                   FormFieldBlock(
                     label: 'SKU',
+                    required: true,
                     child: ShadTextInput(
                       controller: form.sku,
                       hint: 'TR-CST-RED-M',
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? null
-                          : Validators.sku()(v),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'SKU is required';
+                        }
+                        return Validators.sku()(v);
+                      },
                     ),
                   ),
                   FormFieldBlock(
@@ -128,6 +131,8 @@ class _StepInfoState extends State<StepInfo> {
                           decoration: _decoration('Select category').copyWith(
                             errorText: form.getFieldError('categoryId'),
                           ),
+                          validator: (v) =>
+                              v == null ? 'Category is required' : null,
                           items: categories
                               .map(
                                 (c) => DropdownMenuItem<int>(
@@ -146,19 +151,27 @@ class _StepInfoState extends State<StepInfo> {
                   ),
                   FormFieldBlock(
                     label: 'HSN code',
+                    required: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DropdownButtonFormField<int>(
+                          isExpanded: true,
                           initialValue: form.hsnId,
                           decoration: _decoration(
                             'Select HSN',
                           ).copyWith(errorText: form.getFieldError('hsnId')),
+                          validator: (v) =>
+                              v == null ? 'HSN code is required' : null,
                           items: hsn
                               .map(
                                 (h) => DropdownMenuItem<int>(
                                   value: h.id,
-                                  child: Text(h.displayLabel),
+                                  child: Text(
+                                    h.displayLabel,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -185,6 +198,7 @@ class _StepInfoState extends State<StepInfo> {
                 children: [
                   FormFieldBlock(
                     label: 'Pack size',
+                    required: true,
                     child: Row(
                       children: [
                         SizedBox(
@@ -195,6 +209,16 @@ class _StepInfoState extends State<StepInfo> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Required';
+                              }
+                              final n = int.tryParse(v);
+                              if (n == null || n <= 0) {
+                                return 'Must be > 0';
+                              }
+                              return null;
+                            },
                             onChanged: (v) {
                               final n = int.tryParse(v);
                               if (n != null) form.unitCount = n;
@@ -252,41 +276,33 @@ class _StepInfoState extends State<StepInfo> {
             subtitle: 'Sell your product in a few sentences',
             children: [
               FormFieldBlock(
-                label: 'Short description',
-                hint: 'One-line summary buyers see in search and quick views.',
-                child: ShadTextInput(
-                  controller: form.shortDesc,
-                  hint: 'Soft cotton round-neck tee with reinforced stitching',
-                  maxLines: 2,
-                ),
-              ),
-              FormFieldBlock(
-                label: 'Highlights',
-                hint:
-                    'Key bullet points (one per line). Shows in product header.',
-                child: ShadTextInput(
-                  controller: form.highlights,
-                  hint:
-                      '• Premium combed cotton\n• Fade-resistant dye\n• Pre-shrunk',
-                  maxLines: 4,
-                ),
-              ),
-              FormFieldBlock(
-                label: 'Full description',
+                label: 'Description',
+                required: true,
                 child: ShadTextInput(
                   controller: form.fullDesc,
                   hint: 'Tell the full story of the product...',
                   maxLines: 6,
+                  validator: Validators.required('Description is required'),
                 ),
               ),
               FormFieldBlock(
+                label: 'Highlights',
+                required: true,
+                hint: 'Key bullet points. Up to 6. Shows in product header.',
+                child: _HighlightsField(form: form),
+              ),
+              FormFieldBlock(
                 label: "What's in the box",
+                required: true,
                 hint:
                     "Comma separated. Helps avoid buyer disappointment after delivery.",
                 child: ShadTextInput(
                   controller: form.whatsInBox,
                   hint: '1× T-Shirt, 1× Care card',
                   maxLines: 2,
+                  validator: Validators.required(
+                    "What's in the box is required",
+                  ),
                 ),
               ),
             ],
@@ -302,4 +318,92 @@ class _StepInfoState extends State<StepInfo> {
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
   );
+}
+
+/// Dynamic highlights field — starts with 1 input, "+ Add more" button
+/// adds another up to a maximum of 6. Each row (after the first) has a
+/// remove (×) button. The 6th row hides the add button.
+class _HighlightsField extends StatefulWidget {
+  final AddProductForm form;
+  const _HighlightsField({required this.form});
+
+  @override
+  State<_HighlightsField> createState() => _HighlightsFieldState();
+}
+
+class _HighlightsFieldState extends State<_HighlightsField> {
+  static const int _maxHighlights = 6;
+
+  void _addField() {
+    if (widget.form.highlights.length >= _maxHighlights) return;
+    setState(() {
+      widget.form.highlights.add(TextEditingController());
+    });
+  }
+
+  void _removeField(int index) {
+    if (widget.form.highlights.length <= 1) return;
+    setState(() {
+      final removed = widget.form.highlights.removeAt(index);
+      removed.dispose();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final highlights = widget.form.highlights;
+    final canAddMore = highlights.length < _maxHighlights;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...List.generate(highlights.length, (index) {
+          final isFirst = index == 0;
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == highlights.length - 1 ? 0 : 8,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ShadTextInput(
+                    controller: highlights[index],
+                    hint: 'Highlight ${index + 1}',
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Highlight ${index + 1} is required'
+                        : null,
+                  ),
+                ),
+                if (!isFirst) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    tooltip: 'Remove',
+                    onPressed: () => _removeField(index),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+        if (canAddMore) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _addField,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add more'),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }

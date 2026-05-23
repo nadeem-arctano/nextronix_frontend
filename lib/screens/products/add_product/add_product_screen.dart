@@ -187,7 +187,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       name: _form.name.text.trim(),
       categoryId: _form.categoryId!,
       hsnId: _form.hsnId,
-      shortDescription: _form.shortDesc.text.trim(),
+      shortDescription: _form.fullDesc.text.trim(),
       fullDescription: _form.buildFullDescription(),
       sku: _form.sku.text.trim(),
       barcode: _form.barcode.text.trim(),

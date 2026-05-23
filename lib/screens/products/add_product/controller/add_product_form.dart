@@ -22,7 +22,8 @@ class AddProductForm {
   final shortDesc = TextEditingController();
   final fullDesc = TextEditingController();
   final whatsInBox = TextEditingController();
-  final highlights = TextEditingController();
+  // Highlights: dynamic list, max 6 fields, min 1 field
+  final List<TextEditingController> highlights = [TextEditingController()];
   final tags = TextEditingController();
   int? categoryId;
   int? hsnId;
@@ -118,7 +119,6 @@ class AddProductForm {
       shortDesc,
       fullDesc,
       whatsInBox,
-      highlights,
       tags,
       mrp,
       selling,
@@ -135,6 +135,9 @@ class AddProductForm {
       covered,
       notCovered,
     ]) {
+      c.dispose();
+    }
+    for (final c in highlights) {
       c.dispose();
     }
     images.dispose();
@@ -159,6 +162,11 @@ class AddProductForm {
   /// Appends extras that don't yet have backend columns to the user's
   /// full description so nothing they typed gets lost.
   String buildFullDescription() {
+    final highlightItems = highlights
+        .map((c) => c.text.trim())
+        .where((s) => s.isNotEmpty)
+        .map((s) => '• $s')
+        .toList();
     final extras = <String>[
       if (modelName.text.trim().isNotEmpty)
         'Model name: ${modelName.text.trim()}',
@@ -167,8 +175,8 @@ class AddProductForm {
       if (unitCount > 0) 'Pack: $unitCount $unitType',
       if (whatsInBox.text.trim().isNotEmpty)
         'In the box: ${whatsInBox.text.trim()}',
-      if (highlights.text.trim().isNotEmpty)
-        'Highlights: ${highlights.text.trim()}',
+      if (highlightItems.isNotEmpty)
+        'Highlights:\n${highlightItems.join('\n')}',
       if (country.text.trim().isNotEmpty)
         'Country of origin: ${country.text.trim()}',
       if (manufacturer.text.trim().isNotEmpty)

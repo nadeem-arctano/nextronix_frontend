@@ -26,33 +26,36 @@ class ThemePreviewPanel extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = ShadTheme.of(context);
-          return Container(
-            color: theme.colorScheme.background,
-            child: Row(
-              children: [
-                _SidebarMock(),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _DashboardSection(),
-                          const SizedBox(height: 32),
-                          _ProductsTableSection(),
-                          const SizedBox(height: 32),
-                          _OrdersTableSection(),
-                          const SizedBox(height: 32),
-                          _AnalyticsPlaceholder(),
-                          const SizedBox(height: 32),
-                          _ProductDetailMock(),
-                        ],
+          return DefaultTextStyle(
+            style: TextStyle(color: theme.colorScheme.foreground),
+            child: Container(
+              color: theme.colorScheme.background,
+              child: Row(
+                children: [
+                  _SidebarMock(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _DashboardSection(),
+                            const SizedBox(height: 32),
+                            _ProductsTableSection(),
+                            const SizedBox(height: 32),
+                            _OrdersTableSection(),
+                            const SizedBox(height: 32),
+                            _AnalyticsPlaceholder(),
+                            const SizedBox(height: 32),
+                            _ProductDetailMock(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -410,6 +413,7 @@ class _ProductsTableSection extends StatelessWidget {
                       style: theme.textTheme.p.copyWith(
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
+                        color: theme.colorScheme.foreground,
                       ),
                     ),
                   ),
@@ -417,21 +421,30 @@ class _ProductsTableSection extends StatelessWidget {
                     flex: 2,
                     child: Text(
                       product.category,
-                      style: theme.textTheme.muted.copyWith(fontSize: 12),
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 12,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 1,
                     child: Text(
                       '₹${product.price.toStringAsFixed(0)}',
-                      style: theme.textTheme.p.copyWith(fontSize: 12),
+                      style: theme.textTheme.p.copyWith(
+                        fontSize: 12,
+                        color: theme.colorScheme.foreground,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 1,
                     child: Text(
                       '${product.stock}',
-                      style: theme.textTheme.p.copyWith(fontSize: 12),
+                      style: theme.textTheme.p.copyWith(
+                        fontSize: 12,
+                        color: theme.colorScheme.foreground,
+                      ),
                     ),
                   ),
                   Expanded(flex: 1, child: StatusBadge(status: product.status)),
@@ -487,6 +500,7 @@ class _OrdersTableSection extends StatelessWidget {
                       style: theme.textTheme.p.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
+                        color: theme.colorScheme.foreground,
                       ),
                     ),
                   ),
@@ -499,7 +513,10 @@ class _OrdersTableSection extends StatelessWidget {
                         Flexible(
                           child: Text(
                             order.customer,
-                            style: theme.textTheme.p.copyWith(fontSize: 12),
+                            style: theme.textTheme.p.copyWith(
+                              fontSize: 12,
+                              color: theme.colorScheme.foreground,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -510,7 +527,10 @@ class _OrdersTableSection extends StatelessWidget {
                     flex: 1,
                     child: Text(
                       '₹${order.amount.toStringAsFixed(0)}',
-                      style: theme.textTheme.p.copyWith(fontSize: 12),
+                      style: theme.textTheme.p.copyWith(
+                        fontSize: 12,
+                        color: theme.colorScheme.foreground,
+                      ),
                     ),
                   ),
                   Expanded(flex: 2, child: StatusBadge(status: order.status)),
@@ -518,7 +538,10 @@ class _OrdersTableSection extends StatelessWidget {
                     flex: 2,
                     child: Text(
                       order.date,
-                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 11,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 40),
@@ -563,12 +586,18 @@ class _AnalyticsPlaceholder extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Sales Chart Preview',
-                  style: theme.textTheme.muted.copyWith(fontSize: 14),
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 14,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Charts will render with your theme colors',
-                  style: theme.textTheme.muted.copyWith(fontSize: 11),
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 11,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
                 ),
               ],
             ),
@@ -628,12 +657,16 @@ class _ProductDetailMock extends StatelessWidget {
                       'Classic White Sneakers',
                       style: theme.textTheme.h3.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.foreground,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Footwear • SKU: SNK-001',
-                      style: theme.textTheme.muted.copyWith(fontSize: 12),
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 12,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -650,6 +683,7 @@ class _ProductDetailMock extends StatelessWidget {
                           '₹3,499',
                           style: theme.textTheme.muted.copyWith(
                             fontSize: 13,
+                            color: theme.colorScheme.mutedForeground,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
