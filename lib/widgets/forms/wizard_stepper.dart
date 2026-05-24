@@ -122,8 +122,6 @@ class _StepChip extends StatelessWidget {
     final theme = ShadTheme.of(context);
     final accent = isActive
         ? AppTheme.brand
-        : hasError
-        ? AppTheme.dangerColor
         : theme.colorScheme.mutedForeground;
 
     final chip = Padding(
@@ -135,27 +133,13 @@ class _StepChip extends StatelessWidget {
             height: 28,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isActive
-                  ? AppTheme.brand
-                  : hasError
-                  ? AppTheme.dangerColor.withValues(alpha: 0.1)
-                  : theme.colorScheme.background,
+              color: isActive ? AppTheme.brand : theme.colorScheme.background,
               border: Border.all(
-                color: isActive
-                    ? AppTheme.brand
-                    : hasError
-                    ? AppTheme.dangerColor
-                    : theme.colorScheme.border,
+                color: isActive ? AppTheme.brand : theme.colorScheme.border,
               ),
             ),
             child: Center(
-              child: hasError && !isActive
-                  ? Icon(
-                      LucideIcons.circleAlert,
-                      size: 14,
-                      color: AppTheme.dangerColor,
-                    )
-                  : isDone
+              child: isDone
                   ? Icon(
                       LucideIcons.check,
                       size: 14,
@@ -205,6 +189,15 @@ class _StepChip extends StatelessWidget {
               LucideIcons.lock,
               size: 11,
               color: theme.colorScheme.mutedForeground.withValues(alpha: 0.6),
+            ),
+          ],
+          // Error indicator on right side
+          if (hasError) ...[
+            const SizedBox(width: 6),
+            Icon(
+              LucideIcons.circleAlert,
+              size: 13,
+              color: AppTheme.dangerColor,
             ),
           ],
         ],

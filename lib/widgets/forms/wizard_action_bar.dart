@@ -40,11 +40,10 @@ class WizardActionBar extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24, bottom: 16),
       child: Row(
         children: [
-          // ─── Left: Cancel ─────────────────────────────────────────────
+          // ─── Left: Cancel + Save as draft ─────────────────────────────
           ShadButton.outline(onPressed: onCancel, child: const Text('Cancel')),
-          const Spacer(),
-          // ─── Right: Save as draft + Continue link + Submit ─────────────
           if (onSaveDraft != null) ...[
+            const SizedBox(width: 8),
             ShadButton.secondary(
               leading: isSavingDraft
                   ? const SizedBox(
@@ -59,8 +58,9 @@ class WizardActionBar extends StatelessWidget {
               onPressed: isSavingDraft ? null : onSaveDraft,
               child: Text(isSavingDraft ? 'Saving...' : 'Save as draft'),
             ),
-            const SizedBox(width: 8),
           ],
+          const Spacer(),
+          // ─── Right: Continue link + Submit ─────────────────────────────
           // Continue to next step link (shown when not on last step)
           if (!isLast && nextStepLabel != null) ...[
             TextButton(

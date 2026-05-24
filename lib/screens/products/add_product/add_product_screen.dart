@@ -18,7 +18,6 @@ import 'controller/add_product_form.dart';
 import 'steps/step_images.dart';
 import 'steps/step_info.dart';
 import 'steps/step_pricing.dart';
-import 'steps/step_review.dart';
 import 'steps/step_specs.dart';
 import 'steps/step_warranty.dart';
 
@@ -62,11 +61,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       subtitle: 'Coverage and service',
       icon: LucideIcons.shieldCheck,
     ),
-    WizardStep(
-      title: 'Review & publish',
-      subtitle: 'Final check',
-      icon: LucideIcons.checkCheck,
-    ),
   ];
 
   @override
@@ -94,8 +88,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void _go(int idx) {
     setState(() {
       _step = AddProductStep.values[idx];
-      // Clear error for this step when user visits it
-      _stepsWithErrors = Set.from(_stepsWithErrors)..remove(idx);
     });
   }
 
@@ -328,8 +320,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         return StepSpecs(form: _form);
       case AddProductStep.warranty:
         return StepWarranty(form: _form);
-      case AddProductStep.review:
-        return StepReview(form: _form);
     }
   }
 }

@@ -194,7 +194,7 @@ class AddProductForm {
 
 /// Each step in the wizard. Order here matches the visual order at the top
 /// of the page.
-enum AddProductStep { info, images, pricing, specs, warranty, review }
+enum AddProductStep { info, images, pricing, specs, warranty }
 
 extension AddProductStepX on AddProductStep {
   String get title {
@@ -209,8 +209,6 @@ extension AddProductStepX on AddProductStep {
         return 'Specifications';
       case AddProductStep.warranty:
         return 'Warranty';
-      case AddProductStep.review:
-        return 'Review & publish';
     }
   }
 
@@ -226,8 +224,6 @@ extension AddProductStepX on AddProductStep {
         return 'Material, weight, origin';
       case AddProductStep.warranty:
         return 'Coverage and service';
-      case AddProductStep.review:
-        return 'Final check';
     }
   }
 }
