@@ -5,13 +5,9 @@ import '../../core/theme/app_theme.dart';
 
 /// Bottom action bar used by every wizard.
 ///
-/// Layout
-/// ──────
-/// **Left**   – Cancel (always present, neutral outline button)
-/// **Right**  – optional Save as draft + Next/Submit
-///
-/// The bar renders inline (no fixed positioning) so it sits at the end
-/// of the page content and scrolls with everything else.
+/// Layout:
+/// **Left**  – Cancel
+/// **Right** – Submit button + "Continue to [next step]" text link
 class WizardActionBar extends StatelessWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onSaveDraft;
@@ -22,6 +18,7 @@ class WizardActionBar extends StatelessWidget {
   final bool isSavingDraft;
   final String submitLabel;
   final IconData submitIcon;
+  final String? nextStepLabel;
 
   const WizardActionBar({
     super.key,
@@ -34,6 +31,7 @@ class WizardActionBar extends StatelessWidget {
     this.isSavingDraft = false,
     this.submitLabel = 'Submit',
     this.submitIcon = LucideIcons.check,
+    this.nextStepLabel,
   });
 
   @override
@@ -45,7 +43,7 @@ class WizardActionBar extends StatelessWidget {
           // ─── Left: Cancel ─────────────────────────────────────────────
           ShadButton.outline(onPressed: onCancel, child: const Text('Cancel')),
           const Spacer(),
-          // ─── Right: Save as draft + Next/Submit ───────────────────────
+          // ─── Right: Save as draft + Continue link + Submit ─────────────
           if (onSaveDraft != null) ...[
             ShadButton.secondary(
               leading: isSavingDraft
@@ -63,36 +61,40 @@ class WizardActionBar extends StatelessWidget {
             ),
             const SizedBox(width: 8),
           ],
-          if (!isLast)
-            ShadButton(
-              backgroundColor: AppTheme.brand,
-              trailing: const Icon(
-                LucideIcons.arrowRight,
-                size: 14,
-                color: Colors.white,
-              ),
+          // Continue to next step link (shown when not on last step)
+          if (!isLast && nextStepLabel != null) ...[
+            TextButton(
               onPressed: onNext,
-              child: const Text('Next', style: TextStyle(color: Colors.white)),
-            )
-          else
-            ShadButton(
-              backgroundColor: AppTheme.brand,
-              leading: isSubmitting
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Icon(submitIcon, size: 14, color: Colors.white),
-              onPressed: isSubmitting ? null : onSubmit,
               child: Text(
-                isSubmitting ? 'Submitting...' : submitLabel,
-                style: const TextStyle(color: Colors.white),
+                'Continue to $nextStepLabel →',
+                style: TextStyle(
+                  color: AppTheme.brand,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
+            const SizedBox(width: 12),
+          ],
+          // Submit button (always visible)
+          ShadButton(
+            backgroundColor: AppTheme.brand,
+            leading: isSubmitting
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Icon(submitIcon, size: 14, color: Colors.white),
+            onPressed: isSubmitting ? null : onSubmit,
+            child: Text(
+              isSubmitting ? 'Submitting...' : submitLabel,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
         ],
       ),
     );

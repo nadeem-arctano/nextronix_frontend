@@ -38,12 +38,16 @@ class WizardStepper extends StatelessWidget {
   /// regardless of what this returns.
   final bool Function(int index)? canTap;
 
+  /// Set of step indices that have validation errors (shown with red indicator).
+  final Set<int> errorSteps;
+
   const WizardStepper({
     super.key,
     required this.steps,
     required this.currentIndex,
     required this.onTap,
     this.canTap,
+    this.errorSteps = const {},
   });
 
   @override
@@ -73,6 +77,7 @@ class WizardStepper extends StatelessWidget {
                 number: idx + 1,
                 isActive: idx == currentIndex,
                 isDone: idx < currentIndex,
+                hasError: errorSteps.contains(idx),
                 tappable: tappable,
                 onTap: tappable ? () => onTap(idx) : null,
               ),
@@ -98,6 +103,7 @@ class _StepChip extends StatelessWidget {
   final int number;
   final bool isActive;
   final bool isDone;
+  final bool hasError;
   final bool tappable;
   final VoidCallback? onTap;
 
@@ -106,6 +112,7 @@ class _StepChip extends StatelessWidget {
     required this.number,
     required this.isActive,
     required this.isDone,
+    required this.hasError,
     required this.tappable,
     required this.onTap,
   });
@@ -115,8 +122,8 @@ class _StepChip extends StatelessWidget {
     final theme = ShadTheme.of(context);
     final accent = isActive
         ? AppTheme.brand
-        : isDone
-        ? AppTheme.successColor
+        : hasError
+        ? AppTheme.dangerColor
         : theme.colorScheme.mutedForeground;
 
     final chip = Padding(
@@ -130,20 +137,30 @@ class _StepChip extends StatelessWidget {
               shape: BoxShape.circle,
               color: isActive
                   ? AppTheme.brand
-                  : isDone
-                  ? AppTheme.successColor
+                  : hasError
+                  ? AppTheme.dangerColor.withValues(alpha: 0.1)
                   : theme.colorScheme.background,
               border: Border.all(
                 color: isActive
                     ? AppTheme.brand
-                    : isDone
-                    ? AppTheme.successColor
+                    : hasError
+                    ? AppTheme.dangerColor
                     : theme.colorScheme.border,
               ),
             ),
             child: Center(
-              child: isDone
-                  ? const Icon(LucideIcons.check, size: 14, color: Colors.white)
+              child: hasError && !isActive
+                  ? Icon(
+                      LucideIcons.circleAlert,
+                      size: 14,
+                      color: AppTheme.dangerColor,
+                    )
+                  : isDone
+                  ? Icon(
+                      LucideIcons.check,
+                      size: 14,
+                      color: theme.colorScheme.mutedForeground,
+                    )
                   : Icon(
                       step.icon,
                       size: 13,

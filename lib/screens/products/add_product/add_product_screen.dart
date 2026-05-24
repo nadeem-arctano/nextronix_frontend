@@ -34,6 +34,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   AddProductStep _step = AddProductStep.info;
   bool _isSubmitting = false;
   bool _isSavingDraft = false;
+  Set<int> _stepsWithErrors = {};
 
   static const _stepperSteps = [
     WizardStep(
@@ -91,31 +92,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
   /// future steps all switch instantly. Validation only runs when the user
   /// presses Next or Submit so red errors don't surface from poking around.
   void _go(int idx) {
-    setState(() => _step = AddProductStep.values[idx]);
-  }
-
-  bool _validateCurrent() {
-    switch (_step) {
-      case AddProductStep.info:
-        return (_form.infoKey.currentState?.validate() ?? false) &&
-            _form.categoryId != null;
-      case AddProductStep.pricing:
-        return _form.pricingKey.currentState?.validate() ?? false;
-      case AddProductStep.images:
-      case AddProductStep.specs:
-      case AddProductStep.warranty:
-      case AddProductStep.review:
-        return true;
-    }
+    setState(() {
+      _step = AddProductStep.values[idx];
+      // Clear error for this step when user visits it
+      _stepsWithErrors = Set.from(_stepsWithErrors)..remove(idx);
+    });
   }
 
   void _next() {
-    if (!_validateCurrent()) {
-      if (_step == AddProductStep.info && _form.categoryId == null) {
-        ToastService.warning(context, 'Pick a category to continue');
-      }
-      return;
-    }
+    // Just move to next step — no validation on continue
     final i = _step.index;
     if (i < AddProductStep.values.length - 1) _go(i + 1);
   }
@@ -156,13 +141,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   // ─── Submit ──────────────────────────────────────────────────────────────
   Future<void> _submit() async {
-    if (_form.categoryId == null) {
-      ToastService.warning(context, 'Category is required');
-      _go(AddProductStep.info.index);
-      return;
-    }
-    if (!(_form.pricingKey.currentState?.validate() ?? false)) {
-      _go(AddProductStep.pricing.index);
+    // Validate ALL steps and collect error indices
+    final errors = <int>{};
+
+    // Step 0: Info
+    final infoValid =
+        (_form.infoKey.currentState?.validate() ?? false) &&
+        _form.categoryId != null;
+    if (!infoValid) errors.add(0);
+
+    // Step 2: Pricing
+    final pricingValid = _form.pricingKey.currentState?.validate() ?? false;
+    if (!pricingValid) errors.add(2);
+
+    setState(() => _stepsWithErrors = errors);
+
+    if (errors.isNotEmpty) {
+      // Stay on current step, just show errors on stepper
       return;
     }
 
@@ -254,6 +249,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             steps: _stepperSteps,
             currentIndex: _step.index,
             onTap: _go,
+            errorSteps: _stepsWithErrors,
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -278,6 +274,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         isSavingDraft: _isSavingDraft,
                         submitLabel: 'Submit',
                         submitIcon: LucideIcons.check,
+                        nextStepLabel: isLast
+                            ? null
+                            : _stepperSteps[_step.index + 1].title,
                       ),
                     ],
                   ),

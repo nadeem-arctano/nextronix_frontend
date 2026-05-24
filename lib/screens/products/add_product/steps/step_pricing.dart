@@ -62,16 +62,6 @@ class _StepPricingState extends State<StepPricing> {
                       ]),
                     ),
                   ),
-                  FormFieldBlock(
-                    label: 'GST %',
-                    child: ShadTextInput(
-                      controller: form.gst,
-                      hint: '18',
-                      suffix: '%',
-                      keyboardType: TextInputType.number,
-                      validator: Validators.number(min: 0, max: 100),
-                    ),
-                  ),
                 ],
               ),
               DiscountPreviewBanner(
@@ -88,21 +78,29 @@ class _StepPricingState extends State<StepPricing> {
                 children: [
                   FormFieldBlock(
                     label: 'Stock quantity',
+                    required: true,
                     child: ShadTextInput(
                       controller: form.stock,
                       hint: '0',
                       keyboardType: TextInputType.number,
-                      validator: Validators.integer(min: 0),
+                      validator: Validators.combine([
+                        Validators.required('Stock quantity is required'),
+                        Validators.integer(min: 0),
+                      ]),
                     ),
                   ),
                   FormFieldBlock(
                     label: 'Low-stock alert',
+                    required: true,
                     hint: 'Notify when stock drops to or below this value.',
                     child: ShadTextInput(
                       controller: form.minStock,
                       hint: '5',
                       keyboardType: TextInputType.number,
-                      validator: Validators.integer(min: 0),
+                      validator: Validators.combine([
+                        Validators.required('Low-stock alert is required'),
+                        Validators.integer(min: 0),
+                      ]),
                     ),
                   ),
                 ],
