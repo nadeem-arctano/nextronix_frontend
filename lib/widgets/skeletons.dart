@@ -177,20 +177,30 @@ class CardSkeleton extends StatelessWidget {
         height: height,
         child: Padding(
           padding: padding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SkeletonBar(width: 160, height: 14),
-              const SizedBox(height: 16),
-              for (int i = 0; i < lines; i++) ...[
-                SkeletonBar(
-                  width: i.isEven ? double.infinity : 240,
-                  height: 10,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SkeletonBar(width: 160, height: 14),
+                      const SizedBox(height: 16),
+                      for (int i = 0; i < lines; i++) ...[
+                        SkeletonBar(
+                          width: i.isEven ? double.infinity : 240,
+                          height: 10,
+                        ),
+                        if (i < lines - 1) const SizedBox(height: 10),
+                      ],
+                    ],
+                  ),
                 ),
-                if (i < lines - 1) const SizedBox(height: 10),
-              ],
-            ],
+              );
+            },
           ),
         ),
       ),
